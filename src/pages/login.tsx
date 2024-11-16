@@ -4,7 +4,7 @@ import axios from "axios";
 import { server } from "@/utils/axios";
 
 const rest_api_key = import.meta.env.VITE_REST_API_KEY; //REST API KEY
-const redirect_uri = "http://43.203.36.37/auth/kakao/redirect"; //Redirect URI
+const redirect_uri = import.meta.env.VITE_BASE_URL + "/auth/kakao/redirect"; //Redirect URI
 const clientSecret = import.meta.env.VITE_CLIENT_SECRET;
 
 export const Login = () => {
