@@ -1,5 +1,5 @@
 ### API REFERENCE
-http://3.35.98.18/api-reference
+[http://54.180.29.36/api-reference](http://3.35.98.18/swagger-ui/index.html)
 
 ### branch 전략
 1. 요구사항에 대한 issue 생성

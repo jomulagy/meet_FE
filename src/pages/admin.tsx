@@ -8,6 +8,7 @@ type User = {
   id: string;
   name: string;
   email: string;
+  deposit : string;
   previllege: string;
   uuid: string;
   isFirst: string;

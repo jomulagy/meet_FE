@@ -37,7 +37,7 @@ const FooterNav: React.FC = () => {
         className={`flex flex-col items-center cursor-pointer ${
           activeTab === "my" ? "text-black" : "text-[#AEAEB2]"
         }`}
-        onClick={() => setActiveTab("my")}
+        onClick={() => handleTabClick("my", "/admin")}
       >
         <i className="fa-solid fa-user text-[24px] mb-1"></i>
         <span className="text-[10px]">ADMIN</span>
