@@ -38,9 +38,6 @@ const MeetCreate: React.FC = () => {
             return;
         }
 
-        // type을 체크박스 상태에 따라 설정
-        // const type = isDateTimeDisabled || isPlaceDisabled ? "Routine" : "CUSTOM";
-
         const payload = {
             title,
             type: "CUSTOM", 
