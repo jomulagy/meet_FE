@@ -46,7 +46,11 @@ const router: RouteObject[] = [
   {
     path: "/meet/join/:meetId",
     element: <Pages.JoinVotePage />,
-  } 
+  },
+  {
+    path: "/meet/create",
+    element: <Pages.MeetCreate />
+  }
 ];
 
 export default router;
