@@ -16,8 +16,10 @@ type MeetInfo = {
     editable: string;
   } | null;
   place: {
-    value: string;
+    name: string;
     editable: string;
+    xpos: number;
+    ypos: number;
   } | null;
   isAuthor: string;
   participantsNum: string;
@@ -99,7 +101,6 @@ const MeetDetail: React.FC = () => {
   useEffect(() => {
     
     if (placeVoteInfo && scheduleVoteInfo && participationInfo) {
-      console.log(placeVoteInfo, scheduleVoteInfo, participationInfo)
       const now = new Date();
       const placeVoteEndDate = placeVoteInfo?.endDate ? new Date(placeVoteInfo.endDate) : null;
       if (placeVoteEndDate) {
@@ -173,7 +174,7 @@ const MeetDetail: React.FC = () => {
           <p className="text-sm text-[#8E8E93]">시간</p>
           <p className="text-lg font-bold">{meetInfo.date?.time ? meetInfo.date.time : "시간 미정"}</p>
           <p className="text-sm text-[#8E8E93]">위치</p>
-          <p className="text-lg font-bold">{meetInfo.place?.value ? meetInfo.place.value : "장소 미정"}</p>
+          <p className="text-lg font-bold">{meetInfo.place?.name ? meetInfo.place.name : "장소 미정"}</p>
           <p className="text-sm text-[#8E8E93]">내용</p>
           <p className="text-lg font-bold">{meetInfo.content ? meetInfo.content : "내용 없음"}</p>
           <p className="text-xs text-[#8E8E93]">참여자</p>
