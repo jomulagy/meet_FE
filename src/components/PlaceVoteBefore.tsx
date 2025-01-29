@@ -86,7 +86,7 @@ const PlaceVoteBefore = ({
     handlePlaceChange(updatedList);
   };
 
-  const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
+  const handlePopupSelect = (location: { x: string | null; y: string | null; address: string }) => {
     server
       .post(`/meet/place/item`, {
         data: {

@@ -8,7 +8,7 @@ const MeetCreate: React.FC = () => {
     const [title, setTitle] = useState("");
     const [date, setDate] = useState("");
     const [time, setTime] = useState("");
-    const [place, setPlace] = useState<{ name: string; xPos: string; yPos: string }>({
+    const [place, setPlace] = useState<{ name: string; xPos: string | null; yPos: string | null }>({
         name: "",
         xPos: "",
         yPos: "",
@@ -72,7 +72,7 @@ const MeetCreate: React.FC = () => {
             });
     };
 
-    const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
+    const handlePopupSelect = (location: { x: string | null; y: string | null; address: string }) => {
         setPlace({
             name: location.address,
             xPos: location.x,

@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useMemo, CSSProperties } from "react";
+import React, { useState, useCallback, useMemo, CSSProperties, useEffect } from "react";
 import axios from "axios";
 
 interface Location {
-  x: string;
-  y: string;
+  x: string | null;
+  y: string | null;
   address: string;
 }
 
@@ -14,16 +14,9 @@ interface SearchPopupProps {
 }
 
 interface SearchResult {
-  x: string;
-  y: string;
+  x: string | null;
+  y: string | null;
   place_name: string;
-  category_name: string;
-  address_name: string;
-  road_address_name: string;
-  phone: string;
-  place_url: string;
-  distance: string;
-  category_group_code: string;
 }
 
 const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) => {
@@ -31,36 +24,46 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.trim();
-      setQuery(value);//input에 값이 들어가 있어야만 
+  const rest_api_key = import.meta.env.VITE_REST_API_KEY; //REST API KEY
 
+  // 입력이 변경될 때마다 300ms 후에 업데이트
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      handleChange(query);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler); // 이전 타이머를 제거 (입력이 멈출 때까지 대기)
+    };
+  }, [query]); // text 값이 변경될 때마다 실행됨
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value);
+  };
+
+  const handleChange = useCallback(
+    async (value: string) => {
       if (value) {
         try {
-          const response = await axios.get<{ documents: SearchResult[] }>(
-            `https://dapi.kakao.com/v2/local/search/keyword.json`,
-            {
-              headers: { Authorization: `KakaoAK ${import.meta.env.VITE_REST_API_KEY}` },
-              params: {
-                query: value,
-                radius: 1000, 
-              },
-            }
-          );
+          const subwayResults = await fetchSubwayStations(value);
+          const regionResults = await fetchRegions(value);
+          
+          // 중복 제거 후 합치기
+          const response = Array.from(new Set([...subwayResults, ...regionResults]));
 
-          if (response.data.documents.length === 0) {
-            // setError("검색 결과가 없습니다. 다른 검색어를 시도해주세요.");
+          if (response.length === 0) {
+            setError("검색 결과가 없습니다. 다른 검색어를 시도해주세요.");
+            setResults([]);
           } else {
-            setResults(response.data.documents);
+            setResults(response);
             setError(null);
           }
         } catch (err) {
-          console.error("API 호출 실패", err);
           setError("검색 중 문제가 발생했습니다. 다시 시도해주세요.");
         }
       } else {
         setResults([]);
+        setError(null);
       }
     },
     []
@@ -71,7 +74,6 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
       onSelect({
         x: result.x,
         y: result.y,
-        // address: result.address_name,
         address: result.place_name, //세부 주소 설정 시, result.address_name , 장소명 설정 시, result.place_name
       });
       onClose();
@@ -147,6 +149,87 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
     []
   );
 
+  // 🚇 지하철역 검색
+  const fetchSubwayStations = async (keyword: string): Promise<SearchResult[]> => {
+    const resultList: SearchResult[] = [];
+    var is_end = false;
+    for(var i = 0; i < 45; i++){
+      if(!is_end){
+        const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${keyword}&category_group_code=SW8&page=${i+1}`;
+        const response = await axios.get(
+          url,
+          {
+            headers: { Authorization: `KakaoAK ${rest_api_key}` },
+            params: {
+              query: keyword
+            },
+          }
+        );
+        resultList.push(...response.data.documents);
+
+        is_end = response.data.meta.is_end;
+      }
+    }
+
+    const filtered = resultList.filter((place) =>
+      place.place_name.includes(keyword)
+    );
+
+    return filtered;
+  };
+
+  // 📍 행정구역(구/시) 검색
+  const fetchRegions = async (keyword: string): Promise<SearchResult[]> => {
+    const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${keyword}`;
+    const response = await axios.get<{ documents: SearchResult[] }>(
+      url,
+      {
+        headers: { Authorization: `KakaoAK ${rest_api_key}` },
+        params: {
+          query: keyword
+        },
+      }
+    );
+
+    // 좌표로 구/시 정보 가져오기
+    const regionPromises = response.data.documents.map(async (doc: any) => {
+      const coordUrl = `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${doc.x}&y=${doc.y}`;
+      const regionResponse = await fetch(coordUrl, {
+        headers: { Authorization: `KakaoAK ${rest_api_key}` },
+      });
+      const regionData = await regionResponse.json();
+
+      const region = regionData.documents[0];
+      const region_2depth_name = region.region_1depth_name === "서울특별시"
+        ? region.region_2depth_name // 서울이면 "구"
+        : region.region_2depth_name.split(' ')[0]; // 서울이 아니면 "시"
+
+      // SearchResult 형식으로 반환
+      return {
+        place_name: region.region_1depth_name + " " + region_2depth_name,
+        x: null,
+        y: null,
+      };
+    });
+    const results = await Promise.all(regionPromises);
+    
+    // place_name을 기준으로 중복 제거
+    const uniqueResults = Array.from(
+      new Map(
+        results.map((result) => [
+          result.place_name, // place_name을 키로 사용
+          result, // 해당 항목을 값으로 사용
+        ])
+      ).values()
+    );
+    
+    const filtered = uniqueResults.filter((place) =>
+      place.place_name.includes(keyword)
+    );
+
+    return filtered;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -168,8 +251,6 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
               style={styles.resultItem}
             >
               <div><strong>장소명: </strong>{result.place_name}</div>
-              <div><strong>주소: </strong>{result.address_name}</div>
-              <div><strong>도로명 주소: </strong>{result.road_address_name}</div>
             </li>
           ))}
         </ul>

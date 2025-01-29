@@ -12,7 +12,7 @@ const MeetEdit: React.FC = () => {
   const [title, setTitle] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState<string>("");
-  const [place, setPlace] = useState<{ name: string; xPos: string; yPos: string }>({
+  const [place, setPlace] = useState<{ name: string; xPos: string | null; yPos: string | null}>({
     name: "", 
     xPos: "", 
     yPos: "",
@@ -90,11 +90,11 @@ const MeetEdit: React.FC = () => {
   };
 
   //장소선택
-  const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
+  const handlePopupSelect = (location: { x: string | null; y: string | null; address: string }) => {
     setPlace({
       name: location.address, //선택된 장소명
-      xPos: location.x, //xPos 값
-      yPos: location.y, //yPos 값 이렇게 하는 게 맞나?
+      xPos: location.x , //xPos 값
+      yPos: location.y , //yPos 값 이렇게 하는 게 맞나?
     });
     setIsPopupOpen(false);
   };
