@@ -53,10 +53,11 @@ const MeetCreate: React.FC = () => {
             .post("/meet", {
                 data: payload,
             })
-            .then(() => {
+            .then((response) => {
+                const createdId = response.data.id;
                 alert("만남이 생성되었습니다!");
-                navigate("/");
-            })
+                navigate(`/meet/${createdId}`);
+            })            
             .catch((error) => {
                 console.error(error);
                 if (error.code === "403") {

@@ -150,7 +150,7 @@ const MeetEdit: React.FC = () => {
 
           <div>
             <label className="block text-[13px] text-[#8E8E93] text-left">
-              장소
+              위치
             </label>
             <div className="flex items-center justify-between mt-2">
               <span

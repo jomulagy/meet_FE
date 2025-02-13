@@ -12,25 +12,25 @@ import { Meet } from "@/types/Meet";
 
 const VotePage = () => {
   const navigate = useNavigate();
-  const {meetId} = useParams();
-  const [meet, setMeet] = useState<Meet>({ meetTitle: '', endDate: '', isAuthor: '' });
+  const { meetId } = useParams();
+  const [meet, setMeet] = useState<Meet>({ meetTitle: '', endDate: '', isAuthor: '', place: null , date: null});
   const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
   const [placeList, setPlaceList] = useState<Place[]>([]);
   const [isScheduleVoted, setIsScheduleVoted] = useState<boolean>(false);
   const [isPlaceVoted, setIsPlaceVoted] = useState<boolean>(false);
   const [selectedScheduleIds, setSelectedScheduleIds] = useState<string[]>([]);
   const [selectedPlaceIds, setSelectedPlaceIds] = useState<string[]>([]);
-  
+
   // 페이지에 처음 로드될 때
   useEffect(() => {
     const fetchVote = async () => {
       await fetchMeet();
       await fetchScheduleVoteItems();
       await fetchPlaceVoteItems();
-    }
+    };
     fetchVote();
   }, [meetId]);
-  
+
   useEffect(() => {
     if (scheduleList.length > 0 && placeList.length > 0) {
       checkUserVotedBefore();
@@ -41,13 +41,16 @@ const VotePage = () => {
   const fetchMeet = () => {
     const fetchSchedule = server.get(`/meet/schedule?meetId=${meetId}`);
     const fetchPlace = server.get(`/meet/place?meetId=${meetId}`);
-  
-    Promise.all([fetchSchedule, fetchPlace])
-      .then(([scheduleResponse, placeResponse]) => {
+    const fetchMeetInfo = server.get(`/meet?meetId=${meetId}`);
+
+    Promise.all([fetchSchedule, fetchPlace, fetchMeetInfo])
+      .then(([scheduleResponse, placeResponse, meetResponse]) => {
         setMeet({
           meetTitle: scheduleResponse.data.meetTitle,
-          endDate: placeResponse.data.endDate,
-          isAuthor: placeResponse.data.isAuthor
+          endDate: scheduleResponse.data.endDate,
+          isAuthor: placeResponse.data.isAuthor,
+          place: meetResponse.data.place || null, 
+          date: meetResponse.data.date || null, // 장소가 없으면 null로 설정
         });
       })
       .catch((error) => {
@@ -59,7 +62,6 @@ const VotePage = () => {
         }
       });
   };
-  
 
   // 일정 투표 항목 조회
   const fetchScheduleVoteItems = async () => {
@@ -139,7 +141,7 @@ const VotePage = () => {
       })
       .then(() => {
         setIsScheduleVoted(true);
-  
+
         return server.put("/meet/place", {
           data: {
             meetId: meetId,
@@ -158,7 +160,7 @@ const VotePage = () => {
           navigate("/not-found");
         }
       });
-  };  
+  };
 
   // 다시 투표하기 버튼 클릭 핸들러
   const handleVoteAgain = async () => {
@@ -205,26 +207,24 @@ const VotePage = () => {
     >
       {/* 헤더 */}
       <div className="flex flex-col items-start m-8 mb-3">
-        <h1 className="text-2xl font-bold">
-          {meet.meetTitle}
-        </h1>
-
+        <h1 className="text-2xl font-bold">{meet.meetTitle}</h1>
+  
         <div className="flex items-center justify-between w-full">
           <span className="text-[13px] text-left text-[#8E8E93] w-1/2">
             투표 마감: {meet.endDate}
           </span>
-
+  
           {/* isAuthor가 true일 때만 수정, 삭제 버튼 표시 */}
           {meet.isAuthor && (
             <div className="flex space-x-2 mt-1">
               <button
-                onClick={handleEdit} 
+                onClick={handleEdit}
                 className="w-16 px-4 py-2 bg-[#FFE607] rounded-[24px] text-black text-sm font-bold"
               >
                 수정
               </button>
               <button
-                onClick={handleDelete} 
+                onClick={handleDelete}
                 className="w-16 px-4 py-2 bg-[#FF3B30] rounded-[24px] text-black text-sm font-bold"
               >
                 삭제
@@ -232,46 +232,47 @@ const VotePage = () => {
             </div>
           )}
         </div>
-        
       </div>
   
-      {/* 일정 투표 섹션 */}
-      <div className="bg-white rounded-[24px] space-y-2 p-6 m-6 mt-0">
-        {isScheduleVoted ? (
-          <ScheduleVoteAfter
-            scheduleList={scheduleList}
-            setIsVoted={setIsScheduleVoted}
-            fetchScheduleVoteItems={fetchScheduleVoteItems}
-          />
-        ) : (
-          <ScheduleVoteBefore
-            meetId={meetId || ""}
-            scheduleList={scheduleList}
-            setIsVoted={setIsScheduleVoted}
-            fetchScheduleVoteItems={fetchScheduleVoteItems}
-            handleScheduleChange={handleScheduleChange}
-            selectedScheduleIds={selectedScheduleIds}
-          />
-        )}
-      </div>
+      {/* 일정 투표 부분 */}
+      {meet.date?.time === null && meet.date?.value === null && (
+        <div className="bg-white rounded-[24px] space-y-2 p-6 m-6 mt-0">
+          {isScheduleVoted ? (
+            <ScheduleVoteAfter
+              scheduleList={scheduleList}
+              setIsVoted={setIsScheduleVoted}
+              fetchScheduleVoteItems={fetchScheduleVoteItems}
+            />
+          ) : (
+            <ScheduleVoteBefore
+              meetId={meetId || ""}
+              scheduleList={scheduleList}
+              setIsVoted={setIsScheduleVoted}
+              fetchScheduleVoteItems={fetchScheduleVoteItems}
+              handleScheduleChange={handleScheduleChange}
+              selectedScheduleIds={selectedScheduleIds}
+            />
+          )}
+        </div>
+      )}
   
-      {/* 장소 투표 섹션 */}
-      <div className="bg-white rounded-[24px] space-y-2 p-6 m-6 mt-0">
-        {isPlaceVoted ? (
-          <PlaceVoteAfter
-            placeList={placeList}
-          />
-        ) : (
-          <PlaceVoteBefore
-            meetId={meetId || ""}
-            placeList={placeList} 
-            setIsVoted={setIsPlaceVoted}
-            fetchPlaceVoteItems={fetchScheduleVoteItems}
-            handlePlaceChange={handlePlaceChange}
-            selectedPlaceIds={selectedPlaceIds} 
-          />
-        )}
-      </div>
+      {/* 장소 투표 부분: 장소가 없을 때만 표시 */}
+      {meet.place?.name === null && (
+        <div className="bg-white rounded-[24px] space-y-2 p-6 m-6 mt-0">
+          {isPlaceVoted ? (
+            <PlaceVoteAfter placeList={placeList} />
+          ) : (
+            <PlaceVoteBefore
+              meetId={meetId || ""}
+              placeList={placeList}
+              setIsVoted={setIsPlaceVoted}
+              fetchPlaceVoteItems={fetchPlaceVoteItems}
+              handlePlaceChange={handlePlaceChange}
+              selectedPlaceIds={selectedPlaceIds}
+            />
+          )}
+        </div>
+      )}
   
       {/* 투표하기 버튼/다시 투표하기 버튼 */}
       <button
@@ -281,11 +282,12 @@ const VotePage = () => {
       >
         {isScheduleVoted && isPlaceVoted ? "다시 투표하기" : "투표하기"}
       </button>
-
+  
       {/* 하단 네비게이션 바 */}
       <FooterNav />
     </div>
-  );  
+  );
+  
 };
 
 export default VotePage;

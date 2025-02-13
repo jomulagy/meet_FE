@@ -33,7 +33,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
 
   const handleInputChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.trim();
+      const value = e.target.value;
       setQuery(value);//input에 값이 들어가 있어야만 
 
       if (value) {
@@ -84,6 +84,8 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
     (e: React.MouseEvent) => {
       //클릭한 위치가 팝업 내부가 아니라면 팝업을 닫기
       if ((e.target as HTMLElement).closest(".popup")) return;
+      setQuery("");
+      setResults([]);
       onClose();
     },
     [onClose]
