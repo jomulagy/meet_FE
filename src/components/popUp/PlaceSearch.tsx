@@ -5,6 +5,7 @@ interface Location {
   x: string | null;
   y: string | null;
   address: string;
+  type: string;
 }
 
 interface SearchPopupProps {
@@ -17,6 +18,7 @@ interface SearchResult {
   x: string | null;
   y: string | null;
   place_name: string;
+  type: string;
 }
 
 const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) => {
@@ -75,6 +77,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
         x: result.x,
         y: result.y,
         address: result.place_name, //세부 주소 설정 시, result.address_name , 장소명 설정 시, result.place_name
+        type : result.type
       });
       onClose();
     },
@@ -171,9 +174,13 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
       }
     }
 
-    const filtered = resultList.filter((place) =>
-      place.place_name.includes(keyword)
-    );
+    const filtered = resultList
+    .filter((place) => place.place_name.includes(keyword))
+    .map((place) => ({
+      ...place,
+      type: "SUB",
+    }));
+
 
     return filtered;
   };
@@ -209,6 +216,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
         place_name: region.region_1depth_name + " " + region_2depth_name,
         x: null,
         y: null,
+        type: "CTY"
       };
     });
     const results = await Promise.all(regionPromises);

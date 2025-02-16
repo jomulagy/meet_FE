@@ -86,7 +86,7 @@ const PlaceVoteBefore = ({
     handlePlaceChange(updatedList);
   };
 
-  const handlePopupSelect = (location: { x: string | null; y: string | null; address: string }) => {
+  const handlePopupSelect = (location: { x: string | null; y: string | null; address: string; type: string }) => {
     server
       .post(`/meet/place/item`, {
         data: {
@@ -94,17 +94,18 @@ const PlaceVoteBefore = ({
           place: {
             name: location.address,  // API 문서에 맞게 'name' 사용
             xPos: location.x,        // 'xPos' 사용
-            yPos: location.y         // 'yPos' 사용
+            yPos: location.y,         // 'yPos' 사용
+            type: location.type
           },
         },
       })
       .then((response) => {
         const newPlaceItem: Place = {
           id: response.data.id,
-          place: location.address,  // 'place'는 여전히 장소 주소 사용
-          editable: "true",
-          isVote: "false",
-          memberList: [],
+          place: response.data.place,  // 'place'는 여전히 장소 주소 사용
+          editable: response.data.editable,
+          isVote: response.data.isVote,
+          memberList: response.data.memberList,
         };
   
         // 새로운 장소 리스트에 추가

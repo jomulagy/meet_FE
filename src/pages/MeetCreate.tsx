@@ -8,10 +8,11 @@ const MeetCreate: React.FC = () => {
     const [title, setTitle] = useState("");
     const [date, setDate] = useState("");
     const [time, setTime] = useState("");
-    const [place, setPlace] = useState<{ name: string; xPos: string | null; yPos: string | null }>({
+    const [place, setPlace] = useState<{ name: string; xPos: string | null; yPos: string | null; type: string }>({
         name: "",
         xPos: "",
         yPos: "",
+        type: ""
     }); // 장소 정보
     const [content, setContent] = useState("");
     const [isDateTimeDisabled, setIsDateTimeDisabled] = useState<boolean>(false);
@@ -72,11 +73,12 @@ const MeetCreate: React.FC = () => {
             });
     };
 
-    const handlePopupSelect = (location: { x: string | null; y: string | null; address: string }) => {
+    const handlePopupSelect = (location: { x: string | null; y: string | null; address: string; type: string }) => {
         setPlace({
             name: location.address,
             xPos: location.x,
             yPos: location.y,
+            type: location.type
         });
         setIsPopupOpen(false);
     };

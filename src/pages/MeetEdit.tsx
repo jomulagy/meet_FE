@@ -12,10 +12,11 @@ const MeetEdit: React.FC = () => {
   const [title, setTitle] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState<string>("");
-  const [place, setPlace] = useState<{ name: string; xPos: string | null; yPos: string | null}>({
+  const [place, setPlace] = useState<{ name: string; xPos: string | null; yPos: string | null, type: string}>({
     name: "", 
     xPos: "", 
     yPos: "",
+    type: ""
   }); // 선택된 장소
   const [content, setContent] = useState<string>("");
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false); // 팝업 상태
@@ -34,6 +35,7 @@ const MeetEdit: React.FC = () => {
             name: response.data.place?.name || "",
             xPos: response.data.place?.xPos || "",
             yPos: response.data.place?.yPos || "",
+            type : response.data.place?.type
           });
           setContent(response.data.content || "");
         })
@@ -90,11 +92,12 @@ const MeetEdit: React.FC = () => {
   };
 
   //장소선택
-  const handlePopupSelect = (location: { x: string | null; y: string | null; address: string }) => {
+  const handlePopupSelect = (location: { x: string | null; y: string | null; address: string, type: string }) => {
     setPlace({
       name: location.address, //선택된 장소명
       xPos: location.x , //xPos 값
       yPos: location.y , //yPos 값 이렇게 하는 게 맞나?
+      type : location.type
     });
     setIsPopupOpen(false);
   };
