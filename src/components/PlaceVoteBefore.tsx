@@ -159,12 +159,6 @@ const PlaceVoteBefore = ({
       <div className="flex justify-end">
         {!isAdding ? (
           <div className="space-x-2">
-            {/* <button
-              onClick={() => setIsAdding(true)}
-              className="text-[13px] text-[#8E8E93] bg-transparent p-0 mt-1"
-            >
-              <i className="fa-solid fa-plus"></i> 장소 추가 (입력)
-            </button> */}
             <button
               onClick={() => setIsPopupOpen(true)} // 팝업 열기
               className="text-[13px] text-[#8E8E93] bg-transparent p-0 mt-1"

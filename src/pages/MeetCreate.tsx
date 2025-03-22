@@ -39,9 +39,6 @@ const MeetCreate: React.FC = () => {
             return;
         }
 
-        // type을 체크박스 상태에 따라 설정
-        // const type = isDateTimeDisabled || isPlaceDisabled ? "Routine" : "CUSTOM";
-
         const payload = {
             title,
             type: "CUSTOM", 
@@ -57,10 +54,11 @@ const MeetCreate: React.FC = () => {
             .post("/meet", {
                 data: payload,
             })
-            .then(() => {
+            .then((response) => {
+                const createdId = response.data.id;
                 alert("만남이 생성되었습니다!");
-                navigate("/");
-            })
+                navigate(`/meet/${createdId}`);
+            })            
             .catch((error) => {
                 console.error(error);
                 if (error.code === "403") {

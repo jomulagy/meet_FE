@@ -26,6 +26,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+
   const rest_api_key = import.meta.env.VITE_REST_API_KEY; //REST API KEY
 
   // 입력이 변경될 때마다 300ms 후에 업데이트
@@ -89,6 +90,8 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
     (e: React.MouseEvent) => {
       //클릭한 위치가 팝업 내부가 아니라면 팝업을 닫기
       if ((e.target as HTMLElement).closest(".popup")) return;
+      setQuery("");
+      setResults([]);
       onClose();
     },
     [onClose]
