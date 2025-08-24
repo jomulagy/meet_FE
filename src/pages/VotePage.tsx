@@ -211,7 +211,7 @@ const VotePage = () => {
 
         <div className="flex items-center justify-between w-full">
           <span className="text-[13px] text-left text-[#8E8E93] w-1/2">
-            투표 마감: {meet.endDate}
+            투표 마감: {meet.endDate.slice(0, 10)}
           </span>
 
           {/* isAuthor가 true일 때만 수정, 삭제 버튼 표시 */}

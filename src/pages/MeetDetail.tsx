@@ -102,28 +102,13 @@ const MeetDetail: React.FC = () => {
       console.log(placeVoteInfo, scheduleVoteInfo, participationInfo)
       const now = new Date();
       const placeVoteEndDate = placeVoteInfo?.endDate ? new Date(placeVoteInfo.endDate) : null;
-      if (placeVoteEndDate) {
-        // 시간을 00:00으로 설정
-        placeVoteEndDate.setHours(0);
-        placeVoteEndDate.setMinutes(0);
-      }
       const scheduleVoteEndDate = scheduleVoteInfo?.endDate ? new Date(scheduleVoteInfo.endDate) : null;
-      if (scheduleVoteEndDate) {
-        // 시간을 00:00으로 설정
-        scheduleVoteEndDate.setHours(0);
-        scheduleVoteEndDate.setMinutes(0);
-      }
       const participationEndDate = participationInfo?.endDate ? new Date(participationInfo.endDate) : null;
-      if (participationEndDate) {
-        // 시간을 00:00으로 설정
-        participationEndDate.setHours(0);
-        participationEndDate.setMinutes(0);
-      }
       
-      if ((placeVoteEndDate && now < placeVoteEndDate) || (scheduleVoteEndDate && now < scheduleVoteEndDate)) {
+      if ((placeVoteEndDate && now.getTime() < placeVoteEndDate.getTime()) || (scheduleVoteEndDate && now.getTime() < scheduleVoteEndDate.getTime())) {
         navigate(`/meet/vote/${meetId}`);
         return;
-      } else if (participationEndDate && now < participationEndDate) {
+      } else if (participationEndDate && now.getTime() < participationEndDate.getTime()) {
         navigate(`/meet/join/${meetId}`);
         return;
       }
