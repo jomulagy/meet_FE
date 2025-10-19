@@ -5,7 +5,7 @@ import * as Pages from "@/pages";
 const router: RouteObject[] = [
   {
     path: "/",
-    element: <Pages.Dashboard />,
+    element: <Pages.Home />,
   },
   {
     path: "/admin",

@@ -6,7 +6,7 @@ import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import SearchPopup from "../components/popUp/PlaceSearch";
 
-// type VotePlace = { name: string; xPos: string; yPos: string };
+type VotePlace = { name: string; xPos: string; yPos: string };
 
 type VoteStep = "vote" | "deadline";
 type AdminTab = "member" | "vote";
@@ -33,7 +33,11 @@ const Admin = () => {
   const [voteTitle, setVoteTitle] = useState<string>("");
   const [voteDate, setVoteDate] = useState<string>("");
   const [voteTime, setVoteTime] = useState<string>("");
-  const [votePlace, setVotePlace] = useState<string>("");
+  const [votePlace, setVotePlace] = useState<VotePlace>({
+    name: "",
+    xPos: "",
+    yPos: "",
+  });
   const [voteContent, setVoteContent] = useState<string>("");
   const [voteDeadline, setVoteDeadline] = useState<string>("");
   const [participationDeadline, setParticipationDeadline] = useState<string>("");
@@ -181,7 +185,7 @@ const Admin = () => {
     setVoteTitle("");
     setVoteDate("");
     setVoteTime("");
-    setVotePlace("");
+    setVotePlace({ name: "", xPos: "", yPos: "" });
     setVoteContent("");
   };
 
@@ -224,7 +228,7 @@ const Admin = () => {
       title: voteTitle.trim(),
       date: voteDate || null,
       time: voteTime || null,
-      place: votePlace ? votePlace : null,
+      place: votePlace.name ? votePlace : null,
       content: voteContent,
       voteDeadline,
       participationDeadline,
@@ -264,7 +268,11 @@ const Admin = () => {
   };
 
   const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
-    setVotePlace(location.address);
+    setVotePlace({
+      name: location.address,
+      xPos: location.x,
+      yPos: location.y,
+    });
     setIsPopupOpen(false);
   };
 
@@ -311,16 +319,16 @@ const Admin = () => {
           <input
             type="text"
             readOnly
-            value={votePlace}
+            value={votePlace.name}
             onFocus={() => setIsPopupOpen(true)}
             onClick={() => setIsPopupOpen(true)}
             placeholder="장소를 선택해 주세요"
             className="w-full cursor-pointer rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold text-left focus:border-[#FFE607] focus:outline-none sm:text-lg"
           />
-          {votePlace && (
+          {votePlace.name && (
             <button
               type="button"
-              onClick={() => setVotePlace("")}
+              onClick={() => setVotePlace({ name: "", xPos: "", yPos: "" })}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] sm:text-sm"
             >
               초기화
@@ -345,7 +353,7 @@ const Admin = () => {
         <button
           type="button"
           onClick={resetVoteForm}
-          className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
+          className="rounded-[16px] bg-[#F3F4F6] px-5 py-3 text-xs font-semibold text-[#1F2937] transition-colors hover:bg-[#E5E7EB] sm:px-6 sm:text-sm"
         >
           초기화
         </button>
@@ -384,14 +392,14 @@ const Admin = () => {
         <button
           type="button"
           onClick={handlePreviousStep}
-          className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
+          className="rounded-[16px] bg-[#E3EEFF] px-5 py-3 text-xs font-semibold text-[#1E3A8A] transition-colors hover:bg-[#D6E6FF] sm:px-6 sm:text-sm"
         >
           이전
         </button>
         <button
           type="button"
           onClick={resetDeadlineForm}
-          className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
+          className="rounded-[16px] bg-[#FDF2E9] px-5 py-3 text-xs font-semibold text-[#9A3412] transition-colors hover:bg-[#FCE8D7] sm:px-6 sm:text-sm"
         >
           초기화
         </button>
