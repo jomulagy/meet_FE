@@ -6,7 +6,7 @@ import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import SearchPopup from "../components/popUp/PlaceSearch";
 
-type VotePlace = { name: string; xPos: string; yPos: string };
+// type VotePlace = { name: string; xPos: string; yPos: string };
 
 type VoteStep = "vote" | "deadline";
 type AdminTab = "member" | "vote";
@@ -33,11 +33,7 @@ const Admin = () => {
   const [voteTitle, setVoteTitle] = useState<string>("");
   const [voteDate, setVoteDate] = useState<string>("");
   const [voteTime, setVoteTime] = useState<string>("");
-  const [votePlace, setVotePlace] = useState<VotePlace>({
-    name: "",
-    xPos: "",
-    yPos: "",
-  });
+  const [votePlace, setVotePlace] = useState<string>("");
   const [voteContent, setVoteContent] = useState<string>("");
   const [voteDeadline, setVoteDeadline] = useState<string>("");
   const [participationDeadline, setParticipationDeadline] = useState<string>("");
@@ -185,7 +181,7 @@ const Admin = () => {
     setVoteTitle("");
     setVoteDate("");
     setVoteTime("");
-    setVotePlace({ name: "", xPos: "", yPos: "" });
+    setVotePlace("");
     setVoteContent("");
   };
 
@@ -228,7 +224,7 @@ const Admin = () => {
       title: voteTitle.trim(),
       date: voteDate || null,
       time: voteTime || null,
-      place: votePlace.name ? votePlace : null,
+      place: votePlace ? votePlace : null,
       content: voteContent,
       voteDeadline,
       participationDeadline,
@@ -268,11 +264,7 @@ const Admin = () => {
   };
 
   const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
-    setVotePlace({
-      name: location.address,
-      xPos: location.x,
-      yPos: location.y,
-    });
+    setVotePlace(location.address);
     setIsPopupOpen(false);
   };
 
@@ -319,16 +311,16 @@ const Admin = () => {
           <input
             type="text"
             readOnly
-            value={votePlace.name}
+            value={votePlace}
             onFocus={() => setIsPopupOpen(true)}
             onClick={() => setIsPopupOpen(true)}
             placeholder="장소를 선택해 주세요"
             className="w-full cursor-pointer rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold text-left focus:border-[#FFE607] focus:outline-none sm:text-lg"
           />
-          {votePlace.name && (
+          {votePlace && (
             <button
               type="button"
-              onClick={() => setVotePlace({ name: "", xPos: "", yPos: "" })}
+              onClick={() => setVotePlace("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] sm:text-sm"
             >
               초기화
