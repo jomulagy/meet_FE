@@ -10,12 +10,10 @@ export const Home: React.FC = () => {
       style={{ paddingBottom: "80px" }}
     >
       <header className="px-6 pt-10 pb-6">
-        <span className="text-[12px] font-semibold uppercase tracking-[0.35em] text-[#6E5BFF]">
+        <span className="text-[18px] font-extrabold uppercase tracking-[0.3em] text-[#6E5BFF]">
           변색모
         </span>
-        <h1 className="mt-3 text-[26px] font-bold leading-[1.2] text-[#1C1C1E]">
-          친구들과 쉽게 의견을 모으고
-          <br />
+        <h1 className="mt-2 text-[26px] font-bold leading-[1.2] text-[#1C1C1E]">
           최고의 만남을 완성하세요
         </h1>
         <p className="mt-3 text-[13px] text-[#636366]">

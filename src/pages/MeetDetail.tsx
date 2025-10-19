@@ -198,7 +198,7 @@ const MeetDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#F2F2F7]" style={{ paddingBottom: "80px" }}>
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#5E5CE6] via-[#7A6CFF] to-[#A68BFF] px-6 pb-24 pt-14 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#5E5CE6] via-[#7A6CFF] to-[#A68BFF] px-6 pb-14 pt-10 text-white">
         <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wide">모임 정보</span>
         <h1 className="mt-3 text-[24px] font-bold leading-tight">{meetInfo.title}</h1>
         <p className="mt-2 text-[13px] text-white/80">
@@ -206,7 +206,7 @@ const MeetDetail: React.FC = () => {
         </p>
       </div>
 
-      <main className="-mt-16 flex-1 px-6 pb-10">
+      <main className="-mt-6 flex-1 px-6 pb-10">
         <section className="rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
           <h2 className="text-[15px] font-semibold text-[#1C1C1E]">기본 정보</h2>
           <div className="mt-5 flex flex-col gap-4">

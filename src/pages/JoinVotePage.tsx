@@ -203,7 +203,7 @@ const JoinVotePage = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#F2F2F7]" style={{ paddingBottom: "90px" }}>
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#5E5CE6] via-[#7A6CFF] to-[#A68BFF] px-6 pb-24 pt-14 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#5E5CE6] via-[#7A6CFF] to-[#A68BFF] px-6 pb-14 pt-10 text-white">
         <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wide">참여 투표</span>
         <h1 className="mt-3 text-[24px] font-bold leading-tight">{meet.meetTitle}</h1>
         <p className="mt-2 text-[13px] text-white/80">함께할 의사를 알려주세요.</p>
@@ -225,7 +225,7 @@ const JoinVotePage = () => {
         )}
       </div>
 
-      <main className="-mt-16 flex-1 px-6 pb-10">
+      <main className="-mt-6 flex-1 px-6 pb-10">
         <section className="rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
           <div className="flex items-start gap-4">
             <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-[#EEF1FF]">
