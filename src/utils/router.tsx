@@ -5,7 +5,7 @@ import * as Pages from "@/pages";
 const router: RouteObject[] = [
   {
     path: "/",
-    element: <Pages.Dashboard />,
+    element: <Pages.Home />,
   },
   {
     path: "/admin",
@@ -46,7 +46,11 @@ const router: RouteObject[] = [
   {
     path: "/meet/join/:meetId",
     element: <Pages.JoinVotePage />,
-  } 
+  },
+  {
+    path: "/meet/create",
+    element: <Pages.MeetCreate />
+  }
 ];
 
 export default router;

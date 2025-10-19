@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
-import magnifier from "../assets/img/magnifier.png";
-import calender from "../assets/img/calender.png"
+import calender from "../assets/img/calender.png";
 
 type MeetInfo = {
   id: string;
@@ -15,67 +14,93 @@ type MeetInfo = {
 const MeetList: React.FC = () => {
   const [meetList, setMeetList] = useState<MeetInfo[]>([]);
   const navigate = useNavigate();
+  const hasMeetings = useMemo(() => meetList.length > 0, [meetList]);
 
   useEffect(() => {
     const fetchMeetList = async () => {
-      server.get(`/meet/list`)
-        .then((response) => {
-          setMeetList(response.data);
-        })
-        .catch((error) => {
-          console.error(error)
-          navigate("/not-found");
-        });
+        server
+          .get(`/meet/list`)
+          .then((response) => {
+            setMeetList(response.data);
+          })
+          .catch((error) => {
+            console.error(error);
+            navigate("/not-found");
+          });
     };
   
     fetchMeetList();
   }, [navigate]);
 
   return (
-    <div 
-      className="className=min-h-screen w-full flex flex-col"
+    <div
+      className="min-h-screen w-full flex flex-col"
       style={{ backgroundColor: "#F2F2F7", paddingBottom: "80px" }}
-    > 
-    <div className="m-8">
-      <div className="flex flex-col items-center justify-center h-[194px] bg-white rounded-[23px] space-y-2">
-        <img src={magnifier} className="w-[69px] h-[69px]"></img>
-        <h1 className="text-[20px] font-bold text-black">
-          지금 참여할 모임을 찾아보세요
-        </h1>
-        <p className="text-[12px] text-[#8E8E93]">
-          즐거운 시간을 보낼 기회를 놓치지 마세요!
-        </p>
-      </div>
-    
-      {/* 메인 콘텐츠 */}
-      <div> 
-      <p className="flex flex-row-reverse text-[12px] text-[#AEAEB2] mt-6 mb-2 mr-4">최신순</p>
-        <div className="flex flex-col items-center space-y-4">
-          {meetList.length > 0 ? (
-            meetList.map((meet) => (
-              <Link
-                to={`/meet/${meet.id}`}
-                key={meet.id}
-                className="w-full h-[86px] flex flex-row justify-around items-center bg-white rounded-[20px] p-3"
-                style={{ boxShadow: "1px 1px 10px 0 rgba(0, 0, 0, 0.05)" }}
-              >
-                <img src={calender} className="w-[28.3px] h-[25px]"></img>
-                <div className="w-[170px] flex flex-col items-start">
-                  <h2 className="text-[15px] font-bold text-black">{meet.title}</h2>
-                  <p className="text-[12px] text-[#AEAEB2]">{meet.date ? meet.date : "날짜 미정"}</p>
-                  <p className="text-[12px] text-[#AEAEB2]">{meet.place ? meet.place : "장소 미정"}</p>
-                </div>
-                <i className="fa-solid fa-chevron-right text-[20px] text-[#AEAEB2]"></i>
-              </Link>
-            ))
-          ) : (
-            <div>No meetings found.</div>
-          )}
-        </div>
-      </div>
-      </div>
+    >
+      <main className="flex-1 px-6 pt-8 pb-8">
+        <section className="mb-6 flex flex-col gap-1 text-[#1C1C1E]">
+          <h1 className="text-[20px] font-bold">모임 목록</h1>
+          <p className="text-[12px] text-[#8E8E93]">
+            참여 가능한 모임을 확인하고 원하는 모임을 선택하세요.
+          </p>
+        </section>
 
-      {/* 하단 네비게이션 바 */}
+        <section>
+          <div className="mb-4 flex items-center justify-between text-[#8E8E93]">
+            <span className="text-[12px] font-medium">총 {meetList.length}개</span>
+            <span className="text-[12px] font-medium">최신순</span>
+          </div>
+          {hasMeetings ? (
+            <ul className="flex flex-col gap-4">
+              {meetList.map((meet) => (
+                <li key={meet.id}>
+                  <Link
+                    to={`/meet/${meet.id}`}
+                    className="group flex w-full items-center justify-between gap-4 rounded-[22px] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(26,26,26,0.08)] transition-all duration-200 hover:shadow-[0_12px_30px_rgba(26,26,26,0.12)]"
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F2F2F7] text-[#5856D6]">
+                        <img
+                          src={calender}
+                          alt="달력"
+                          className="h-6 w-6"
+                        />
+                      </span>
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-[15px] font-semibold text-[#1C1C1E] group-hover:text-[#5856D6]">
+                          {meet.title}
+                        </h3>
+                        <div className="flex flex-col text-[12px] text-[#8E8E93]">
+                          <span>
+                            {meet.date && meet.date.trim().length > 0
+                              ? meet.date
+                              : "날짜 미정"}
+                          </span>
+                          <span>
+                            {meet.place && meet.place.trim().length > 0
+                              ? meet.place
+                              : "장소 미정"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <i className="fa-solid fa-chevron-right text-[18px] text-[#AEAEB2] transition-colors group-hover:text-[#5856D6]"></i>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-[22px] bg-white px-6 py-10 text-center text-[#8E8E93] shadow-inner">
+              <i className="fa-regular fa-calendar-plus mb-3 text-4xl"></i>
+              <p className="text-[14px] font-medium">아직 참여 가능한 모임이 없어요.</p>
+              <p className="mt-1 text-[12px] text-[#AEAEB2]">
+                새롭게 등록되는 모임을 기다려주세요!
+              </p>
+            </div>
+          )}
+        </section>
+      </main>
+
       <FooterNav />
     </div>
   );

@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import { Place } from "@/types/PlaceVote";
+import SearchPopup from "./popUp/PlaceSearch"; // 팝업 컴포넌트
 
 type PlaceVoteBeforeProps = {
-  meetId: string;
+  meetId: string;//모임 Id
   placeList: Place[];
-  setIsVoted: (value: boolean) => void; // 투표 여부 상태 업데이트 함수
-  fetchPlaceVoteItems: () => void; // 장소 목록을 새로 가져오는 함수 
-  handlePlaceChange: (placeIds: string[]) => void; // 장소 변경 핸들러
-  selectedPlaceIds: string[];
+  setIsVoted: (value: boolean) => void;
+  fetchPlaceVoteItems: () => void;
+  handlePlaceChange: (placeIds: string[]) => void;
+  selectedPlaceIds: string[];//선택된 장소 리스트
 };
 
 const PlaceVoteBefore = ({
@@ -21,34 +22,23 @@ const PlaceVoteBefore = ({
   const [places, setPlaces] = useState<Place[]>(placeList);
   const [newPlace, setNewPlace] = useState<string>("");
   const [isAdding, setIsAdding] = useState<boolean>(false);
-  // const [selectedItemIdList, setSelectedItemIdList] = useState<string[]>([]);
+  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false); // 팝업 상태
   const navigate = useNavigate();
 
-  // 컴포넌트 마운트 시 초기 장소 목록 설정
   useEffect(() => {
     setPlaces(placeList);
   }, [placeList]);
 
-  // 장소가 변경될 때 선택된 장소 목록을 업데이트
-  // useEffect(() => {
-  //   const updatedSelectedItemIdList = places
-  //     .filter((place) => place.isVote === "true")
-  //     .map((place) => place.id);
-  //   setSelectedItemIdList(updatedSelectedItemIdList);
-  // }, [places]);
-
-  // 새로운 장소 입력 상태 관리 함수
   const handleNewPlaceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNewPlace(event.target.value); // 입력된 장소 업데이트
+    setNewPlace(event.target.value);
   };
 
-  // 장소 추가 함수
   const handleAddPlace = async () => {
     server
       .post(`/meet/place/item`, {
         data: {
-          meetId: meetId,
-          place: newPlace,
+          meetId: meetId,//모임Id
+          place: newPlace,//입력된 장소명
         },
       })
       .then((response) => {
@@ -61,7 +51,7 @@ const PlaceVoteBefore = ({
         };
 
         setPlaces((prevPlaces) => [...prevPlaces, newPlaceItem]);
-        setNewPlace(""); 
+        setNewPlace("");
         setIsAdding(false);
       })
       .catch((error) => {
@@ -73,7 +63,6 @@ const PlaceVoteBefore = ({
       });
   };
 
-  // 장소 삭제 함수
   const handleRemovePlace = (id: string) => {
     server
       .delete(`/meet/place/item?placeVoteItemId=${id}`)
@@ -89,53 +78,89 @@ const PlaceVoteBefore = ({
       });
   };
 
-  // 체크박스 변경
   const handleCheckboxChange = (id: string, checked: boolean) => {
     const updatedList = checked
       ? [...selectedPlaceIds, id]
       : selectedPlaceIds.filter((itemId) => itemId !== id);
 
     handlePlaceChange(updatedList);
-  //   const updatedList = checked
-  //   ? [...selectedItemIdList, id]
-  //   : selectedItemIdList.filter((itemId) => itemId !== id);
-
-  // setSelectedItemIdList(updatedList);
-  // handlePlaceChange(updatedList);
   };
+
+  const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
+    server
+      .post(`/meet/place/item`, {
+        data: {
+          meetId: meetId,
+          place: location.address,  
+        },
+      })
+      .then((response) => {
+        const newPlaceItem: Place = {
+          id: response.data.id,
+          place: location.address,  // 'place'는 여전히 장소 주소 사용
+          editable: "true",
+          isVote: "false",
+          memberList: [],
+        };
+  
+        // 새로운 장소 리스트에 추가
+        setPlaces((prevPlaces) => [...prevPlaces, newPlaceItem]);
+  
+        // 부모 컴포넌트로 선택된 장소 id와 name 전달
+        handlePlaceChange([...selectedPlaceIds, newPlaceItem.id]);
+  
+        // 팝업 닫기
+        setIsPopupOpen(false);
+      })
+      .catch((error) => {
+        if (error.response) {
+          if (error.response.status === 403) {
+            navigate("/Unauthorized");
+          } else if (error.response.status === 404) {
+            navigate("/not-found");
+          }
+        } else {
+          console.error("Network error or timeout", error);
+        }
+      });
+  };
+  
+  
 
   return (
     <div className="flex flex-col h-full">
       <div className="overflow-y-auto flex-grow">
-      {places.map((place) => (
-        <div key={place.id} className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={selectedPlaceIds.includes(place.id)}
-              onChange={(e) => handleCheckboxChange(place.id, e.target.checked)}
-            />
-            <span>{place.place}</span> 
+        {places.map((place) => (
+          <div key={place.id} className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={selectedPlaceIds.includes(place.id)}
+                onChange={(e) => handleCheckboxChange(place.id, e.target.checked)}
+              />
+              <span>{place.place}</span>
+            </div>
+            {place.editable === "true" && (
+              <button
+                onClick={() => handleRemovePlace(place.id)}
+                className="text-[#8E8E93] bg-transparent p-0 mr-2"
+              >
+                <i className="fa-regular fa-trash-can"></i>
+              </button>
+            )}
           </div>
-          {place.editable === "true" && (
-            <button
-              onClick={() => handleRemovePlace(place.id)}
-              className="text-[#8E8E93] bg-transparent p-0 mr-2"
-            >
-              <i className="fa-regular fa-trash-can"></i>
-            </button>
-          )}
-        </div>
-      ))}
+        ))}
       </div>
       <div className="flex justify-end">
         {!isAdding ? (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="text-[13px] text-[#8E8E93] bg-transparent p-0 mt-1"
-          >
-            <i className="fa-solid fa-plus"></i> 장소 추가
-          </button>
+          <div className="space-x-2">
+            <button
+              onClick={() => setIsPopupOpen(true)} // 팝업 열기
+              className="text-[13px] text-[#8E8E93] bg-transparent p-0 mt-1"
+            >
+              <i className="fa-solid fa-search"></i> 장소 추가 (검색)
+            </button>
+          </div>
         ) : (
           <div className="space-y-2 w-full">
             <input
@@ -145,7 +170,6 @@ const PlaceVoteBefore = ({
               onChange={handleNewPlaceChange}
               className="border border-[#F2F2F7] rounded-lg px-2 py-1 w-full"
             />
-
             <div className="flex space-x-2">
               <button
                 onClick={() => setIsAdding(false)}
@@ -153,7 +177,6 @@ const PlaceVoteBefore = ({
               >
                 취소
               </button>
-
               <button
                 onClick={handleAddPlace}
                 className="bg-[#F2F2F7] rounded-lg px-4 py-2 text-black w-1/2"
@@ -164,6 +187,12 @@ const PlaceVoteBefore = ({
           </div>
         )}
       </div>
+      {/* 팝업 컴포넌트 추가 */}
+      <SearchPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)} // 팝업 닫기
+        onSelect={handlePopupSelect} // 장소 선택 핸들러
+      />
     </div>
   );
 };
