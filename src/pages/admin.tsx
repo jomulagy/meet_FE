@@ -185,10 +185,8 @@ const Admin = () => {
       date?: string;
       time?: string;
       place?: { name: string; xPos: string; yPos: string };
-      type: "CUSTOM";
     } = {
       title,
-      type: "CUSTOM",
     };
 
     if (content.trim()) {
@@ -365,10 +363,7 @@ const Admin = () => {
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
       <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-6 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
         <header className="text-left space-y-2 sm:space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8E8E93] sm:text-sm">
-            Admin Console
-          </p>
-          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">운영 도구 허브</h1>
+          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">ADMIN</h1>
           <p className="text-sm text-[#636366] sm:text-base">
             운영자 전용 기능을 한 곳에 모았습니다. 필요한 기능을 선택하고 바로 사용해 보세요.
           </p>
