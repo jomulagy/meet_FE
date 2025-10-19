@@ -13,9 +13,7 @@ export const Home: React.FC = () => {
         <span className="text-[18px] font-extrabold uppercase tracking-[0.3em] text-[#1E3A8A]">
           변색모
         </span>
-        <h1 className="mt-2 text-[26px] font-bold leading-[1.2] text-[#1C1C1E]">
-          최고의 모임을 완성하세요
-        </h1>
+
         <p className="mt-3 text-[13px] text-[#636366]">
           날짜와 장소, 참여 여부까지 한 곳에서 관리하는
           <br />

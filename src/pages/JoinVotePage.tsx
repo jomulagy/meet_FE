@@ -258,7 +258,6 @@ const JoinVotePage = () => {
             </div>
             <div className="flex flex-col gap-1">
               <h2 className="text-[18px] font-bold text-[#111827]">모임에 참여하시겠습니까?</h2>
-              <p className="text-[12px] text-[#6B7280]">투표 마감일 {meet.endDate}</p>
             </div>
           </div>
           <div className="mt-6">
