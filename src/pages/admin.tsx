@@ -235,9 +235,9 @@ const Admin = () => {
 
   const renderPermissionSection = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-[24px] p-6 shadow-sm">
-        <h2 className="text-xl font-semibold mb-4 text-left">멤버 권한 관리</h2>
-        <p className="text-sm text-[#8E8E93] mb-6 text-left">
+      <div className="bg-white rounded-[24px] p-5 shadow-sm sm:p-6">
+        <h2 className="mb-3 text-left text-lg font-semibold sm:mb-4 sm:text-xl">멤버 권한 관리</h2>
+        <p className="mb-5 text-left text-xs text-[#8E8E93] sm:mb-6 sm:text-sm">
           모임 운영진의 승인 여부를 손쉽게 관리할 수 있습니다.
         </p>
         <ul className="space-y-4">
@@ -258,54 +258,54 @@ const Admin = () => {
 
   const renderMeetCreateSection = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-[24px] p-6 shadow-sm">
-        <h2 className="text-xl font-semibold mb-4 text-left">새 모임 생성</h2>
-        <p className="text-sm text-[#8E8E93] mb-6 text-left">
+      <div className="bg-white rounded-[24px] p-5 shadow-sm sm:p-6">
+        <h2 className="mb-3 text-left text-lg font-semibold sm:mb-4 sm:text-xl">새 모임 생성</h2>
+        <p className="mb-5 text-left text-xs text-[#8E8E93] sm:mb-6 sm:text-sm">
           빠르게 모임을 등록하고 구성원에게 공유할 수 있습니다.
         </p>
         <form className="space-y-6" onSubmit={handleMeetCreate}>
           <div className="space-y-2 text-left">
-            <label className="text-sm text-[#8E8E93]">제목</label>
+            <label className="text-xs text-[#8E8E93] sm:text-sm">제목</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="모임 제목을 입력하세요"
-              className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-[18px] font-semibold focus:border-[#FFE607] focus:outline-none"
+              className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 text-left md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm text-[#8E8E93]">날짜 (선택)</label>
+              <label className="text-xs text-[#8E8E93] sm:text-sm">날짜 (선택)</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-[18px] font-semibold focus:border-[#FFE607] focus:outline-none"
+                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-[#8E8E93]">시간 (선택)</label>
+              <label className="text-xs text-[#8E8E93] sm:text-sm">시간 (선택)</label>
               <input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-[18px] font-semibold focus:border-[#FFE607] focus:outline-none"
+                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
               />
             </div>
           </div>
 
           <div className="space-y-2 text-left">
-            <label className="text-sm text-[#8E8E93]">장소 (선택)</label>
+            <label className="text-xs text-[#8E8E93] sm:text-sm">장소 (선택)</label>
             <div className="flex items-center justify-between rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3">
-              <span className={`text-[18px] font-semibold ${place.name ? "text-black" : "text-[#8E8E93]"}`}>
+              <span className={`text-base font-semibold sm:text-lg ${place.name ? "text-black" : "text-[#8E8E93]"}`}>
                 {place.name || "장소를 선택해 주세요"}
               </span>
               <button
                 type="button"
                 onClick={() => setIsPopupOpen(true)}
-                className="text-sm font-semibold text-[#3A3A3C]"
+                className="text-xs font-semibold text-[#3A3A3C] sm:text-sm"
               >
                 장소 검색
               </button>
@@ -313,28 +313,28 @@ const Admin = () => {
           </div>
 
           <div className="space-y-2 text-left">
-            <label className="text-sm text-[#8E8E93]">내용 (선택)</label>
+            <label className="text-xs text-[#8E8E93] sm:text-sm">내용 (선택)</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="모임에 대한 설명을 입력하세요"
               rows={4}
-              className="w-full resize-none rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-[16px] font-medium focus:border-[#FFE607] focus:outline-none"
+              className="w-full resize-none rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-medium focus:border-[#FFE607] focus:outline-none sm:text-base"
             />
           </div>
 
-          <div className="flex flex-col gap-3 pt-4 md:flex-row md:justify-end">
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={resetMeetForm}
-              className="rounded-[16px] border border-[#D1D1D6] px-6 py-3 text-sm font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7]"
+              className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
             >
               초기화
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-[16px] bg-[#FFE607] px-6 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-[16px] bg-[#FFE607] px-5 py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6 sm:text-sm"
             >
               {isSubmitting ? "생성 중..." : "모임 생성"}
             </button>
@@ -363,24 +363,24 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 pb-24 pt-10">
-        <header className="text-left">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#8E8E93]">
+      <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-6 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
+        <header className="text-left space-y-2 sm:space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8E8E93] sm:text-sm">
             Admin Console
           </p>
-          <h1 className="mt-2 text-3xl font-bold text-[#1C1C1E]">운영 도구 허브</h1>
-          <p className="mt-3 text-base text-[#636366]">
+          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">운영 도구 허브</h1>
+          <p className="text-sm text-[#636366] sm:text-base">
             운영자 전용 기능을 한 곳에 모았습니다. 필요한 기능을 선택하고 바로 사용해 보세요.
           </p>
         </header>
 
-        <nav className="flex flex-wrap gap-3">
+        <nav className="flex flex-wrap gap-2 sm:gap-3">
           {sections.map((section) => (
             <button
               key={section.id}
               type="button"
               onClick={() => setActiveSection(section.id)}
-              className={`rounded-[16px] px-5 py-3 text-sm font-semibold transition-colors ${
+              className={`rounded-[16px] px-4 py-2.5 text-xs font-semibold transition-colors sm:px-5 sm:py-3 sm:text-sm ${
                 activeSection === section.id
                   ? "bg-[#FFE607] text-black shadow-sm"
                   : "bg-white text-[#3A3A3C] hover:bg-[#F2F2F7]"
@@ -399,11 +399,11 @@ const Admin = () => {
 
         {!isLoading && activeSectionData && (
           <section className="space-y-4">
-            <div className="rounded-[24px] bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-left text-[#1C1C1E]">
+            <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-lg font-semibold text-left text-[#1C1C1E] sm:text-xl">
                 {activeSectionData.title}
               </h2>
-              <p className="mt-2 text-sm text-left text-[#636366]">
+              <p className="mt-2 text-xs text-left text-[#636366] sm:text-sm">
                 {activeSectionData.description}
               </p>
             </div>
