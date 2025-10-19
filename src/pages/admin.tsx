@@ -1,16 +1,32 @@
 import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import UserManage from "@/components/UserManage";
+import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import SearchPopup from "../components/popUp/PlaceSearch";
-import { server } from "@/utils/axios";
 
 type VotePlace = { name: string; xPos: string; yPos: string };
 
 type VoteStep = "vote" | "deadline";
+type AdminTab = "member" | "vote";
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  deposit: string;
+  previllege: string;
+  uuid: string;
+  isFirst: string;
+};
 
 const Admin = () => {
   const navigate = useNavigate();
   const [hasPrivilege, setHasPrivilege] = useState<boolean | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<AdminTab>("member");
+  const [users, setUsers] = useState<User[]>([]);
+  const [isFetchingUsers, setIsFetchingUsers] = useState<boolean>(false);
   const [activeStep, setActiveStep] = useState<VoteStep>("vote");
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -39,8 +55,19 @@ const Admin = () => {
 
     if (!hasPrivilege) {
       window.location.href = "/Unauthorized";
+      return;
     }
-  }, [hasPrivilege]);
+
+    if (activeTab === "member") {
+      fetchUserList();
+    }
+  }, [hasPrivilege, activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "vote") {
+      setIsPopupOpen(false);
+    }
+  }, [activeTab]);
 
   const fetchPrevilege = async () => {
     await server
@@ -51,6 +78,103 @@ const Admin = () => {
       .catch(() => {
         setHasPrivilege(false);
       });
+  };
+
+  const fetchUUID = async (memberId: string): Promise<string | null> => {
+    try {
+      const tokenResponse = await server.get("/auth/admin/accessToken");
+      const adminAccessToken = tokenResponse.data.adminAccessToken;
+
+      const response = await axios.get("https://kapi.kakao.com/v1/api/talk/friends", {
+        headers: {
+          Authorization: `Bearer ${adminAccessToken}`,
+        },
+      });
+
+      const friends = response.data.elements;
+      for (let i = 0; i < friends.length; i++) {
+        if (friends[i].id.toString() === memberId) {
+          return friends[i].uuid;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("UUID를 가져오는 중 오류가 발생했습니다:", error);
+      return null;
+    }
+  };
+
+  const fetchUserList = async () => {
+    setIsFetchingUsers(true);
+
+    server
+      .get("/member/list")
+      .then((response) => {
+        if (response && response.data && Array.isArray(response.data)) {
+          const transformedUsers = response.data.map((user: any) => {
+            if (user.previllege === "accepted") {
+              user.previllege = "accept";
+            } else if (user.previllege === "denied") {
+              user.previllege = "deny";
+            }
+            return user;
+          });
+          setUsers(transformedUsers);
+        } else {
+          console.error("예상치 못한 응답 구조:", response);
+        }
+      })
+      .catch((error) => {
+        console.error("유저 목록을 불러오는 중 오류가 발생했습니다:", error);
+      })
+      .finally(() => {
+        setIsFetchingUsers(false);
+      });
+  };
+
+  const handlePermissionChange = (
+    memberId: string,
+    currentPrivilege: string,
+    uuid: string,
+    isFirst: string
+  ) => {
+    const newPrivilege = currentPrivilege === "accept" || currentPrivilege === "admin" ? "deny" : "accept";
+
+    const updatePrivilege = (fetchedUUID: string) => {
+      const requestData = {
+        memberId,
+        option: newPrivilege,
+        uuid: fetchedUUID,
+      };
+
+      server
+        .put("/member/previllege", { data: requestData })
+        .then(() => {
+          setUsers((prevState) =>
+            prevState.map((user) => (user.id === memberId ? { ...user, previllege: newPrivilege, uuid: fetchedUUID } : user))
+          );
+        })
+        .catch((error) => {
+          console.error("유저 권한을 업데이트하는 중 오류가 발생했습니다:", error);
+        });
+    };
+
+    if (isFirst === "true") {
+      fetchUUID(memberId)
+        .then((uuidValue) => {
+          if (uuidValue) {
+            updatePrivilege(uuidValue);
+          } else {
+            console.error("UUID를 가져오지 못했습니다. 권한 변경이 실패했습니다.");
+          }
+        })
+        .catch((error) => {
+          console.error("UUID를 가져오는 중 오류가 발생했습니다:", error);
+        });
+    } else {
+      updatePrivilege(uuid);
+    }
   };
 
   const isSchedulePairIncomplete = useMemo(() => {
@@ -302,7 +426,7 @@ const Admin = () => {
         <header className="space-y-2 text-left sm:space-y-3">
           <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">ADMIN</h1>
           <p className="text-sm text-[#636366] sm:text-base">
-            운영자 전용 기능을 한 곳에 모았습니다. 필요한 정보를 입력하고 투표를 생성하세요.
+            운영자 전용 기능을 한 곳에 모았습니다. 필요한 정보를 입력하고 투표를 생성하거나 멤버 권한을 관리하세요.
           </p>
         </header>
 
@@ -314,27 +438,79 @@ const Admin = () => {
 
         {!isLoading && hasPrivilege && (
           <section className="space-y-4">
-            <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
-              <div className="flex items-center justify-between text-xs text-[#8E8E93] sm:text-sm">
-                <span>STEP {activeStep === "vote" ? "1" : "2"} / 2</span>
-                <span>{stepTitle}</span>
-              </div>
-              <h2 className="mt-3 text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">{stepTitle}</h2>
-              <p className="mt-2 text-left text-xs text-[#636366] sm:text-sm">{stepDescription}</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("member")}
+                className={`flex-1 rounded-[16px] px-4 py-3 text-sm font-semibold sm:text-base ${
+                  activeTab === "member"
+                    ? "bg-[#FFE607] text-black"
+                    : "bg-white text-[#3A3A3C] shadow-sm"
+                }`}
+              >
+                멤버관리
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("vote")}
+                className={`flex-1 rounded-[16px] px-4 py-3 text-sm font-semibold sm:text-base ${
+                  activeTab === "vote"
+                    ? "bg-[#FFE607] text-black"
+                    : "bg-white text-[#3A3A3C] shadow-sm"
+                }`}
+              >
+                투표관리
+              </button>
             </div>
 
-            <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
-              {activeStep === "vote" ? renderVoteStep() : renderDeadlineStep()}
-            </div>
+            {activeTab === "member" && (
+              <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+                <div className="mb-4 text-left">
+                  <h2 className="text-lg font-semibold text-[#1C1C1E] sm:text-xl">멤버 관리</h2>
+                  <p className="mt-1 text-xs text-[#636366] sm:text-sm">
+                    멤버 권한을 승인하거나 취소하여 운영 권한을 제어하세요.
+                  </p>
+                </div>
+                {isFetchingUsers ? (
+                  <div className="rounded-[16px] bg-[#F9F9FB] p-6 text-center text-sm text-[#8E8E93]">
+                    멤버 목록을 불러오는 중입니다...
+                  </div>
+                ) : (
+                  <ul className="space-y-4">
+                    {users.map((user) => (
+                      <UserManage key={user.id} user={user} handlePermissionChange={handlePermissionChange} />
+                    ))}
+                    {users.length === 0 && (
+                      <li className="rounded-[16px] bg-[#F9F9FB] p-6 text-center text-sm text-[#8E8E93]">
+                        표시할 멤버가 없습니다.
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {activeTab === "vote" && (
+              <>
+                <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+                  <div className="flex items-center justify-between text-xs text-[#8E8E93] sm:text-sm">
+                    <span>STEP {activeStep === "vote" ? "1" : "2"} / 2</span>
+                    <span>{stepTitle}</span>
+                  </div>
+                  <h2 className="mt-3 text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">{stepTitle}</h2>
+                  <p className="mt-2 text-left text-xs text-[#636366] sm:text-sm">{stepDescription}</p>
+                </div>
+
+                <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+                  {activeStep === "vote" ? renderVoteStep() : renderDeadlineStep()}
+                </div>
+              </>
+            )}
           </section>
         )}
       </div>
 
-      <SearchPopup
-        isOpen={isPopupOpen}
-        onClose={() => setIsPopupOpen(false)}
-        onSelect={handlePopupSelect}
-      />
+      <SearchPopup isOpen={isPopupOpen && activeTab === "vote"} onClose={() => setIsPopupOpen(false)} onSelect={handlePopupSelect} />
 
       <FooterNav />
     </div>
