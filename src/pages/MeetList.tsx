@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
-import voteHero from "../assets/img/vote.png";
 import calender from "../assets/img/calender.png";
 
 type MeetInfo = {
@@ -38,36 +37,18 @@ const MeetList: React.FC = () => {
       className="min-h-screen w-full flex flex-col"
       style={{ backgroundColor: "#F2F2F7", paddingBottom: "80px" }}
     >
-      <main className="flex-1 px-6 pt-10 pb-8">
-        <section className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#6358FF] via-[#7A6CFF] to-[#A68BFF] px-6 pb-8 pt-7 text-white shadow-lg">
-          <div className="relative z-[1] flex flex-col gap-3">
-            <span className="w-fit rounded-full bg-white/20 px-3 py-1 text-[11px] font-semibold tracking-wide">
-              새로운 만남의 시작
-            </span>
-            <h1 className="text-[22px] font-bold leading-snug">
-              지금 어울릴 모임을
-              <br />
-              찾아보세요
-            </h1>
-            <p className="text-[13px] text-white/80">
-              원하는 주제의 모임을 골라
-              <br />
-              함께하는 즐거움을 경험해보세요.
-            </p>
-          </div>
-          <img
-            src={voteHero}
-            alt="투표 아이콘"
-            className="absolute -bottom-3 -right-2 w-32 opacity-90"
-          />
+      <main className="flex-1 px-6 pt-8 pb-8">
+        <section className="mb-6 flex flex-col gap-1 text-[#1C1C1E]">
+          <h1 className="text-[20px] font-bold">모임 목록</h1>
+          <p className="text-[12px] text-[#8E8E93]">
+            참여 가능한 모임을 확인하고 원하는 모임을 선택하세요.
+          </p>
         </section>
 
-        <section className="mt-10">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[16px] font-semibold text-[#1C1C1E]">모임 목록</h2>
-            <span className="text-[12px] font-medium text-[#8E8E93]">
-              최신순
-            </span>
+        <section>
+          <div className="mb-4 flex items-center justify-between text-[#8E8E93]">
+            <span className="text-[12px] font-medium">총 {meetList.length}개</span>
+            <span className="text-[12px] font-medium">최신순</span>
           </div>
           {hasMeetings ? (
             <ul className="flex flex-col gap-4">
