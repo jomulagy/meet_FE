@@ -207,7 +207,8 @@ const VotePage = () => {
     if (!meet.endDate) {
       return "투표 마감 정보가 없습니다.";
     }
-    return `투표 마감 ${meet.endDate}`;
+    const [dateOnly] = meet.endDate.split("T");
+    return `투표 마감 ${dateOnly}`;
   }, [meet.endDate]);
 
   if (isLoading) {

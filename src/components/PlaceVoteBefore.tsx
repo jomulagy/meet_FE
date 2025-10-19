@@ -91,11 +91,7 @@ const PlaceVoteBefore = ({
       .post(`/meet/place/item`, {
         data: {
           meetId: meetId,
-          place: {
-            name: location.address,  // API 문서에 맞게 'name' 사용
-            xPos: location.x,        // 'xPos' 사용
-            yPos: location.y         // 'yPos' 사용
-          },
+          place: location.address,  
         },
       })
       .then((response) => {
