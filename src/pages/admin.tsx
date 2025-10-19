@@ -177,33 +177,39 @@ const Admin = () => {
       return;
     }
 
-    if (!date.trim()) {
-      alert("날짜를 선택해 주세요");
-      return;
-    }
-
-    if (!time.trim()) {
-      alert("시간을 선택해 주세요");
-      return;
-    }
-
-    if (!place.name || !place.xPos || !place.yPos) {
-      alert("장소 정보를 정확하게 입력해 주세요");
-      return;
-    }
-
     setIsSubmitting(true);
+
+    const payload: {
+      title: string;
+      content?: string;
+      date?: string;
+      time?: string;
+      place?: { name: string; xPos: string; yPos: string };
+      type: "CUSTOM";
+    } = {
+      title,
+      type: "CUSTOM",
+    };
+
+    if (content.trim()) {
+      payload.content = content.trim();
+    }
+
+    if (date.trim()) {
+      payload.date = date.trim();
+    }
+
+    if (time.trim()) {
+      payload.time = time.trim();
+    }
+
+    if (place.name && place.xPos && place.yPos) {
+      payload.place = place;
+    }
 
     server
       .post("/meet", {
-        data: {
-          title,
-          content,
-          date,
-          time,
-          place,
-          type: "CUSTOM",
-        },
+        data: payload,
       })
       .then(() => {
         alert("모임이 생성되었습니다.");
@@ -271,7 +277,7 @@ const Admin = () => {
 
           <div className="grid grid-cols-1 gap-4 text-left md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm text-[#8E8E93]">날짜</label>
+              <label className="text-sm text-[#8E8E93]">날짜 (선택)</label>
               <input
                 type="date"
                 value={date}
@@ -280,7 +286,7 @@ const Admin = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-[#8E8E93]">시간</label>
+              <label className="text-sm text-[#8E8E93]">시간 (선택)</label>
               <input
                 type="time"
                 value={time}
@@ -291,7 +297,7 @@ const Admin = () => {
           </div>
 
           <div className="space-y-2 text-left">
-            <label className="text-sm text-[#8E8E93]">장소</label>
+            <label className="text-sm text-[#8E8E93]">장소 (선택)</label>
             <div className="flex items-center justify-between rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3">
               <span className={`text-[18px] font-semibold ${place.name ? "text-black" : "text-[#8E8E93]"}`}>
                 {place.name || "장소를 선택해 주세요"}
@@ -307,7 +313,7 @@ const Admin = () => {
           </div>
 
           <div className="space-y-2 text-left">
-            <label className="text-sm text-[#8E8E93]">내용</label>
+            <label className="text-sm text-[#8E8E93]">내용 (선택)</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
