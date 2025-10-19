@@ -158,7 +158,7 @@ const MeetDetail: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F2F2F7]">
-        <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#E5E5EA] border-t-[#5E5CE6]" />
+        <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#E5E5EA] border-t-[#1E3A8A]" />
         <p className="mt-4 text-[13px] text-[#8E8E93]">모임 정보를 불러오는 중입니다...</p>
       </div>
     );
@@ -170,7 +170,7 @@ const MeetDetail: React.FC = () => {
         <p className="text-[14px] font-medium text-[#1C1C1E]">모임 정보를 불러오지 못했습니다.</p>
         <button
           onClick={() => navigate(-1)}
-          className="mt-4 rounded-full bg-[#5E5CE6] px-5 py-2 text-[12px] font-semibold text-white shadow-md"
+          className="mt-4 rounded-full bg-[#1E3A8A] px-5 py-2 text-[12px] font-semibold text-white shadow-md"
         >
           이전 페이지로 돌아가기
         </button>
@@ -198,53 +198,56 @@ const MeetDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#F2F2F7]" style={{ paddingBottom: "80px" }}>
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#5E5CE6] via-[#7A6CFF] to-[#A68BFF] px-6 pb-14 pt-10 text-white">
-        <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wide">모임 정보</span>
-        <h1 className="mt-3 text-[24px] font-bold leading-tight">{meetInfo.title}</h1>
-        <p className="mt-2 text-[13px] text-white/80">
+      <header className="bg-white px-6 pt-6 pb-5 shadow-[0_6px_20px_rgba(0,0,0,0.05)]">
+        <span className="rounded-full bg-[#E1F0FF] px-3 py-1 text-[11px] font-semibold tracking-wide text-[#1E3A8A]">모임 정보</span>
+        <h1 className="mt-3 text-[23px] font-bold leading-tight text-[#111827]">{meetInfo.title}</h1>
+        <p className="mt-2 text-[13px] text-[#4B5563]">
           {participants.length > 0 ? `${participants.length}명이 참여 중` : "아직 참여자가 없습니다."}
         </p>
-      </div>
+      </header>
 
-      <main className="-mt-6 flex-1 px-6 pb-10">
-        <section className="rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
-          <h2 className="text-[15px] font-semibold text-[#1C1C1E]">기본 정보</h2>
+      <main className="flex-1 px-6 pb-10 pt-8">
+        <section className="rounded-[24px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
+            <h2 className="text-[15px] font-semibold text-[#111827]">기본 정보</h2>
+            <span className="text-[12px] font-medium text-[#6B7280]">모임 세부사항</span>
+          </div>
           <div className="mt-5 flex flex-col gap-4">
             {detailSections.map((section) => (
               <div key={section.label} className="flex items-center gap-4">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F2F2F7] text-[#5E5CE6]">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E8F1FF] text-[#1E3A8A]">
                   <i className={`${section.icon} text-[18px]`}></i>
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-[12px] font-medium text-[#8E8E93]">{section.label}</span>
-                  <span className="text-[15px] font-semibold text-[#1C1C1E]">{section.value}</span>
+                  <span className="text-[12px] font-medium text-[#6B7280]">{section.label}</span>
+                  <span className="text-[15px] font-semibold text-[#111827]">{section.value}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 rounded-2xl bg-[#F8F8F8] p-4">
-            <span className="text-[12px] font-medium text-[#8E8E93]">소개</span>
-            <p className="mt-2 text-[14px] leading-relaxed text-[#3A3A3C]">
+          <div className="mt-6 rounded-2xl bg-[#F8FAFF] p-4">
+            <span className="text-[12px] font-medium text-[#6B7280]">소개</span>
+            <p className="mt-2 text-[14px] leading-relaxed text-[#1F2937]">
               {meetInfo.content ? meetInfo.content : "등록된 소개가 없습니다."}
             </p>
           </div>
         </section>
 
-        <section className="mt-6 rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.06)]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold text-[#1C1C1E]">참여자</h2>
-            <span className="text-[12px] font-medium text-[#8E8E93]">{participants.length}명</span>
+        <section className="mt-6 rounded-[24px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.06)]">
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
+            <h2 className="text-[15px] font-semibold text-[#111827]">참여자</h2>
+            <span className="text-[12px] font-medium text-[#6B7280]">{participants.length}명</span>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {participants.length > 0 ? (
               participants.map((participant) => (
-                <span key={participant} className="rounded-full bg-[#EEF1FF] px-3 py-1 text-[12px] font-medium text-[#5E5CE6]">
+                <span key={participant} className="rounded-full bg-[#E1F0FF] px-3 py-1 text-[12px] font-medium text-[#1E3A8A]">
                   {participant}
                 </span>
               ))
             ) : (
-              <p className="text-[13px] text-[#8E8E93]">참여자가 아직 없습니다.</p>
+              <p className="text-[13px] text-[#6B7280]">참여자가 아직 없습니다.</p>
             )}
           </div>
         </section>

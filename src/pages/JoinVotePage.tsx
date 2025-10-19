@@ -181,7 +181,7 @@ const JoinVotePage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F2F2F7]">
-        <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#E5E5EA] border-t-[#5E5CE6]" />
+        <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#E5E5EA] border-t-[#1E3A8A]" />
         <p className="mt-4 text-[13px] text-[#8E8E93]">참여 투표 정보를 불러오는 중입니다...</p>
       </div>
     );
@@ -193,7 +193,7 @@ const JoinVotePage = () => {
         <p className="text-[14px] font-medium text-[#1C1C1E]">모임 정보를 확인할 수 없습니다.</p>
         <button
           onClick={() => navigate(-1)}
-          className="mt-4 rounded-full bg-[#5E5CE6] px-5 py-2 text-[12px] font-semibold text-white shadow-md"
+          className="mt-4 rounded-full bg-[#1E3A8A] px-5 py-2 text-[12px] font-semibold text-white shadow-md"
         >
           이전 페이지로 돌아가기
         </button>
@@ -203,62 +203,62 @@ const JoinVotePage = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#F2F2F7]" style={{ paddingBottom: "90px" }}>
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#5E5CE6] via-[#7A6CFF] to-[#A68BFF] px-6 pb-14 pt-10 text-white">
-        <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wide">참여 투표</span>
-        <h1 className="mt-3 text-[24px] font-bold leading-tight">{meet.meetTitle}</h1>
-        <p className="mt-2 text-[13px] text-white/80">함께할 의사를 알려주세요.</p>
+      <header className="bg-white px-6 pt-6 pb-5 shadow-[0_6px_20px_rgba(0,0,0,0.05)]">
+        <span className="rounded-full bg-[#E1F0FF] px-3 py-1 text-[11px] font-semibold tracking-wide text-[#1E3A8A]">참여 투표</span>
+        <h1 className="mt-3 text-[23px] font-bold leading-tight text-[#111827]">{meet.meetTitle}</h1>
+        <p className="mt-2 text-[13px] text-[#4B5563]">함께할 의사를 알려주세요.</p>
         {meet.isAuthor === "true" && (
           <div className="mt-5 flex gap-2">
             <button
               onClick={handleEdit}
-              className="flex-1 rounded-full bg-white/20 px-4 py-2 text-[12px] font-semibold text-white backdrop-blur transition hover:bg-white/30"
+              className="flex-1 rounded-full border border-[#CBD5F5] px-4 py-2 text-[12px] font-semibold text-[#1E3A8A] transition hover:bg-[#F3F7FF]"
             >
               수정하기
             </button>
             <button
               onClick={handleDelete}
-              className="flex-1 rounded-full bg-[#FF3B30] px-4 py-2 text-[12px] font-semibold text-white shadow-lg transition hover:shadow-xl"
+              className="flex-1 rounded-full bg-[#FF3B30] px-4 py-2 text-[12px] font-semibold text-white shadow-md transition hover:shadow-lg"
             >
               삭제하기
             </button>
           </div>
         )}
-      </div>
+      </header>
 
-      <main className="-mt-6 flex-1 px-6 pb-10">
-        <section className="rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
-          <div className="flex items-start gap-4">
-            <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-[#EEF1FF]">
+      <main className="flex-1 px-6 pb-10 pt-8">
+        <section className="rounded-[24px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
+          <div className="flex items-start gap-4 border-b border-[#E5E7EB] pb-4">
+            <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-[#E1F0FF]">
               <img src={alarm} alt="알림" className="h-12 w-12 object-contain" />
             </div>
             <div className="flex flex-col gap-1">
-              <h2 className="text-[15px] font-semibold text-[#1C1C1E]">모임 정보</h2>
-              <p className="text-[13px] text-[#8E8E93]">일정과 장소를 확인하고 참여 여부를 알려주세요.</p>
+              <h2 className="text-[15px] font-semibold text-[#111827]">모임 정보</h2>
+              <p className="text-[13px] text-[#6B7280]">일정과 장소를 확인하고 참여 여부를 알려주세요.</p>
             </div>
           </div>
           <div className="mt-6 flex flex-col gap-4">
             {detailItems.map((item) => (
               <div key={item.label} className="flex items-center gap-4">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F2F2F7] text-[#5E5CE6]">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8F1FF] text-[#1E3A8A]">
                   <i className={`${item.icon} text-[18px]`}></i>
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-[12px] font-medium text-[#8E8E93]">{item.label}</span>
-                  <span className="text-[15px] font-semibold text-[#1C1C1E]">{item.value}</span>
+                  <span className="text-[12px] font-medium text-[#6B7280]">{item.label}</span>
+                  <span className="text-[15px] font-semibold text-[#111827]">{item.value}</span>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mt-6 rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.06)]">
-          <div className="flex items-center gap-4">
+        <section className="mt-6 rounded-[24px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.06)]">
+          <div className="flex items-center gap-4 border-b border-[#E5E7EB] pb-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF4E8]">
               <img src={vote} alt="투표" className="h-12 w-12 object-contain" />
             </div>
             <div className="flex flex-col gap-1">
-              <h2 className="text-[18px] font-bold text-[#1C1C1E]">모임에 참여하시겠습니까?</h2>
-              <p className="text-[12px] text-[#8E8E93]">투표 마감일 {meet.endDate}</p>
+              <h2 className="text-[18px] font-bold text-[#111827]">모임에 참여하시겠습니까?</h2>
+              <p className="text-[12px] text-[#6B7280]">투표 마감일 {meet.endDate}</p>
             </div>
           </div>
           <div className="mt-6">

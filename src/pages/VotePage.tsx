@@ -213,7 +213,7 @@ const VotePage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F2F2F7]">
-        <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#E5E5EA] border-t-[#5E5CE6]" />
+        <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#E5E5EA] border-t-[#1E3A8A]" />
         <p className="mt-4 text-[13px] text-[#8E8E93]">투표 정보를 불러오는 중입니다...</p>
       </div>
     );
@@ -221,36 +221,38 @@ const VotePage = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#F2F2F7]" style={{ paddingBottom: "90px" }}>
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#5E5CE6] via-[#7A6CFF] to-[#A68BFF] px-6 pb-14 pt-10 text-white">
-        <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wide">투표 진행 중</span>
-        <h1 className="mt-3 text-[24px] font-bold leading-tight">{meet.meetTitle}</h1>
-        <p className="mt-2 text-[13px] text-white/80">{deadlineLabel}</p>
+      <header className="bg-white px-6 pt-6 pb-5 shadow-[0_6px_20px_rgba(0,0,0,0.05)]">
+        <span className="rounded-full bg-[#E1F0FF] px-3 py-1 text-[11px] font-semibold tracking-wide text-[#1E3A8A]">
+          투표 진행 중
+        </span>
+        <h1 className="mt-3 text-[23px] font-bold leading-tight text-[#111827]">{meet.meetTitle}</h1>
+        <p className="mt-2 text-[13px] text-[#4B5563]">{deadlineLabel}</p>
         {meet.isAuthor && (
           <div className="mt-5 flex gap-2">
             <button
               onClick={handleEdit}
-              className="flex-1 rounded-full bg-white/20 px-4 py-2 text-[12px] font-semibold text-white backdrop-blur transition hover:bg-white/30"
+              className="flex-1 rounded-full border border-[#CBD5F5] px-4 py-2 text-[12px] font-semibold text-[#1E3A8A] transition hover:bg-[#F3F7FF]"
             >
               수정하기
             </button>
             <button
               onClick={handleDelete}
-              className="flex-1 rounded-full bg-[#FF3B30] px-4 py-2 text-[12px] font-semibold text-white shadow-lg transition hover:shadow-xl"
+              className="flex-1 rounded-full bg-[#FF3B30] px-4 py-2 text-[12px] font-semibold text-white shadow-md transition hover:shadow-lg"
             >
               삭제하기
             </button>
           </div>
         )}
-      </div>
+      </header>
 
-      <main className="-mt-6 flex-1 px-6 pb-10">
-        <section className="rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
-          <div className="flex items-center justify-between">
+      <main className="flex-1 px-6 pb-10 pt-8">
+        <section className="rounded-[24px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.08)]">
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
             <div>
-              <h2 className="text-[15px] font-semibold text-[#1C1C1E]">일정 투표</h2>
-              <p className="mt-1 text-[12px] text-[#8E8E93]">참여 가능한 일정을 선택해주세요.</p>
+              <h2 className="text-[15px] font-semibold text-[#111827]">일정 투표</h2>
+              <p className="mt-1 text-[12px] text-[#6B7280]">참여 가능한 일정을 선택해주세요.</p>
             </div>
-            <span className="rounded-full bg-[#EEF1FF] px-3 py-1 text-[12px] font-semibold text-[#5E5CE6]">
+            <span className="rounded-full bg-[#E1F0FF] px-3 py-1 text-[12px] font-semibold text-[#1E3A8A]">
               {isScheduleVoted ? "투표 완료" : "투표 대기"}
             </span>
           </div>
@@ -274,13 +276,13 @@ const VotePage = () => {
           </div>
         </section>
 
-        <section className="mt-6 rounded-[26px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.06)]">
-          <div className="flex items-center justify-between">
+        <section className="mt-6 rounded-[24px] bg-white p-6 shadow-[0_12px_32px_rgba(26,26,26,0.06)]">
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
             <div>
-              <h2 className="text-[15px] font-semibold text-[#1C1C1E]">장소 투표</h2>
-              <p className="mt-1 text-[12px] text-[#8E8E93]">모임에 어울리는 장소를 골라주세요.</p>
+              <h2 className="text-[15px] font-semibold text-[#111827]">장소 투표</h2>
+              <p className="mt-1 text-[12px] text-[#6B7280]">모임에 어울리는 장소를 골라주세요.</p>
             </div>
-            <span className="rounded-full bg-[#EEF1FF] px-3 py-1 text-[12px] font-semibold text-[#5E5CE6]">
+            <span className="rounded-full bg-[#E1F0FF] px-3 py-1 text-[12px] font-semibold text-[#1E3A8A]">
               {isPlaceVoted ? "투표 완료" : "투표 대기"}
             </span>
           </div>
