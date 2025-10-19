@@ -15,24 +15,24 @@ type User = {
   isFirst: string;
 };
 
-type AdminSection = "permissions" | "createMeet";
+type AdminSection = "permissions" | "voteManagement";
 
 const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [hasPrivilege, setHasPrivilege] = useState<boolean | undefined>(undefined);
   const [activeSection, setActiveSection] = useState<AdminSection>("permissions");
-
-  const [title, setTitle] = useState<string>("");
-  const [date, setDate] = useState<string>("");
-  const [time, setTime] = useState<string>("");
-  const [place, setPlace] = useState<{ name: string; xPos: string; yPos: string }>({
+  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
+  const [isVoteSubmitting, setIsVoteSubmitting] = useState<boolean>(false);
+  const [isDeadlineSubmitting, setIsDeadlineSubmitting] = useState<boolean>(false);
+  const [voteTitle, setVoteTitle] = useState<string>("");
+  const [voteDescription, setVoteDescription] = useState<string>("");
+  const [votePlace, setVotePlace] = useState<{ name: string; xPos: string; yPos: string }>({
     name: "",
     xPos: "",
     yPos: "",
   });
-  const [content, setContent] = useState<string>("");
-  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [voteDeadline, setVoteDeadline] = useState<string>("");
+  const [participationDeadline, setParticipationDeadline] = useState<string>("");
 
   const isLoading = useMemo(() => hasPrivilege === undefined, [hasPrivilege]);
 
@@ -161,79 +161,52 @@ const Admin = () => {
     }
   };
 
-  const resetMeetForm = () => {
-    setTitle("");
-    setDate("");
-    setTime("");
-    setPlace({ name: "", xPos: "", yPos: "" });
-    setContent("");
+  const resetVoteForm = () => {
+    setVoteTitle("");
+    setVoteDescription("");
+    setVotePlace({ name: "", xPos: "", yPos: "" });
   };
 
-  const handleMeetCreate = (event: React.FormEvent) => {
+  const resetDeadlineForm = () => {
+    setVoteDeadline("");
+    setParticipationDeadline("");
+  };
+
+  const handleVoteCreate = (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!title.trim()) {
-      alert("제목을 입력해 주세요");
+    if (!voteTitle.trim()) {
+      alert("투표 제목을 입력해 주세요");
       return;
     }
 
-    const hasDate = !!date.trim();
-    const hasTime = !!time.trim();
+    setIsVoteSubmitting(true);
 
-    if ((hasDate && !hasTime) || (hasTime && !hasDate)) {
-      alert("날짜와 시간은 함께 입력해 주세요");
+    setTimeout(() => {
+      alert("투표 생성 요청이 전송되었습니다.");
+      resetVoteForm();
+      setIsVoteSubmitting(false);
+    }, 300);
+  };
+
+  const handleDeadlineSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!voteDeadline || !participationDeadline) {
+      alert("투표 마감일과 참여 여부 마감일을 모두 선택해 주세요");
       return;
     }
 
-    setIsSubmitting(true);
+    setIsDeadlineSubmitting(true);
 
-    const payload: {
-      title: string;
-      content?: string;
-      date?: string;
-      time?: string;
-      place?: { name: string; xPos: string; yPos: string };
-      type: "CUSTOM";
-    } = {
-      title,
-      type: "CUSTOM",
-    };
-
-    if (content.trim()) {
-      payload.content = content.trim();
-    }
-
-    if (hasDate) {
-      payload.date = date.trim();
-    }
-
-    if (hasTime) {
-      payload.time = time.trim();
-    }
-
-    if (place.name && place.xPos && place.yPos) {
-      payload.place = place;
-    }
-
-    server
-      .post("/meet", {
-        data: payload,
-      })
-      .then(() => {
-        alert("모임이 생성되었습니다.");
-        resetMeetForm();
-      })
-      .catch((error) => {
-        console.error("모임을 생성하는 중 오류가 발생했습니다:", error);
-        alert("모임 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
+    setTimeout(() => {
+      alert("마감일이 업데이트되었습니다.");
+      setIsDeadlineSubmitting(false);
+    }, 300);
   };
 
   const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
-    setPlace({
+    setVotePlace({
       name: location.address,
       xPos: location.x,
       yPos: location.y,
@@ -264,87 +237,121 @@ const Admin = () => {
     </div>
   );
 
-  const renderMeetCreateSection = () => (
+  const renderVoteManagementSection = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-[24px] p-5 shadow-sm sm:p-6">
-        <h2 className="mb-3 text-left text-lg font-semibold sm:mb-4 sm:text-xl">새 모임 생성</h2>
+        <h2 className="mb-3 text-left text-lg font-semibold sm:mb-4 sm:text-xl">투표 생성</h2>
         <p className="mb-5 text-left text-xs text-[#8E8E93] sm:mb-6 sm:text-sm">
-          빠르게 모임을 등록하고 구성원에게 공유할 수 있습니다.
+          새로운 투표를 생성하고 구성원에게 공유할 기본 정보를 입력하세요.
         </p>
-        <form className="space-y-6" onSubmit={handleMeetCreate}>
+        <form className="space-y-6" onSubmit={handleVoteCreate}>
           <div className="space-y-2 text-left">
-            <label className="text-xs text-[#8E8E93] sm:text-sm">제목</label>
+            <label className="text-xs text-[#8E8E93] sm:text-sm">투표 제목</label>
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="모임 제목을 입력하세요"
+              value={voteTitle}
+              onChange={(e) => setVoteTitle(e.target.value)}
+              placeholder="투표 제목을 입력하세요"
               className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-xs text-[#8E8E93] sm:text-sm">날짜 (선택, 시간과 함께 입력)</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-[#8E8E93] sm:text-sm">시간 (선택, 날짜와 함께 입력)</label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-              />
-            </div>
-          </div>
-
           <div className="space-y-2 text-left">
-            <label className="text-xs text-[#8E8E93] sm:text-sm">장소 (선택)</label>
-            <div className="flex items-center justify-between rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3">
-              <span className={`text-base font-semibold sm:text-lg ${place.name ? "text-black" : "text-[#8E8E93]"}`}>
-                {place.name || "장소를 선택해 주세요"}
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsPopupOpen(true)}
-                className="text-xs font-semibold text-[#3A3A3C] sm:text-sm"
-              >
-                장소 검색
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-2 text-left">
-            <label className="text-xs text-[#8E8E93] sm:text-sm">내용 (선택)</label>
+            <label className="text-xs text-[#8E8E93] sm:text-sm">설명 (선택)</label>
             <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="모임에 대한 설명을 입력하세요"
+              value={voteDescription}
+              onChange={(e) => setVoteDescription(e.target.value)}
+              placeholder="투표에 대한 설명을 입력하세요"
               rows={4}
               className="w-full resize-none rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-medium focus:border-[#FFE607] focus:outline-none sm:text-base"
             />
           </div>
 
+          <div className="space-y-2 text-left">
+            <label className="text-xs text-[#8E8E93] sm:text-sm">장소 (선택)</label>
+            <div className="relative">
+              <input
+                type="text"
+                readOnly
+                value={votePlace.name}
+                onFocus={() => setIsPopupOpen(true)}
+                onClick={() => setIsPopupOpen(true)}
+                placeholder="장소를 선택해 주세요"
+                className="w-full cursor-pointer rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold text-left focus:border-[#FFE607] focus:outline-none sm:text-lg"
+              />
+              {votePlace.name && (
+                <button
+                  type="button"
+                  onClick={() => setVotePlace({ name: "", xPos: "", yPos: "" })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] sm:text-sm"
+                >
+                  초기화
+                </button>
+              )}
+            </div>
+            <p className="text-left text-[11px] text-[#8E8E93] sm:text-xs">필드를 선택하면 장소 검색 팝업이 열립니다.</p>
+          </div>
+
           <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={resetMeetForm}
+              onClick={resetVoteForm}
               className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
             >
-              초기화
+              입력 초기화
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isVoteSubmitting}
               className="rounded-[16px] bg-[#FFE607] px-5 py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6 sm:text-sm"
             >
-              {isSubmitting ? "생성 중..." : "모임 생성"}
+              {isVoteSubmitting ? "전송 중..." : "투표 생성"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="bg-white rounded-[24px] p-5 shadow-sm sm:p-6">
+        <h2 className="mb-3 text-left text-lg font-semibold sm:mb-4 sm:text-xl">투표 마감 관리</h2>
+        <p className="mb-5 text-left text-xs text-[#8E8E93] sm:mb-6 sm:text-sm">
+          투표 종료일과 참여 여부 확인 마감일을 각각 지정하세요. 시간은 서버에서 자동으로 처리됩니다.
+        </p>
+        <form className="space-y-6" onSubmit={handleDeadlineSubmit}>
+          <div className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-xs text-[#8E8E93] sm:text-sm">투표 마감일</label>
+              <input
+                type="date"
+                value={voteDeadline}
+                onChange={(e) => setVoteDeadline(e.target.value)}
+                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs text-[#8E8E93] sm:text-sm">참여 여부 마감일</label>
+              <input
+                type="date"
+                value={participationDeadline}
+                onChange={(e) => setParticipationDeadline(e.target.value)}
+                className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={resetDeadlineForm}
+              className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
+            >
+              날짜 초기화
+            </button>
+            <button
+              type="submit"
+              disabled={isDeadlineSubmitting}
+              className="rounded-[16px] bg-[#FFE607] px-5 py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6 sm:text-sm"
+            >
+              {isDeadlineSubmitting ? "저장 중..." : "마감일 저장"}
             </button>
           </div>
         </form>
@@ -360,10 +367,10 @@ const Admin = () => {
       content: renderPermissionSection(),
     },
     {
-      id: "createMeet" as AdminSection,
-      title: "모임 생성",
-      description: "모임 정보를 입력하고 바로 공유할 수 있습니다.",
-      content: renderMeetCreateSection(),
+      id: "voteManagement" as AdminSection,
+      title: "투표 관리",
+      description: "투표 생성과 마감 일정을 한곳에서 설정하세요.",
+      content: renderVoteManagementSection(),
     },
   ];
 
@@ -373,10 +380,7 @@ const Admin = () => {
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
       <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-6 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
         <header className="text-left space-y-2 sm:space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8E8E93] sm:text-sm">
-            Admin Console
-          </p>
-          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">운영 도구 허브</h1>
+          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">ADMIN</h1>
           <p className="text-sm text-[#636366] sm:text-base">
             운영자 전용 기능을 한 곳에 모았습니다. 필요한 기능을 선택하고 바로 사용해 보세요.
           </p>
