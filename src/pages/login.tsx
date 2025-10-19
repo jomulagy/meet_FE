@@ -37,14 +37,21 @@ export const Login = () => {
   );
 };
 
+type KakaoTokens = {
+  accessToken: string;
+  refreshToken?: string;
+};
+
 export const KakaoCode = () => {
   const code = new URL(window.location.href).searchParams.get("code");
-  const [token, setToken] = useState(false);
+  const [kakaoTokens, setKakaoTokens] = useState<KakaoTokens | null>(null);
+  const [isRequestingToken, setIsRequestingToken] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (code && !token) {
-      console.log("use effect executed", code, token);
+    if (code && !isRequestingToken && !kakaoTokens) {
+      setIsRequestingToken(true);
+      console.log("use effect executed", code, kakaoTokens);
       const fetchToken = async () => {
         const postUrl = "https://kauth.kakao.com/oauth/token";
 
@@ -67,47 +74,54 @@ export const KakaoCode = () => {
             },
           });
           console.log("Token received:", response.data);
-          setToken(response.data.access_token);
+          setKakaoTokens({
+            accessToken: response.data.access_token,
+            refreshToken: response.data.refresh_token,
+          });
         } catch (error) {
           console.error("Error fetching token:", error);
+        } finally {
+          setIsRequestingToken(false);
         }
       };
       fetchToken();
     }
-  }, [code, token]);
+  }, [code, kakaoTokens, isRequestingToken]);
 
   useEffect(() => {
-    if (token) {
+    if (kakaoTokens?.accessToken) {
       console.log("trying to connect backend server...");
-      server.post("/auth/login", {
-        data: {
-          accessToken: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        localStorage.setItem(
-          "accessToken",
-          response.data.grantType + " " + response.data.accessToken
-        );
-        localStorage.setItem("refreshToken", response.data.refreshToken);
+      server
+        .post("/auth/login", {
+          data: {
+            accessToken: `Bearer ${kakaoTokens.accessToken}`,
+            refreshToken: kakaoTokens.refreshToken,
+          },
+        })
+        .then((response) => {
+          localStorage.setItem(
+            "accessToken",
+            response.data.grantType + " " + response.data.accessToken
+          );
+          localStorage.setItem("refreshToken", response.data.refreshToken);
 
-        // 사용자 권한 확인
-        return server.get("/member/previllege");
-      })
-      .then((privilegeResponse) => {
-        const privilege = privilegeResponse.data.previllege;
+          // 사용자 권한 확인
+          return server.get("/member/previllege");
+        })
+        .then((privilegeResponse) => {
+          const privilege = privilegeResponse.data.previllege;
 
           if (privilege === "admin" || privilege === "accepted") {
             navigate("/");
           }
-      })
-      .catch ((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        }
-      });
+        })
+        .catch((error) => {
+          if (error.code === "403") {
+            navigate("/Unauthorized");
+          }
+        });
     }
-  }, [token, navigate]);
+  }, [kakaoTokens, navigate]);
 
   return <></>;
 };
