@@ -15,6 +15,17 @@ const UserManage = ({
 }) => {
   const [deposit, setDeposit] = useState<string | "">(user.deposit);
 
+  const isDepositComplete = deposit === "true";
+  const isPrivilegeDenied = user.previllege === "deny";
+
+  const depositButtonClasses = isDepositComplete
+    ? "bg-[#E7F8ED] border border-[#A7E5C5] text-[#0F5132] hover:bg-[#D4F3DF]"
+    : "bg-[#FFF3F3] border border-[#FECACA] text-[#B91C1C] hover:bg-[#FFE4E6]";
+
+  const privilegeButtonClasses = isPrivilegeDenied
+    ? "bg-[#E3EEFF] border border-[#C3DAFF] text-[#1E3A8A] hover:bg-[#D6E6FF]"
+    : "bg-[#FFECEC] border border-[#FECACA] text-[#B91C1C] hover:bg-[#FFDADA]";
+
   const handleDepositChange = (
     memberId: string,
     currentDeposit: string
@@ -61,7 +72,7 @@ const UserManage = ({
                 deposit,
               )
             }
-            className="whitespace-nowrap rounded-[24px] border border-[#E5E5EA] px-4 py-2 text-[12px] font-bold text-black transition-colors hover:bg-[#F2F2F7] sm:min-w-[92px]"
+            className={`whitespace-nowrap rounded-[24px] px-4 py-2 text-[12px] font-bold transition-colors sm:min-w-[92px] ${depositButtonClasses}`}
           >
             {deposit === "true" ? "입금완료" : "미입금"}
           </button>
@@ -74,7 +85,7 @@ const UserManage = ({
                 user.isFirst
               )
             }
-            className="whitespace-nowrap rounded-[24px] border border-[#E5E5EA] px-4 py-2 text-[12px] font-bold text-black transition-colors hover:bg-[#F2F2F7] sm:min-w-[92px]"
+            className={`whitespace-nowrap rounded-[24px] px-4 py-2 text-[12px] font-bold transition-colors sm:min-w-[92px] ${privilegeButtonClasses}`}
           >
             {user.previllege === "deny" ? "허용" : "차단"}
           </button>

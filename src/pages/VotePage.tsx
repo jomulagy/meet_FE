@@ -231,7 +231,7 @@ const VotePage = () => {
           <div className="mt-5 flex gap-2">
             <button
               onClick={handleEdit}
-              className="flex-1 rounded-full border border-[#CBD5F5] px-4 py-2 text-[12px] font-semibold text-[#1E3A8A] transition hover:bg-[#F3F7FF]"
+              className="flex-1 rounded-full bg-[#2563EB] px-4 py-2 text-[12px] font-semibold text-white shadow-sm transition hover:bg-[#1D4ED8]"
             >
               수정하기
             </button>

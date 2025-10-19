@@ -353,7 +353,7 @@ const Admin = () => {
         <button
           type="button"
           onClick={resetVoteForm}
-          className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
+          className="rounded-[16px] bg-[#F3F4F6] px-5 py-3 text-xs font-semibold text-[#1F2937] transition-colors hover:bg-[#E5E7EB] sm:px-6 sm:text-sm"
         >
           초기화
         </button>
@@ -392,14 +392,14 @@ const Admin = () => {
         <button
           type="button"
           onClick={handlePreviousStep}
-          className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
+          className="rounded-[16px] bg-[#E3EEFF] px-5 py-3 text-xs font-semibold text-[#1E3A8A] transition-colors hover:bg-[#D6E6FF] sm:px-6 sm:text-sm"
         >
           이전
         </button>
         <button
           type="button"
           onClick={resetDeadlineForm}
-          className="rounded-[16px] border border-[#D1D1D6] px-5 py-3 text-xs font-semibold text-[#3A3A3C] hover:bg-[#F2F2F7] sm:px-6 sm:text-sm"
+          className="rounded-[16px] bg-[#FDF2E9] px-5 py-3 text-xs font-semibold text-[#9A3412] transition-colors hover:bg-[#FCE8D7] sm:px-6 sm:text-sm"
         >
           초기화
         </button>

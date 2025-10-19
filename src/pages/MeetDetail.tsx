@@ -256,7 +256,7 @@ const MeetDetail: React.FC = () => {
           <div className="mt-8 flex gap-3">
             <button
               onClick={handleEdit}
-              className="flex-1 rounded-[24px] bg-[#FFE607] px-4 py-3 text-[14px] font-semibold text-[#1C1C1E] shadow-md transition hover:shadow-lg"
+              className="flex-1 rounded-[24px] bg-[#2563EB] px-4 py-3 text-[14px] font-semibold text-white shadow-md transition hover:bg-[#1D4ED8]"
             >
               수정하기
             </button>
