@@ -13,7 +13,7 @@ import { Meet } from "@/types/Meet";
 const VotePage = () => {
   const navigate = useNavigate();
   const {meetId} = useParams();
-  const [meet, setMeet] = useState<Meet>({ meetTitle: '', endDate: '', isAuthor: '' });
+  const [meet, setMeet] = useState<Meet>({ meetTitle: '', endDate: '', isAuthor: false });
   const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
   const [placeList, setPlaceList] = useState<Place[]>([]);
   const [isScheduleVoted, setIsScheduleVoted] = useState<boolean>(false);
@@ -52,7 +52,7 @@ const VotePage = () => {
         setMeet({
           meetTitle: scheduleResponse.data.meetTitle,
           endDate: placeResponse.data.endDate,
-          isAuthor: placeResponse.data.isAuthor
+          isAuthor: placeResponse.data.author
         });
       })
       .catch((error) => {
