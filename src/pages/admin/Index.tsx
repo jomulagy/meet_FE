@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
-import FooterNav from "../components/FooterNav";
+import FooterNav from "../../components/FooterNav";
 
 type AdminTree = {
   id: string;
@@ -9,7 +9,6 @@ type AdminTree = {
   items: {
     id: string;
     label: string;
-    description: string;
     action: () => void;
   }[];
 };
@@ -53,8 +52,7 @@ const Admin = () => {
       items: [
         {
           id: "permission",
-          label: "권한관리",
-          description: "멤버 권한 승인·취소",
+          label: "권한 관리",
           action: () => navigate("/admin/permission"),
         },
       ],
@@ -65,14 +63,12 @@ const Admin = () => {
       items: [
         {
           id: "party",
-          label: "회식",
-          description: "모임 투표 생성",
+          label: "회식 투표 생성",
           action: () => navigate("/admin/meet"),
         },
         {
           id: "travel",
-          label: "여행",
-          description: "여행 투표 생성",
+          label: "여행 투표 생성",
           action: () => navigate("/admin/vote"),
         },
       ],
@@ -82,9 +78,7 @@ const Admin = () => {
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
       <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-5 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
-        <header className="text-left">
-          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">ADMIN</h1>
-        </header>
+        <h1 className="text-left text-2xl font-bold text-[#1C1C1E] sm:text-3xl">ADMIN</h1>
 
         {isLoading && (
           <div className="rounded-[24px] bg-white p-6 text-center text-[#8E8E93]">
@@ -97,9 +91,8 @@ const Admin = () => {
             <div className="rounded-[18px] bg-white p-3 shadow-sm sm:p-4">
               <ul className="space-y-1">
                 {adminTree.map((group) => (
-                  <li key={group.id} className="space-y-2">
+                  <li key={group.id} className="space-y-1">
                     <div className="text-sm font-semibold text-[#1C1C1E] sm:text-base">{group.label}</div>
-
                     <div className="space-y-1 border-l-2 border-[#E5E5EA] pl-3 sm:pl-4">
                       {group.items.map((item) => (
                         <button
@@ -108,10 +101,7 @@ const Admin = () => {
                           onClick={item.action}
                           className="flex w-full items-center justify-between rounded-xl bg-white px-3 py-3 text-left text-[#1C1C1E] shadow-[0_1px_6px_rgba(0,0,0,0.04)] transition hover:-translate-y-[1px] hover:shadow-[0_6px_14px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-2 focus:ring-[#5856D6]"
                         >
-                          <div className="flex flex-col text-left">
-                            <span className="text-[14px] font-semibold sm:text-[15px]">{item.label}</span>
-                            <span className="text-[12px] text-[#6B7280] sm:text-[13px]">{item.description}</span>
-                          </div>
+                          <span className="text-[14px] font-semibold sm:text-[15px]">{item.label}</span>
                           <span className="text-base text-[#8E8E93]">›</span>
                         </button>
                       ))}

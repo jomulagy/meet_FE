@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
-import FooterNav from "../components/FooterNav";
+import FooterNav from "../../components/FooterNav";
 
-const VoteManage = () => {
+const TravelVote = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const initialState = (state as { title?: string; budget?: string }) || {};
@@ -109,4 +109,4 @@ const VoteManage = () => {
   );
 };
 
-export default VoteManage;
+export default TravelVote;

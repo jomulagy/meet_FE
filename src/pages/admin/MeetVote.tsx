@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
-import FooterNav from "../components/FooterNav";
-import SearchPopup from "../components/popUp/PlaceSearch";
+import FooterNav from "../../components/FooterNav";
+import SearchPopup from "../../components/popUp/PlaceSearch";
 
 type VotePlace = { name: string; xPos: string; yPos: string };
 type VoteStep = "vote" | "deadline";
 
-const MeetManage = () => {
+const MeetVote = () => {
   const navigate = useNavigate();
   const [hasPrivilege, setHasPrivilege] = useState<boolean | undefined>(undefined);
   const [activeStep, setActiveStep] = useState<VoteStep>("vote");
@@ -205,13 +205,12 @@ const MeetManage = () => {
             <button
               type="button"
               onClick={() => setVotePlace({ name: "", xPos: "", yPos: "" })}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] sm:text-sm"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#514BC7] hover:text-[#1C1C1E] sm:text-sm"
             >
               초기화
             </button>
           )}
         </div>
-        <p className="text-left text-[11px] text-[#8E8E93] sm:text-xs">필드를 선택하면 장소 검색 팝업이 열립니다.</p>
       </div>
 
       <div className="space-y-2 text-left">
@@ -225,17 +224,24 @@ const MeetManage = () => {
         />
       </div>
 
-      <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
+      <div className="grid grid-cols-2 gap-3 pt-4">
+        <button
+          type="button"
+          onClick={() => navigate("/admin")}
+          className="w-full rounded-[16px] bg-[#EAE9FF] px-5 py-3 text-xs font-semibold text-[#4C4ACB] transition hover:bg-[#dcdaf9] sm:text-sm"
+        >
+          이전
+        </button>
         <button
           type="button"
           onClick={resetVoteForm}
-          className="rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-3 text-xs font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:px-6 sm:text-sm"
+          className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-3 text-xs font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:text-sm"
         >
           초기화
         </button>
         <button
           type="submit"
-          className="rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB] disabled:cursor-not-allowed disabled:opacity-70 sm:px-6 sm:text-sm"
+          className="col-span-2 w-full rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB] disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-1 sm:text-sm"
         >
           다음
         </button>
@@ -264,25 +270,25 @@ const MeetManage = () => {
         />
       </div>
 
-      <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
+      <div className="grid grid-cols-2 gap-3 pt-4">
         <button
           type="button"
           onClick={handlePreviousStep}
-          className="rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-3 text-xs font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:px-6 sm:text-sm"
+          className="w-full rounded-[16px] bg-[#EAE9FF] px-5 py-3 text-xs font-semibold text-[#4C4ACB] transition hover:bg-[#dcdaf9] sm:text-sm"
         >
           이전
         </button>
         <button
           type="button"
           onClick={resetDeadlineForm}
-          className="rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-3 text-xs font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:px-6 sm:text-sm"
+          className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-3 text-xs font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:text-sm"
         >
           초기화
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB] disabled:cursor-not-allowed disabled:opacity-70 sm:px-6 sm:text-sm"
+          className="col-span-2 w-full rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB] disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-1 sm:text-sm"
         >
           {isSubmitting ? "생성 중..." : "투표 생성"}
         </button>
@@ -290,21 +296,10 @@ const MeetManage = () => {
     </form>
   );
 
-  const stepTitle = activeStep === "vote" ? "투표 생성" : "투표 마감 관리";
-  const stepDescription =
-    activeStep === "vote"
-      ? "투표 기본 정보를 입력한 후 다음 단계로 넘어가세요."
-      : "투표 종료일과 참여 여부 확인 마감일을 설정하세요. 시간은 서버에서 자동으로 처리됩니다.";
-
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
       <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-6 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
-        <header className="space-y-2 text-left sm:space-y-3">
-          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">ADMIN</h1>
-          <p className="text-sm text-[#636366] sm:text-base">
-            운영자 전용 기능을 한 곳에 모았습니다. 필요한 정보를 입력하고 투표를 생성하거나 멤버 권한을 관리하세요.
-          </p>
-        </header>
+        <h1 className="text-left text-2xl font-bold text-[#1C1C1E] sm:text-3xl">회식 투표 생성</h1>
 
         {isLoading && (
           <div className="rounded-[24px] bg-white p-6 text-center text-[#8E8E93]">
@@ -317,10 +312,11 @@ const MeetManage = () => {
             <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
               <div className="flex items-center justify-between text-xs text-[#8E8E93] sm:text-sm">
                 <span>STEP {activeStep === "vote" ? "1" : "2"} / 2</span>
-                <span>{stepTitle}</span>
+                <span>{activeStep === "vote" ? "투표 생성" : "투표 마감 관리"}</span>
               </div>
-              <h2 className="mt-3 text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">{stepTitle}</h2>
-              <p className="mt-2 text-left text-xs text-[#636366] sm:text-sm">{stepDescription}</p>
+              <h2 className="mt-3 text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">
+                {activeStep === "vote" ? "투표 생성" : "투표 마감 관리"}
+              </h2>
             </div>
 
             <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
@@ -337,4 +333,4 @@ const MeetManage = () => {
   );
 };
 
-export default MeetManage;
+export default MeetVote;

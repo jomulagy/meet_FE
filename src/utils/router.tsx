@@ -17,11 +17,11 @@ const router: RouteObject[] = [
   },
   {
     path: "/admin/meet",
-    element: <Pages.MeetManage />,
+    element: <Pages.MeetVote />,
   },
   {
     path: "/admin/vote",
-    element: <Pages.VoteManage />,
+    element: <Pages.TravelVote />,
   },
   {
     path: "/auth/login",

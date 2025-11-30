@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserManage from "@/components/UserManage";
 import { server } from "@/utils/axios";
-import FooterNav from "../components/FooterNav";
+import FooterNav from "../../components/FooterNav";
 
 type User = {
   id: string;
@@ -151,18 +151,17 @@ const AdminPermission = () => {
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
       <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-6 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
-        <header className="space-y-2 text-left sm:space-y-3">
-          <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">권한 관리</h1>
-          <p className="text-sm text-[#636366] sm:text-base">멤버 권한을 승인하거나 취소하여 운영 권한을 제어하세요.</p>
-        </header>
+        <h1 className="text-left text-2xl font-bold text-[#1C1C1E] sm:text-3xl">권한 관리</h1>
 
-        <button
-          type="button"
-          onClick={() => navigate("/admin")}
-          className="w-full rounded-[14px] border border-[#E5E5EA] bg-white px-4 py-3 text-[14px] font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC]"
-        >
-          이전으로
-        </button>
+        <div className="grid grid-cols-2 gap-3 sm:w-2/3">
+          <button
+            type="button"
+            onClick={() => navigate("/admin")}
+            className="col-span-2 rounded-[14px] border border-[#E5E5EA] bg-white px-4 py-3 text-[14px] font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:col-span-1"
+          >
+            이전으로
+          </button>
+        </div>
 
         {isLoading && (
           <div className="rounded-[24px] bg-white p-6 text-center text-[#8E8E93]">관리자 권한을 확인하는 중입니다...</div>

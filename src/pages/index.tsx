@@ -76,7 +76,7 @@ export const Home: React.FC = () => {
 
 export default Home;
 
-export { default as Admin } from "./admin";
+export { default as Admin } from "./admin/Index";
 export { Login as Login, KakaoCode as KakaoCode } from "./login";
 export { Dashboard } from "./dashboard";
 export { NotFound } from "./Exceptions/notFound";
@@ -87,6 +87,6 @@ export { default as MeetEdit } from "./MeetEdit";
 export { default as VotePage } from "./VotePage";
 export { default as JoinVotePage } from "./JoinVotePage";
 export { default as MeetCreate } from "./MeetCreate";
-export { default as VoteManage } from "./VoteManage";
-export { default as AdminPermission } from "./AdminPermission";
-export { default as MeetManage } from "./MeetManage";
+export { default as TravelVote } from "./admin/TravelVote";
+export { default as AdminPermission } from "./admin/Permission";
+export { default as MeetVote } from "./admin/MeetVote";
