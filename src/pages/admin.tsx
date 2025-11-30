@@ -67,12 +67,12 @@ const Admin = () => {
           id: "party",
           label: "회식",
           description: "모임 투표 생성",
-          action: () => navigate("/meet/create"),
+          action: () => navigate("/admin/meet"),
         },
         {
           id: "travel",
           label: "여행",
-          description: "여행 투표 설정",
+          description: "여행 투표 생성",
           action: () => navigate("/admin/vote"),
         },
       ],
@@ -98,10 +98,7 @@ const Admin = () => {
               <ul className="space-y-1">
                 {adminTree.map((group) => (
                   <li key={group.id} className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1C1E] sm:text-base">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#EDEEF1] text-[#5856D6] text-[13px]">{group.label.substring(0, 1)}</span>
-                      <span>{group.label}</span>
-                    </div>
+                    <div className="text-sm font-semibold text-[#1C1C1E] sm:text-base">{group.label}</div>
 
                     <div className="space-y-1 border-l-2 border-[#E5E5EA] pl-3 sm:pl-4">
                       {group.items.map((item) => (

@@ -89,3 +89,4 @@ export { default as JoinVotePage } from "./JoinVotePage";
 export { default as MeetCreate } from "./MeetCreate";
 export { default as VoteManage } from "./VoteManage";
 export { default as AdminPermission } from "./AdminPermission";
+export { default as MeetManage } from "./MeetManage";

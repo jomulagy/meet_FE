@@ -16,6 +16,10 @@ const router: RouteObject[] = [
     element: <Pages.AdminPermission />,
   },
   {
+    path: "/admin/meet",
+    element: <Pages.MeetManage />,
+  },
+  {
     path: "/admin/vote",
     element: <Pages.VoteManage />,
   },

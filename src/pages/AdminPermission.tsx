@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserManage from "@/components/UserManage";
 import { server } from "@/utils/axios";
@@ -15,6 +16,7 @@ type User = {
 };
 
 const AdminPermission = () => {
+  const navigate = useNavigate();
   const [hasPrivilege, setHasPrivilege] = useState<boolean | undefined>(undefined);
   const [users, setUsers] = useState<User[]>([]);
   const [isFetchingUsers, setIsFetchingUsers] = useState<boolean>(false);
@@ -153,6 +155,14 @@ const AdminPermission = () => {
           <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">권한 관리</h1>
           <p className="text-sm text-[#636366] sm:text-base">멤버 권한을 승인하거나 취소하여 운영 권한을 제어하세요.</p>
         </header>
+
+        <button
+          type="button"
+          onClick={() => navigate("/admin")}
+          className="w-full rounded-[14px] border border-[#E5E5EA] bg-white px-4 py-3 text-[14px] font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC]"
+        >
+          이전으로
+        </button>
 
         {isLoading && (
           <div className="rounded-[24px] bg-white p-6 text-center text-[#8E8E93]">관리자 권한을 확인하는 중입니다...</div>
