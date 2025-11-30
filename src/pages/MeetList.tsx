@@ -9,6 +9,7 @@ type MeetInfo = {
   title: string;
   date: string | null;
   place: string | null;
+  type?: string;
 };
 
 const MeetList: React.FC = () => {
@@ -67,9 +68,20 @@ const MeetList: React.FC = () => {
                         />
                       </span>
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-[15px] font-semibold text-[#1C1C1E] group-hover:text-[#5856D6]">
-                          {meet.title}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`rounded-full px-2 py-[2px] text-[11px] font-semibold ${
+                              meet.type === "travel"
+                                ? "bg-[#FEF3C7] text-[#92400E]"
+                                : "bg-[#E1F0FF] text-[#1E3A8A]"
+                            }`}
+                          >
+                            {meet.type === "travel" ? "여행" : "모임"}
+                          </span>
+                          <h3 className="text-[15px] font-semibold text-[#1C1C1E] group-hover:text-[#5856D6]">
+                            {meet.title}
+                          </h3>
+                        </div>
                         <div className="flex flex-col text-[12px] text-[#8E8E93]">
                           <span>
                             {meet.date && meet.date.trim().length > 0

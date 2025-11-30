@@ -81,12 +81,9 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
-      <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-6 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
-        <header className="space-y-2 text-left sm:space-y-3">
+      <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-5 px-4 pb-20 pt-8 sm:max-w-screen-md sm:px-6 sm:pb-24 sm:pt-10 lg:max-w-4xl">
+        <header className="text-left">
           <h1 className="text-2xl font-bold text-[#1C1C1E] sm:text-3xl">ADMIN</h1>
-          <p className="text-sm text-[#636366] sm:text-base">
-            운영자 전용 기능을 간단한 트리 메뉴로 구성했습니다. 필요한 페이지로 바로 이동하세요.
-          </p>
         </header>
 
         {isLoading && (
@@ -97,35 +94,28 @@ const Admin = () => {
 
         {!isLoading && hasPrivilege && (
           <section className="space-y-3">
-            <div className="rounded-[18px] bg-white p-4 shadow-sm sm:p-5">
-              <h2 className="text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">관리 메뉴</h2>
-              <p className="mt-2 text-left text-xs text-[#636366] sm:text-sm">
-                기능이 늘어나도 한눈에 확인할 수 있도록 트리 형태의 얕은 메뉴로 구성했습니다.
-              </p>
-            </div>
-
             <div className="rounded-[18px] bg-white p-3 shadow-sm sm:p-4">
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {adminTree.map((group) => (
                   <li key={group.id} className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1C1E] sm:text-base">
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7] text-[#8E8E93]">•</span>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#EDEEF1] text-[#5856D6] text-[13px]">{group.label.substring(0, 1)}</span>
                       <span>{group.label}</span>
                     </div>
 
-                    <div className="space-y-2 border-l border-[#E5E5EA] pl-4 sm:pl-5">
+                    <div className="space-y-1 border-l-2 border-[#E5E5EA] pl-3 sm:pl-4">
                       {group.items.map((item) => (
                         <button
                           key={item.id}
                           type="button"
                           onClick={item.action}
-                          className="flex w-full items-center justify-between rounded-[14px] px-3 py-3 text-left transition-colors hover:bg-[#F9F9FB]"
+                          className="flex w-full items-center justify-between rounded-xl bg-white px-3 py-3 text-left text-[#1C1C1E] shadow-[0_1px_6px_rgba(0,0,0,0.04)] transition hover:-translate-y-[1px] hover:shadow-[0_6px_14px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-2 focus:ring-[#5856D6]"
                         >
                           <div className="flex flex-col text-left">
-                            <span className="text-sm font-semibold text-[#1C1C1E] sm:text-base">{item.label}</span>
-                            <span className="text-[12px] text-[#8E8E93] sm:text-[13px]">{item.description}</span>
+                            <span className="text-[14px] font-semibold sm:text-[15px]">{item.label}</span>
+                            <span className="text-[12px] text-[#6B7280] sm:text-[13px]">{item.description}</span>
                           </div>
-                          <span className="text-base text-[#AEAEB2]">›</span>
+                          <span className="text-base text-[#8E8E93]">›</span>
                         </button>
                       ))}
                     </div>
