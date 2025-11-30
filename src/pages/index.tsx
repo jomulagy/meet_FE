@@ -87,3 +87,4 @@ export { default as MeetEdit } from "./MeetEdit";
 export { default as VotePage } from "./VotePage";
 export { default as JoinVotePage } from "./JoinVotePage";
 export { default as MeetCreate } from "./MeetCreate";
+export { default as VoteManage } from "./VoteManage";

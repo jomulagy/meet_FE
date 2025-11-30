@@ -4,12 +4,8 @@ import { useNavigate } from "react-router-dom";
 import UserManage from "@/components/UserManage";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
-import SearchPopup from "../components/popUp/PlaceSearch";
 
-type VotePlace = { name: string; xPos: string; yPos: string };
-
-type VoteStep = "vote" | "deadline";
-type AdminTab = "member" | "vote";
+type AdminFeature = "member" | "vote";
 
 type User = {
   id: string;
@@ -24,23 +20,12 @@ type User = {
 const Admin = () => {
   const navigate = useNavigate();
   const [hasPrivilege, setHasPrivilege] = useState<boolean | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<AdminTab>("member");
+  const [activeFeature, setActiveFeature] = useState<AdminFeature>("member");
   const [users, setUsers] = useState<User[]>([]);
   const [isFetchingUsers, setIsFetchingUsers] = useState<boolean>(false);
-  const [activeStep, setActiveStep] = useState<VoteStep>("vote");
-  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [voteTitle, setVoteTitle] = useState<string>("");
-  const [voteDate, setVoteDate] = useState<string>("");
-  const [voteTime, setVoteTime] = useState<string>("");
-  const [votePlace, setVotePlace] = useState<VotePlace>({
-    name: "",
-    xPos: "",
-    yPos: "",
-  });
-  const [voteContent, setVoteContent] = useState<string>("");
-  const [voteDeadline, setVoteDeadline] = useState<string>("");
-  const [participationDeadline, setParticipationDeadline] = useState<string>("");
+  const [voteBudget, setVoteBudget] = useState<string>("");
+  const [isCreatingVote, setIsCreatingVote] = useState<boolean>(false);
 
   const isLoading = useMemo(() => hasPrivilege === undefined, [hasPrivilege]);
 
@@ -58,16 +43,10 @@ const Admin = () => {
       return;
     }
 
-    if (activeTab === "member") {
+    if (activeFeature === "member") {
       fetchUserList();
     }
-  }, [hasPrivilege, activeTab]);
-
-  useEffect(() => {
-    if (activeTab !== "vote") {
-      setIsPopupOpen(false);
-    }
-  }, [activeTab]);
+  }, [hasPrivilege, activeFeature]);
 
   const fetchPrevilege = async () => {
     await server
@@ -177,24 +156,7 @@ const Admin = () => {
     }
   };
 
-  const isSchedulePairIncomplete = useMemo(() => {
-    return (voteDate && !voteTime) || (!voteDate && voteTime);
-  }, [voteDate, voteTime]);
-
-  const resetVoteForm = () => {
-    setVoteTitle("");
-    setVoteDate("");
-    setVoteTime("");
-    setVotePlace({ name: "", xPos: "", yPos: "" });
-    setVoteContent("");
-  };
-
-  const resetDeadlineForm = () => {
-    setVoteDeadline("");
-    setParticipationDeadline("");
-  };
-
-  const handleNextStep = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleVoteCreate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!voteTitle.trim()) {
@@ -202,223 +164,31 @@ const Admin = () => {
       return;
     }
 
-    if (isSchedulePairIncomplete) {
-      alert("날짜와 시간은 함께 입력하거나 비워 주세요");
+    if (!voteBudget.trim()) {
+      alert("사용 예산을 입력해 주세요");
       return;
     }
 
-    setActiveStep("deadline");
+    setIsCreatingVote(true);
+
+    navigate("/admin/vote", { state: { title: voteTitle.trim(), budget: voteBudget.trim() } });
+    setIsCreatingVote(false);
   };
 
-  const handlePreviousStep = () => {
-    setActiveStep("vote");
-  };
-
-  const handleVoteSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!voteDeadline || !participationDeadline) {
-      alert("투표 마감일과 참여 여부 마감일을 모두 선택해 주세요");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const payload = {
-      title: voteTitle.trim(),
-      date: voteDate || null,
-      time: voteTime || null,
-      place: votePlace.name ? votePlace : null,
-      content: voteContent,
-      voteDeadline,
-      participationDeadline,
-    };
-
-    server
-      .post("/meet", {
-        data: payload,
-      })
-      .then((response) => {
-        const createdMeetId = response.data?.meetId ?? response.data?.id;
-
-        resetVoteForm();
-        resetDeadlineForm();
-        setActiveStep("vote");
-
-        if (createdMeetId) {
-          navigate(`/meet/${createdMeetId}`);
-          return;
-        }
-
-        alert("투표가 생성되었습니다.");
-        navigate("/");
-      })
-      .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        } else {
-          alert("투표 생성에 실패했습니다.");
-        }
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
-  };
-
-  const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
-    setVotePlace({
-      name: location.address,
-      xPos: location.x,
-      yPos: location.y,
-    });
-    setIsPopupOpen(false);
-  };
-
-  const renderVoteStep = () => (
-    <form className="space-y-6" onSubmit={handleNextStep}>
-      <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">투표 제목<span className="ml-1 text-[#FF3B30]">*</span></label>
-        <input
-          type="text"
-          value={voteTitle}
-          onChange={(e) => setVoteTitle(e.target.value)}
-          placeholder="투표 제목을 입력하세요"
-          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
-        <div className="space-y-2">
-          <label className="text-xs text-[#8E8E93] sm:text-sm">날짜</label>
-          <input
-            type="date"
-            value={voteDate}
-            onChange={(e) => setVoteDate(e.target.value)}
-            className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-xs text-[#8E8E93] sm:text-sm">시간</label>
-          <input
-            type="time"
-            value={voteTime}
-            onChange={(e) => setVoteTime(e.target.value)}
-            className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-          />
-        </div>
-      </div>
-      {isSchedulePairIncomplete && (
-        <p className="text-left text-xs text-[#FF3B30] sm:text-sm">날짜와 시간은 함께 입력해야 합니다.</p>
-      )}
-
-      <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">장소</label>
-        <div className="relative">
-          <input
-            type="text"
-            readOnly
-            value={votePlace.name}
-            onFocus={() => setIsPopupOpen(true)}
-            onClick={() => setIsPopupOpen(true)}
-            placeholder="장소를 선택해 주세요"
-            className="w-full cursor-pointer rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold text-left focus:border-[#FFE607] focus:outline-none sm:text-lg"
-          />
-          {votePlace.name && (
-            <button
-              type="button"
-              onClick={() => setVotePlace({ name: "", xPos: "", yPos: "" })}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] sm:text-sm"
-            >
-              초기화
-            </button>
-          )}
-        </div>
-        <p className="text-left text-[11px] text-[#8E8E93] sm:text-xs">필드를 선택하면 장소 검색 팝업이 열립니다.</p>
-      </div>
-
-      <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">내용</label>
-        <textarea
-          value={voteContent}
-          onChange={(e) => setVoteContent(e.target.value)}
-          placeholder="투표 내용을 입력하세요"
-          rows={4}
-          className="w-full resize-none rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-medium focus:border-[#FFE607] focus:outline-none sm:text-base"
-        />
-      </div>
-
-      <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={resetVoteForm}
-          className="rounded-[16px] bg-[#F3F4F6] px-5 py-3 text-xs font-semibold text-[#1F2937] transition-colors hover:bg-[#E5E7EB] sm:px-6 sm:text-sm"
-        >
-          초기화
-        </button>
-        <button
-          type="submit"
-          className="rounded-[16px] bg-[#FFE607] px-5 py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 sm:px-6 sm:text-sm"
-        >
-          다음
-        </button>
-      </div>
-    </form>
-  );
-
-  const renderDeadlineStep = () => (
-    <form className="space-y-6" onSubmit={handleVoteSubmit}>
-      <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">투표 마감일<span className="ml-1 text-[#FF3B30]">*</span></label>
-        <input
-          type="date"
-          value={voteDeadline}
-          onChange={(e) => setVoteDeadline(e.target.value)}
-          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-        />
-      </div>
-      <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">참여 여부 마감일<span className="ml-1 text-[#FF3B30]">*</span></label>
-        <input
-          type="date"
-          value={participationDeadline}
-          onChange={(e) => setParticipationDeadline(e.target.value)}
-          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-        />
-      </div>
-
-      <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={handlePreviousStep}
-          className="rounded-[16px] bg-[#E3EEFF] px-5 py-3 text-xs font-semibold text-[#1E3A8A] transition-colors hover:bg-[#D6E6FF] sm:px-6 sm:text-sm"
-        >
-          이전
-        </button>
-        <button
-          type="button"
-          onClick={resetDeadlineForm}
-          className="rounded-[16px] bg-[#FDF2E9] px-5 py-3 text-xs font-semibold text-[#9A3412] transition-colors hover:bg-[#FCE8D7] sm:px-6 sm:text-sm"
-        >
-          초기화
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-[16px] bg-[#FFE607] px-5 py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6 sm:text-sm"
-        >
-          {isSubmitting ? "생성 중..." : "투표 생성"}
-        </button>
-      </div>
-    </form>
-  );
-
-  const stepTitle = activeStep === "vote" ? "투표 생성" : "투표 마감 관리";
-  const stepDescription =
-    activeStep === "vote"
-      ? "투표 기본 정보를 입력한 후 다음 단계로 넘어가세요."
-      : "투표 종료일과 참여 여부 확인 마감일을 설정하세요. 시간은 서버에서 자동으로 처리됩니다.";
+  const adminFeatures: { id: AdminFeature; title: string; description: string; badge: string }[] = [
+    {
+      id: "member",
+      title: "멤버 관리",
+      description: "운영 권한을 승인·취소하여 커뮤니티를 관리합니다.",
+      badge: "권한",
+    },
+    {
+      id: "vote",
+      title: "투표 생성",
+      description: "제목과 사용 예산을 정하고 투표 페이지로 이동합니다.",
+      badge: "신규",
+    },
+  ];
 
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#F2F2F7" }}>
@@ -438,79 +208,119 @@ const Admin = () => {
 
         {!isLoading && hasPrivilege && (
           <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab("member")}
-                className={`flex-1 rounded-[16px] px-4 py-3 text-sm font-semibold sm:text-base ${
-                  activeTab === "member"
-                    ? "bg-[#FFE607] text-black"
-                    : "bg-white text-[#3A3A3C] shadow-sm"
-                }`}
-              >
-                멤버관리
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("vote")}
-                className={`flex-1 rounded-[16px] px-4 py-3 text-sm font-semibold sm:text-base ${
-                  activeTab === "vote"
-                    ? "bg-[#FFE607] text-black"
-                    : "bg-white text-[#3A3A3C] shadow-sm"
-                }`}
-              >
-                투표관리
-              </button>
-            </div>
-
-            {activeTab === "member" && (
-              <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
-                <div className="mb-4 text-left">
-                  <h2 className="text-lg font-semibold text-[#1C1C1E] sm:text-xl">멤버 관리</h2>
-                  <p className="mt-1 text-xs text-[#636366] sm:text-sm">
-                    멤버 권한을 승인하거나 취소하여 운영 권한을 제어하세요.
+            <div className="grid gap-4 lg:grid-cols-[minmax(260px,320px),1fr]">
+              <aside className="space-y-4">
+                <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+                  <h2 className="text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">관리 기능</h2>
+                  <p className="mt-2 text-left text-xs text-[#636366] sm:text-sm">
+                    탭 대신 카드 목록으로 기능을 선택해 향후 기능 추가에도 깔끔하게 확장할 수 있습니다.
                   </p>
                 </div>
-                {isFetchingUsers ? (
-                  <div className="rounded-[16px] bg-[#F9F9FB] p-6 text-center text-sm text-[#8E8E93]">
-                    멤버 목록을 불러오는 중입니다...
-                  </div>
-                ) : (
-                  <ul className="space-y-4">
-                    {users.map((user) => (
-                      <UserManage key={user.id} user={user} handlePermissionChange={handlePermissionChange} />
-                    ))}
-                    {users.length === 0 && (
-                      <li className="rounded-[16px] bg-[#F9F9FB] p-6 text-center text-sm text-[#8E8E93]">
-                        표시할 멤버가 없습니다.
+
+                <div className="rounded-[24px] bg-white p-3 shadow-sm sm:p-4">
+                  <ul className="space-y-3">
+                    {adminFeatures.map((feature) => (
+                      <li key={feature.id}>
+                        <button
+                          type="button"
+                          onClick={() => setActiveFeature(feature.id)}
+                          className={`group flex w-full items-center gap-4 rounded-[18px] border px-4 py-4 text-left transition-colors sm:px-5 sm:py-5 ${
+                            activeFeature === feature.id ? "border-[#FFE607] bg-[#FFFCEB]" : "border-[#E5E5EA] bg-white"
+                          }`}
+                        >
+                          <div className="flex flex-1 flex-col text-left">
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-full bg-[#F2F2F7] px-2 py-[6px] text-[11px] font-semibold text-[#3A3A3C]">{feature.badge}</span>
+                              {activeFeature === feature.id && (
+                                <span className="text-[11px] font-semibold text-[#111827]">선택됨</span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-base font-semibold text-[#1C1C1E] sm:text-lg">{feature.title}</p>
+                            <p className="mt-1 text-xs text-[#636366] sm:text-sm">{feature.description}</p>
+                          </div>
+                          <span className="text-lg text-[#8E8E93] transition-colors group-hover:text-[#1C1C1E]">›</span>
+                        </button>
                       </li>
-                    )}
+                    ))}
                   </ul>
+                </div>
+              </aside>
+
+              <div className="space-y-4">
+                {activeFeature === "member" && (
+                  <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+                    <div className="mb-4 text-left">
+                      <h2 className="text-lg font-semibold text-[#1C1C1E] sm:text-xl">멤버 관리</h2>
+                      <p className="mt-1 text-xs text-[#636366] sm:text-sm">멤버 권한을 승인하거나 취소하여 운영 권한을 제어하세요.</p>
+                    </div>
+                    {isFetchingUsers ? (
+                      <div className="rounded-[16px] bg-[#F9F9FB] p-6 text-center text-sm text-[#8E8E93]">멤버 목록을 불러오는 중입니다...</div>
+                    ) : (
+                      <ul className="space-y-4">
+                        {users.map((user) => (
+                          <UserManage key={user.id} user={user} handlePermissionChange={handlePermissionChange} />
+                        ))}
+                        {users.length === 0 && (
+                          <li className="rounded-[16px] bg-[#F9F9FB] p-6 text-center text-sm text-[#8E8E93]">표시할 멤버가 없습니다.</li>
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {activeFeature === "vote" && (
+                  <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+                    <div className="mb-4 flex items-center justify-between text-xs text-[#8E8E93] sm:text-sm">
+                      <span>STEP 1 / 1</span>
+                      <span>투표 기본 정보</span>
+                    </div>
+                    <h2 className="text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">새 투표 만들기</h2>
+                    <p className="mt-2 text-left text-xs text-[#636366] sm:text-sm">
+                      제목과 사용 예산만 간단히 입력하면 투표 페이지에서 항목을 세부 설정할 수 있습니다.
+                    </p>
+
+                    <form className="mt-6 space-y-5" onSubmit={handleVoteCreate}>
+                      <div className="space-y-2 text-left">
+                        <label className="text-xs text-[#8E8E93] sm:text-sm">투표 제목<span className="ml-1 text-[#FF3B30]">*</span></label>
+                        <input
+                          type="text"
+                          value={voteTitle}
+                          onChange={(e) => setVoteTitle(e.target.value)}
+                          placeholder="예: 7월 정기 모임 투표"
+                          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
+                        />
+                      </div>
+
+                      <div className="space-y-2 text-left">
+                        <label className="text-xs text-[#8E8E93] sm:text-sm">사용 예산<span className="ml-1 text-[#FF3B30]">*</span></label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={voteBudget}
+                          onChange={(e) => setVoteBudget(e.target.value)}
+                          placeholder="예: 500000"
+                          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
+                        />
+                        <p className="text-left text-[11px] text-[#8E8E93] sm:text-xs">단위는 원입니다. 상세 항목은 투표 페이지에서 조정하세요.</p>
+                      </div>
+
+                      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                        <button
+                          type="submit"
+                          disabled={isCreatingVote}
+                          className="rounded-[16px] bg-[#FFE607] px-5 py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6 sm:text-sm"
+                        >
+                          {isCreatingVote ? "이동 중..." : "투표 생성"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 )}
               </div>
-            )}
-
-            {activeTab === "vote" && (
-              <>
-                <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
-                  <div className="flex items-center justify-between text-xs text-[#8E8E93] sm:text-sm">
-                    <span>STEP {activeStep === "vote" ? "1" : "2"} / 2</span>
-                    <span>{stepTitle}</span>
-                  </div>
-                  <h2 className="mt-3 text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">{stepTitle}</h2>
-                  <p className="mt-2 text-left text-xs text-[#636366] sm:text-sm">{stepDescription}</p>
-                </div>
-
-                <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
-                  {activeStep === "vote" ? renderVoteStep() : renderDeadlineStep()}
-                </div>
-              </>
-            )}
+            </div>
           </section>
         )}
       </div>
-
-      <SearchPopup isOpen={isPopupOpen && activeTab === "vote"} onClose={() => setIsPopupOpen(false)} onSelect={handlePopupSelect} />
 
       <FooterNav />
     </div>
