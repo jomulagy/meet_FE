@@ -14,7 +14,7 @@ type MeetInfo = {
     editable: string;
   } | null;
   place: {
-    name: string;
+    value: string;
     editable: string;
     xpos: number;
     ypos: number;
@@ -191,7 +191,7 @@ const MeetDetail: React.FC = () => {
     },
     {
       label: "장소",
-      value: meetInfo.place?.name ? meetInfo.place.name : "장소 미정",
+      value: meetInfo.place?.value ? meetInfo.place.value : "장소 미정",
       icon: "fa-solid fa-location-dot",
     },
   ];
