@@ -8,12 +8,12 @@ import { server } from "@/utils/axios";
 import { Schedule } from "@/types/ScheduleVote";
 import { Place } from "@/types/PlaceVote";
 import FooterNav from "../components/FooterNav";
-import { Meet } from "@/types/Meet";
+import { Post } from "@/types/Post";
 
 const VotePage = () => {
   const navigate = useNavigate();
   const {meetId} = useParams();
-  const [meet, setMeet] = useState<Meet>({ meetTitle: '', endDate: '', isAuthor: false });
+  const [meet, setMeet] = useState<Post>({ meetTitle: '', endDate: '', isAuthor: false });
   const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
   const [placeList, setPlaceList] = useState<Place[]>([]);
   const [isScheduleVoted, setIsScheduleVoted] = useState<boolean>(false);
@@ -44,7 +44,7 @@ const VotePage = () => {
 
   // 모임 정보 조회
   const fetchMeet = async () => {
-    const fetchSchedule = server.get(`/meet/schedule?meetId=${meetId}`);
+    const fetchSchedule = server.get(`/schedule?meetId=${meetId}`);
     const fetchPlace = server.get(`/meet/place?meetId=${meetId}`);
 
     return Promise.all([fetchSchedule, fetchPlace])
@@ -69,7 +69,7 @@ const VotePage = () => {
   // 일정 투표 항목 조회
   const fetchScheduleVoteItems = async () => {
     return server
-      .get(`/meet/schedule/item/list?meetId=${meetId}`)
+      .get(`/schedule/item/list?meetId=${meetId}`)
       .then((response) => {
         setScheduleList(response.data);
 
@@ -136,10 +136,10 @@ const VotePage = () => {
   // 투표하기 버튼 클릭 핸들러
   const handleVoteClick = () => {
     server
-      .put("/meet/schedule", {
+      .put("/schedule", {
         data: {
           meetId: meetId,
-          scheduleVoteItemList: selectedScheduleIds,
+          votedItemIdList: selectedScheduleIds,
         },
       })
       .then(() => {

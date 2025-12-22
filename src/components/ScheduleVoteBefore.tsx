@@ -42,7 +42,7 @@ const ScheduleVoteBefore = ({
   // 일정 추가 함수
   const handleAddSchedule = async () => {
     server.post(
-      `/meet/schedule/item`,
+      `/schedule/item`,
       {
         data: {
           meetId: meetId,
@@ -78,7 +78,7 @@ const ScheduleVoteBefore = ({
   // 일정 삭제 함수
   const handleRemoveSchedule = (id: string) => {
     server
-      .delete(`/meet/schedule/item?scheduleVoteItemId=${id}`)
+      .delete(`/schedule/item?scheduleVoteItemId=${id}`)
       .then(() => {
         setSchedules((prevList) =>
           prevList.filter((schedule) => schedule.id !== id)

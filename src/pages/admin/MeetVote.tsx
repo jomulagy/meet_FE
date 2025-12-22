@@ -104,14 +104,14 @@ const MeetVote = () => {
       title: voteTitle.trim(),
       date: voteDate || null,
       time: voteTime || null,
-      place: votePlace.name ? votePlace : null,
+      place: votePlace.name ? votePlace.name : null,
       content: voteContent,
       voteDeadline,
       participationDeadline,
     };
 
     server
-      .post("/meet", {
+      .post("/post", {
         data: payload,
       })
       .then((response) => {
@@ -122,7 +122,7 @@ const MeetVote = () => {
         setActiveStep("vote");
 
         if (createdMeetId) {
-          navigate(`/meet/${createdMeetId}`);
+          navigate(`/post/${createdMeetId}`);
           return;
         }
 
