@@ -265,7 +265,7 @@ const ParticipationVoteCard: React.FC<{
 };
 
 const PostDetailPage: React.FC = () => {
-  const { meetId } = useParams();
+  const { postId } = useParams();
   const navigate = useNavigate();
 
   const [postDetail, setPostDetail] = useState<PostDetail | null>(null);
@@ -277,11 +277,11 @@ const PostDetailPage: React.FC = () => {
     let isMounted = true;
 
     const loadDetail = async () => {
-      if (!meetId) return;
+      if (!postId) return;
       setLoading(true);
 
       const [postResponse, voteResponse, participationResponse] = await Promise.all([
-        fetchPostDetail(meetId),
+        fetchPostDetail(postId),
         fetchVoteList(),
         fetchParticipationVote(),
       ]);
@@ -298,7 +298,7 @@ const PostDetailPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [meetId]);
+  }, [postId]);
 
   const handleEndVote = (voteId: string) => {
     setVotes((prev) =>
