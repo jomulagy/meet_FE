@@ -19,7 +19,7 @@ const FooterNav: React.FC = () => {
         className={`flex flex-col items-center cursor-pointer ${
           activeTab === "list" ? "text-black" : "text-[#AEAEB2]"
         }`}
-        onClick={() => handleTabClick("list", "/meet/list")}
+        onClick={() => handleTabClick("list", "/post/list")}
       >
         <i className="fa-solid fa-bars text-[24px] mb-1"></i>
         <span className="text-[10px]">LIST</span>

@@ -1,7 +1,7 @@
 import { Member } from "./Member";
-import { Meet } from "./Meet";
+import { Post } from "./Post";
 
-export type PlaceMeet = Meet & {
+export type PlaceMeet = Post & {
   meetDate: string;
 };
 
