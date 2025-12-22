@@ -12,6 +12,18 @@ const router: RouteObject[] = [
     element: <Pages.Admin />,
   },
   {
+    path: "/admin/permission",
+    element: <Pages.AdminPermission />,
+  },
+  {
+    path: "/admin/meet",
+    element: <Pages.MeetVote />,
+  },
+  {
+    path: "/admin/vote",
+    element: <Pages.TravelVote />,
+  },
+  {
     path: "/auth/login",
     element: <Pages.Login />,
   },

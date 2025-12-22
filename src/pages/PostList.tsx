@@ -3,19 +3,26 @@ import { Link, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import calender from "../assets/img/calender.png";
-import { Post } from "@/types/Post";
 
-const PostList: React.FC = () => {
-  const [postList, setPostList] = useState<Post[]>([]);
+type MeetInfo = {
+  id: string;
+  title: string;
+  date: string | null;
+  place: string | null;
+  type?: string;
+};
+
+const MeetList: React.FC = () => {
+  const [meetList, setMeetList] = useState<MeetInfo[]>([]);
   const navigate = useNavigate();
-  const hasMeetings = useMemo(() => postList.length > 0, [postList]);
+  const hasMeetings = useMemo(() => meetList.length > 0, [meetList]);
 
   useEffect(() => {
-    const fetchPostList = async () => {
+    const fetchMeetList = async () => {
         server
-          .get(`/post/list`)
+          .get(`/meet/list`)
           .then((response) => {
-            setPostList(response.data);
+            setMeetList(response.data);
           })
           .catch((error) => {
             console.error(error);
@@ -23,7 +30,7 @@ const PostList: React.FC = () => {
           });
     };
   
-    fetchPostList();
+    fetchMeetList();
   }, [navigate]);
 
   return (
@@ -41,15 +48,15 @@ const PostList: React.FC = () => {
 
         <section>
           <div className="mb-4 flex items-center justify-between text-[#8E8E93]">
-            <span className="text-[12px] font-medium">총 {postList.length}개</span>
+            <span className="text-[12px] font-medium">총 {meetList.length}개</span>
             <span className="text-[12px] font-medium">최신순</span>
           </div>
           {hasMeetings ? (
             <ul className="flex flex-col gap-4">
-              {postList.map((post) => (
-                <li key={post.id}>
+              {meetList.map((meet) => (
+                <li key={meet.id}>
                   <Link
-                    to={`/post/${post.id}`}
+                    to={`/meet/${meet.id}`}
                     className="group flex w-full items-center justify-between gap-4 rounded-[22px] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(26,26,26,0.08)] transition-all duration-200 hover:shadow-[0_12px_30px_rgba(26,26,26,0.12)]"
                   >
                     <div className="flex items-start gap-4">
@@ -62,31 +69,28 @@ const PostList: React.FC = () => {
                       </span>
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                            <span
-                              className={`rounded-full px-2 py-[2px] text-[11px] font-semibold ${
-                                post.type === "travel"
-                                  ? "bg-[#FEF3C7] text-[#92400E]"
-                                  : "bg-[#E1F0FF] text-[#1E3A8A]"
-                              }`}
-                            >
-                              {post.type}
-                            </span>
-                        </div>
-                       
-                        <div className="flex items-center gap-2">
+                          <span
+                            className={`rounded-full px-2 py-[2px] text-[11px] font-semibold ${
+                              meet.type === "travel"
+                                ? "bg-[#FEF3C7] text-[#92400E]"
+                                : "bg-[#E1F0FF] text-[#1E3A8A]"
+                            }`}
+                          >
+                            {meet.type === "travel" ? "여행" : "모임"}
+                          </span>
                           <h3 className="text-[15px] font-semibold text-[#1C1C1E] group-hover:text-[#5856D6]">
-                            {post.title}
+                            {meet.title}
                           </h3>
                         </div>
-                        <div className="flex flex-col items-start text-[12px] text-[#8E8E93]">
+                        <div className="flex flex-col text-[12px] text-[#8E8E93]">
                           <span>
-                            {post.date && post.date.value && post.date.value.trim().length > 0
-                              ? post.date.value
+                            {meet.date && meet.date.trim().length > 0
+                              ? meet.date
                               : "날짜 미정"}
                           </span>
                           <span>
-                            {post.place && post.place.value && post.place.value.trim().length > 0
-                              ? post.place.value
+                            {meet.place && meet.place.trim().length > 0
+                              ? meet.place
                               : "장소 미정"}
                           </span>
                         </div>
@@ -114,4 +118,4 @@ const PostList: React.FC = () => {
   );
 };
 
-export default PostList;
+export default MeetList;

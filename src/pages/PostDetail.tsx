@@ -221,8 +221,8 @@ const TravelDetailView: React.FC<DetailProps> = ({ meetInfo, formattedDate, part
   );
 };
 
-const PostDetail: React.FC = () => {
-  const { postId } = useParams();
+const MeetDetail: React.FC = () => {
+  const { meetId } = useParams();
   const navigate = useNavigate();
 
   const [meetInfo, setMeetInfo] = useState<MeetInfo | null>(null);
@@ -230,7 +230,7 @@ const PostDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!postId) {
+    if (!meetId) {
       return;
     }
 
@@ -250,9 +250,9 @@ const PostDetail: React.FC = () => {
       setIsLoading(true);
       try {
         const [placeResponse, scheduleResponse, participationResponse] = await Promise.all([
-          server.get(`/meet/place?meetId=${postId}`),
-          server.get(`/schedule?meetId=${postId}`),
-          server.get(`/meet/participate?meetId=${postId}`),
+          server.get(`/meet/place?meetId=${meetId}`),
+          server.get(`/meet/schedule?meetId=${meetId}`),
+          server.get(`/meet/participate?meetId=${meetId}`),
         ]);
 
         const now = new Date();
@@ -262,17 +262,17 @@ const PostDetail: React.FC = () => {
 
         if ((placeVoteEnd && now < placeVoteEnd) || (scheduleVoteEnd && now < scheduleVoteEnd)) {
           redirected = true;
-          navigate(`/meet/vote/${postId}`, { replace: true });
+          navigate(`/meet/vote/${meetId}`, { replace: true });
           return;
         }
 
         if (participationEnd && now < participationEnd) {
           redirected = true;
-          navigate(`/meet/join/${postId}`, { replace: true });
+          navigate(`/meet/join/${meetId}`, { replace: true });
           return;
         }
 
-        const detailResponse = await server.get(`/meet?meetId=${postId}`);
+        const detailResponse = await server.get(`/meet?meetId=${meetId}`);
         const data = detailResponse.data;
 
         if (typeof data.participants === "string") {
@@ -317,7 +317,7 @@ const PostDetail: React.FC = () => {
     return () => {
       redirected = true;
     };
-  }, [postId, navigate]);
+  }, [meetId, navigate]);
 
   const handleEdit = () => {
     if (meetInfo) {
@@ -326,12 +326,12 @@ const PostDetail: React.FC = () => {
   };
 
   const handleDelete = () => {
-    if (!postId) {
+    if (!meetId) {
       return;
     }
 
     server
-      .delete(`/meet?meetId=${postId}`)
+      .delete(`/meet?meetId=${meetId}`)
       .then(() => {
         navigate("/");
       })
@@ -398,4 +398,4 @@ const PostDetail: React.FC = () => {
   );
 };
 
-export default PostDetail;
+export default MeetDetail;
