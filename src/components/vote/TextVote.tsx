@@ -122,7 +122,7 @@ export const TextVoteAfter: React.FC<{ vote: Vote; onRevote: () => void }> = ({ 
             <span>{option.label}</span>
             <button
               type="button"
-              className="text-[11px] font-semibold text-[#5856D6]"
+              className="bg-transparent text-[11px] font-semibold text-[#5856D6]"
               onClick={() => setSelectedOptionId(option.id)}
             >
               {option.count}명

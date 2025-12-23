@@ -28,16 +28,18 @@ export const DateVoteBefore: React.FC<{
   onVote: () => void;
   onAddOption: (label: string) => void;
 }> = ({ vote, allowDuplicate, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
-  const [isAdding, setIsAdding] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [newOption, setNewOption] = useState("");
+  const [dateInput, setDateInput] = useState("");
+  const [hourInput, setHourInput] = useState("");
+  const [minuteInput, setMinuteInput] = useState("");
 
-  const handleAdd = () => {
-    if (!newOption) return;
-    const formatted = newOption.replace("T", " ");
-    onAddOption(formatted);
-    setNewOption("");
-    setIsAdding(false);
+  const handleConfirm = () => {
+    if (!dateInput || !hourInput || !minuteInput) return;
+    onAddOption(`${dateInput} ${hourInput}:${minuteInput}`);
+    setDateInput("");
+    setHourInput("");
+    setMinuteInput("");
+    setIsPopupOpen(false);
   };
 
   return (
@@ -56,45 +58,14 @@ export const DateVoteBefore: React.FC<{
           </label>
         ))}
       </div>
-    <div className="mt-4 space-y-2">
-      {!isAdding ? (
-        <button
-          type="button"
-          onClick={() => setIsAdding(true)}
-          className="w-full rounded-[12px] bg-[#EAE9FF] px-3 py-2 text-xs font-semibold text-[#5856D6]"
-        >
-          항목 추가하기
-        </button>
-      ) : (
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setIsPopupOpen(true)}
-            className="w-full rounded-[12px] bg-[#EAE9FF] px-3 py-2 text-xs font-semibold text-[#5856D6]"
-          >
-            {newOption ? newOption.replace("T", " ") : "날짜와 시간 선택"}
-          </button>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleAdd}
-              className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
-            >
-              추가하기
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsAdding(false);
-                setNewOption("");
-              }}
-              className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
-            >
-              취소
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="mt-4">
+      <button
+        type="button"
+        onClick={() => setIsPopupOpen(true)}
+        className="w-full rounded-[12px] bg-[#EAE9FF] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+      >
+        항목 추가하기
+      </button>
     </div>
     <button
         type="button"
@@ -106,25 +77,52 @@ export const DateVoteBefore: React.FC<{
     {isPopupOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5856D6]/20 px-4">
         <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg">
-          <h4 className="text-sm font-semibold text-[#1C1C1E]">날짜와 시간 선택</h4>
-          <input
-            type="datetime-local"
-            value={newOption}
-            onChange={(event) => setNewOption(event.target.value)}
-            inputMode="numeric"
-            className="mt-3 w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
-          />
-          <div className="mt-4 flex gap-2">
+          <h4 className="text-sm font-semibold text-[#1C1C1E]">날짜와 시간 입력</h4>
+          <div className="mt-4 space-y-3">
+            <div className="flex flex-col gap-2">
+              <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="YYYY.MM.DD"
+                value={dateInput}
+                onChange={(event) => setDateInput(event.target.value)}
+                className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="HH"
+                  value={hourInput}
+                  onChange={(event) => setHourInput(event.target.value)}
+                  className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="MM"
+                  value={minuteInput}
+                  onChange={(event) => setMinuteInput(event.target.value)}
+                  className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 flex gap-2">
             <button
               type="button"
               onClick={() => setIsPopupOpen(false)}
               className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6]"
             >
-              닫기
+              취소
             </button>
             <button
               type="button"
-              onClick={() => setIsPopupOpen(false)}
+              onClick={handleConfirm}
               className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
             >
               확인
@@ -154,7 +152,7 @@ export const DateVoteAfter: React.FC<{ vote: Vote; onRevote: () => void }> = ({ 
             <span>{option.label}</span>
             <button
               type="button"
-              className="text-[11px] font-semibold text-[#5856D6]"
+              className="bg-transparent text-[11px] font-semibold text-[#5856D6]"
               onClick={() => setSelectedOptionId(option.id)}
             >
               {option.count}명
