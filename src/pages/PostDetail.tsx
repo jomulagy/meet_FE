@@ -4,7 +4,7 @@ import FooterNav from "../components/FooterNav";
 import { DateVoteAfter, DateVoteBefore, DateVoteComplete } from "../components/vote/DateVote";
 import { PlaceVoteAfter, PlaceVoteBefore, PlaceVoteComplete } from "../components/vote/PlaceVote";
 import { TextVoteAfter, TextVoteBefore, TextVoteComplete } from "../components/vote/TextVote";
-import type { Vote } from "../types/vote";
+import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = {
   id: string;
@@ -45,6 +45,7 @@ const fetchVoteList = async (): Promise<Vote[]> => {
       type: "date",
       activeYn: "Y",
       status: "before",
+      deadline: "2024-05-24 18:00",
       options: [
         {
           id: "d1",
@@ -69,6 +70,7 @@ const fetchVoteList = async (): Promise<Vote[]> => {
       type: "place",
       activeYn: "Y",
       status: "after",
+      deadline: "2024-05-24 20:00",
       options: [
         {
           id: "p1",
@@ -87,6 +89,7 @@ const fetchVoteList = async (): Promise<Vote[]> => {
       type: "text",
       activeYn: "N",
       status: "complete",
+      deadline: "2024-05-18 12:00",
       options: [
         {
           id: "t1",
@@ -131,7 +134,13 @@ const PostDetailPage: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [participationVote, setParticipationVote] = useState<ParticipationVote | null>(null);
   const [participationChoice, setParticipationChoice] = useState<"yes" | "no" | null>(null);
+  const [participationVotedChoice, setParticipationVotedChoice] = useState<"yes" | "no" | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
+  const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
+  const [newVoteTitle, setNewVoteTitle] = useState("");
+  const [newVoteType, setNewVoteType] = useState<VoteType>("text");
+  const [newVoteDeadline, setNewVoteDeadline] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -179,6 +188,14 @@ const PostDetailPage: React.FC = () => {
         vote.id === voteId
           ? {
               ...vote,
+              options: vote.options.map((option) => {
+                const isSelected = (selectedOptions[voteId] ?? []).includes(option.id);
+                return {
+                  ...option,
+                  voted: isSelected,
+                  count: isSelected ? option.count + 1 : option.count,
+                };
+              }),
               status: "after",
             }
           : vote,
@@ -187,6 +204,10 @@ const PostDetailPage: React.FC = () => {
   };
 
   const handleRevote = (voteId: string) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [voteId]: [],
+    }));
     setVotes((prev) =>
       prev.map((vote) =>
         vote.id === voteId
@@ -199,21 +220,64 @@ const PostDetailPage: React.FC = () => {
     );
   };
 
+  const handleToggleOption = (voteId: string, optionId: string) => {
+    setSelectedOptions((prev) => {
+      const current = new Set(prev[voteId] ?? []);
+      if (current.has(optionId)) {
+        current.delete(optionId);
+      } else {
+        current.add(optionId);
+      }
+      return {
+        ...prev,
+        [voteId]: Array.from(current),
+      };
+    });
+  };
+
+  const handleAddOption = (voteId: string, label: string) => {
+    const trimmedLabel = label.trim();
+    if (!trimmedLabel) return;
+
+    setVotes((prev) =>
+      prev.map((vote) =>
+        vote.id === voteId
+          ? {
+              ...vote,
+              options: [
+                ...vote.options,
+                {
+                  id: `${voteId}-option-${vote.options.length + 1}`,
+                  label: trimmedLabel,
+                  count: 0,
+                  voted: false,
+                  memberList: [],
+                },
+              ],
+            }
+          : vote,
+      ),
+    );
+  };
+
   const handleAddVote = () => {
+    if (!newVoteTitle.trim()) return;
     setVotes((prev) => [
       {
-        id: `vote-${prev.length + 1}`,
-        title: "새로운 투표",
-        type: "text",
+        id: `vote-${Date.now()}`,
+        title: newVoteTitle.trim(),
+        type: newVoteType,
         activeYn: "Y",
         status: "before",
-        options: [
-          { id: "new-1", label: "옵션 1", count: 0, voted: false, memberList: [] },
-          { id: "new-2", label: "옵션 2", count: 0, voted: false, memberList: [] },
-        ],
+        options: [],
+        deadline: newVoteDeadline ? newVoteDeadline.replace("T", " ") : undefined,
       },
       ...prev,
     ]);
+    setNewVoteTitle("");
+    setNewVoteType("text");
+    setNewVoteDeadline("");
+    setIsVoteModalOpen(false);
   };
 
   const handleCreateParticipationVote = () => {
@@ -246,11 +310,18 @@ const PostDetailPage: React.FC = () => {
         ? {
             ...prev,
             hasVoted: true,
-            yesCount: participationChoice === "yes" ? prev.yesCount + 1 : prev.yesCount,
-            noCount: participationChoice === "no" ? prev.noCount + 1 : prev.noCount,
+            yesCount:
+              participationChoice === "yes"
+                ? prev.yesCount + 1 - (participationVotedChoice === "yes" ? 1 : 0)
+                : prev.yesCount - (participationVotedChoice === "yes" ? 1 : 0),
+            noCount:
+              participationChoice === "no"
+                ? prev.noCount + 1 - (participationVotedChoice === "no" ? 1 : 0)
+                : prev.noCount - (participationVotedChoice === "no" ? 1 : 0),
           }
         : prev,
     );
+    setParticipationVotedChoice(participationChoice);
   };
 
   const participantCountText = useMemo(() => {
@@ -276,19 +347,49 @@ const PostDetailPage: React.FC = () => {
 
     const onVote = () => handleVote(vote.id);
     const onRevote = () => handleRevote(vote.id);
+    const selectedOptionIds = selectedOptions[vote.id] ?? [];
+    const onToggleOption = (optionId: string) => handleToggleOption(vote.id, optionId);
+    const onAddOption = (label: string) => handleAddOption(vote.id, label);
     if (vote.type === "date") {
-      if (vote.status === "before") return <DateVoteBefore vote={vote} onVote={onVote} />;
+      if (vote.status === "before")
+        return (
+          <DateVoteBefore
+            vote={vote}
+            selectedOptionIds={selectedOptionIds}
+            onToggleOption={onToggleOption}
+            onVote={onVote}
+            onAddOption={onAddOption}
+          />
+        );
       if (vote.status === "after") return <DateVoteAfter vote={vote} onRevote={onRevote} />;
       return <DateVoteComplete vote={vote} />;
     }
 
     if (vote.type === "place") {
-      if (vote.status === "before") return <PlaceVoteBefore vote={vote} onVote={onVote} />;
+      if (vote.status === "before")
+        return (
+          <PlaceVoteBefore
+            vote={vote}
+            selectedOptionIds={selectedOptionIds}
+            onToggleOption={onToggleOption}
+            onVote={onVote}
+            onAddOption={onAddOption}
+          />
+        );
       if (vote.status === "after") return <PlaceVoteAfter vote={vote} onRevote={onRevote} />;
       return <PlaceVoteComplete vote={vote} />;
     }
 
-    if (vote.status === "before") return <TextVoteBefore vote={vote} onVote={onVote} />;
+    if (vote.status === "before")
+      return (
+        <TextVoteBefore
+          vote={vote}
+          selectedOptionIds={selectedOptionIds}
+          onToggleOption={onToggleOption}
+          onVote={onVote}
+          onAddOption={onAddOption}
+        />
+      );
     if (vote.status === "after") return <TextVoteAfter vote={vote} onRevote={onRevote} />;
     return <TextVoteComplete vote={vote} />;
   };
@@ -342,6 +443,9 @@ const PostDetailPage: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
+                      {vote.deadline && (
+                        <p className="mt-1 text-xs font-semibold text-[#8E8E93]">투표 마감일: {vote.deadline}</p>
+                      )}
                     </div>
                     {!isClosed && (
                       <button
@@ -360,7 +464,7 @@ const PostDetailPage: React.FC = () => {
           </div>
 
           <button
-            onClick={handleAddVote}
+            onClick={() => setIsVoteModalOpen(true)}
             className="w-full rounded-[16px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
           >
             투표 추가
@@ -413,7 +517,7 @@ const PostDetailPage: React.FC = () => {
                     <div className="flex flex-col gap-2 text-xs text-[#1C1C1E]">
                       <div
                         className={`flex items-center justify-between rounded-xl border px-4 py-2 ${
-                          participationChoice === "yes"
+                          participationVotedChoice === "yes"
                             ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]"
                             : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
                         }`}
@@ -423,7 +527,7 @@ const PostDetailPage: React.FC = () => {
                       </div>
                       <div
                         className={`flex items-center justify-between rounded-xl border px-4 py-2 ${
-                          participationChoice === "no"
+                          participationVotedChoice === "no"
                             ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]"
                             : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
                         }`}
@@ -432,6 +536,16 @@ const PostDetailPage: React.FC = () => {
                         <span className="font-semibold text-[#8E8E93]">{participationVote.noCount}명</span>
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setParticipationChoice(null);
+                        setParticipationVote((prev) => (prev ? { ...prev, hasVoted: false } : prev));
+                      }}
+                      className="mt-4 w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+                    >
+                      다시 투표하기
+                    </button>
                   </div>
                 ) : (
                   <div className="mt-4 rounded-[16px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
@@ -491,6 +605,70 @@ const PostDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {isVoteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg">
+            <h3 className="text-base font-semibold text-[#1C1C1E]">투표 추가</h3>
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#8E8E93]">투표 제목</label>
+                <input
+                  type="text"
+                  value={newVoteTitle}
+                  onChange={(event) => setNewVoteTitle(event.target.value)}
+                  placeholder="제목을 입력하세요"
+                  className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#8E8E93]">투표 타입</label>
+                <div className="grid grid-cols-3 gap-2 text-xs font-semibold">
+                  {(["date", "place", "text"] as VoteType[]).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setNewVoteType(type)}
+                      className={`rounded-[12px] px-3 py-2 ${
+                        newVoteType === type
+                          ? "bg-[#5856D6] text-white shadow-sm"
+                          : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                      }`}
+                    >
+                      {type === "date" ? "날짜" : type === "place" ? "장소" : "텍스트"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#8E8E93]">투표 마감일</label>
+                <input
+                  type="datetime-local"
+                  value={newVoteDeadline}
+                  onChange={(event) => setNewVoteDeadline(event.target.value)}
+                  className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setIsVoteModalOpen(false)}
+                className="flex-1 rounded-[14px] border border-[#E5E5EA] bg-white px-4 py-3 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleAddVote}
+                className="flex-1 rounded-[14px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
+              >
+                추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <FooterNav />
     </div>

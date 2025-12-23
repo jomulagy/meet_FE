@@ -27,39 +27,89 @@ const OptionResults: React.FC<{ options: Vote["options"]; highlightVoted?: boole
   </div>
 );
 
-export const TextVoteBefore: React.FC<{ vote: Vote; onVote: () => void }> = ({ vote, onVote }) => (
-  <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
-    <div className="mt-3 flex flex-col gap-3">
-      {vote.options.map((option) => (
-        <label key={option.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs text-[#1C1C1E]">
-          <input type="radio" name={`text-vote-${vote.id}`} className="h-4 w-4 text-[#5856D6]" />
-          {option.label}
-        </label>
-      ))}
-    </div>
-    <div className="mt-4 rounded-xl bg-white px-4 py-3">
-      <label className="text-[11px] font-semibold text-[#8E8E93]">텍스트 추가</label>
-      <input
-        type="text"
-        placeholder="텍스트 입력"
-        className="mt-2 w-full rounded-lg border border-[#E5E5EA] px-3 py-2 text-xs text-[#1C1C1E]"
-      />
+export const TextVoteBefore: React.FC<{
+  vote: Vote;
+  selectedOptionIds: string[];
+  onToggleOption: (optionId: string) => void;
+  onVote: () => void;
+  onAddOption: (label: string) => void;
+}> = ({ vote, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [newOption, setNewOption] = useState("");
+
+  const handleAdd = () => {
+    if (!newOption.trim()) return;
+    onAddOption(newOption.trim());
+    setNewOption("");
+    setIsAdding(false);
+  };
+
+  return (
+    <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
+      <div className="mt-3 flex flex-col gap-3">
+        {vote.options.map((option) => (
+          <label key={option.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs text-[#1C1C1E]">
+            <input
+              type="checkbox"
+              checked={selectedOptionIds.includes(option.id)}
+              onChange={() => onToggleOption(option.id)}
+              className="h-4 w-4 text-[#5856D6]"
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
+      <div className="mt-4 rounded-xl bg-white px-4 py-3">
+        <label className="text-[11px] font-semibold text-[#8E8E93]">텍스트 추가</label>
+        {!isAdding ? (
+          <button
+            type="button"
+            onClick={() => setIsAdding(true)}
+            className="mt-3 w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+          >
+            항목 추가하기
+          </button>
+        ) : (
+          <div className="mt-2 space-y-2">
+            <input
+              type="text"
+              value={newOption}
+              onChange={(event) => setNewOption(event.target.value)}
+              placeholder="텍스트 입력"
+              className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-xs font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
+              >
+                추가하기
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAdding(false);
+                  setNewOption("");
+                }}
+                className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
       <button
         type="button"
-        className="mt-3 w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+        onClick={onVote}
+        className="mt-4 w-full rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
       >
-        항목 추가하기
+        투표하기
       </button>
     </div>
-    <button
-      type="button"
-      onClick={onVote}
-      className="mt-4 w-full rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
-    >
-      투표하기
-    </button>
-  </div>
-);
+  );
+};
 
 export const TextVoteAfter: React.FC<{ vote: Vote; onRevote: () => void }> = ({ vote, onRevote }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
