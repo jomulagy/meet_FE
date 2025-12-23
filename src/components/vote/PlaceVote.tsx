@@ -34,6 +34,13 @@ export const PlaceVoteBefore: React.FC<{
   const [isAdding, setIsAdding] = useState(false);
 
   const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
+    if (isAdding) {
+      onAddOption(location.address);
+      setSelectedPlace("");
+      setIsAdding(false);
+      setIsPopupOpen(false);
+      return;
+    }
     setSelectedPlace(location.address);
     setIsPopupOpen(false);
   };

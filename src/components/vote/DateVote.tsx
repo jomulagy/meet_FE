@@ -29,18 +29,32 @@ export const DateVoteBefore: React.FC<{
   onAddOption: (label: string) => void;
 }> = ({ vote, allowDuplicate, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [dateInput, setDateInput] = useState("");
-  const [hourInput, setHourInput] = useState("");
-  const [minuteInput, setMinuteInput] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState<"오전" | "오후">("오전");
+  const [selectedHour, setSelectedHour] = useState("");
+  const [selectedMinute, setSelectedMinute] = useState("");
 
   const handleConfirm = () => {
-    if (!dateInput || !hourInput || !minuteInput) return;
-    onAddOption(`${dateInput} ${hourInput}:${minuteInput}`);
-    setDateInput("");
-    setHourInput("");
-    setMinuteInput("");
+    if (!selectedDate || !selectedHour || !selectedMinute) return;
+    onAddOption(`${selectedDate} ${selectedPeriod} ${selectedHour}:${selectedMinute}`);
+    setSelectedDate("");
+    setSelectedPeriod("오전");
+    setSelectedHour("");
+    setSelectedMinute("");
     setIsPopupOpen(false);
   };
+
+  const today = new Date();
+  const dateOptions = Array.from({ length: 5 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() + index);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+  });
+  const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
+  const minuteOptions = ["00", "30"];
 
   return (
     <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
@@ -77,38 +91,71 @@ export const DateVoteBefore: React.FC<{
     {isPopupOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5856D6]/20 px-4">
         <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg">
-          <h4 className="text-sm font-semibold text-[#1C1C1E]">날짜와 시간 입력</h4>
-          <div className="mt-4 space-y-3">
-            <div className="flex flex-col gap-2">
-              <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="YYYY.MM.DD"
-                value={dateInput}
-                onChange={(event) => setDateInput(event.target.value)}
-                className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
-              />
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {dateOptions.map((date) => (
+                <button
+                  key={date}
+                  type="button"
+                  onClick={() => setSelectedDate(date)}
+                  className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                    selectedDate === date
+                      ? "bg-[#5856D6] text-white"
+                      : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                  }`}
+                >
+                  {date}
+                </button>
+              ))}
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="HH"
-                  value={hourInput}
-                  onChange={(event) => setHourInput(event.target.value)}
-                  className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
-                />
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="MM"
-                  value={minuteInput}
-                  onChange={(event) => setMinuteInput(event.target.value)}
-                  className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
-                />
+                {(["오전", "오후"] as const).map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    onClick={() => setSelectedPeriod(period)}
+                    className={`flex-1 rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                      selectedPeriod === period
+                        ? "bg-[#5856D6] text-white"
+                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {hourOptions.map((hour) => (
+                  <button
+                    key={hour}
+                    type="button"
+                    onClick={() => setSelectedHour(hour)}
+                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                      selectedHour === hour
+                        ? "bg-[#5856D6] text-white"
+                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    {hour}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                {minuteOptions.map((minute) => (
+                  <button
+                    key={minute}
+                    type="button"
+                    onClick={() => setSelectedMinute(minute)}
+                    className={`flex-1 rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                      selectedMinute === minute
+                        ? "bg-[#5856D6] text-white"
+                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    {minute}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

@@ -462,15 +462,7 @@ const PostDetailPage: React.FC = () => {
     <div className="min-h-screen w-full bg-[#F2F2F7]">
       <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-5 px-4 pb-24 pt-6">
         <header className="rounded-[20px] bg-white p-5 shadow-sm">
-          <span className="rounded-full bg-[#E1F0FF] px-3 py-1 text-[11px] font-semibold tracking-wide text-[#1E3A8A]">
-            게시글 상세
-          </span>
-          <h1 className="mt-4 text-left text-xl font-bold text-[#1C1C1E]">{postDetail.title}</h1>
-          <div className="mt-2 flex items-center gap-2 text-xs text-[#8E8E93]">
-            <span>{postDetail.authorName}</span>
-            <span>•</span>
-            <span>{postDetail.createdAt}</span>
-          </div>
+          <h1 className="text-left text-xl font-bold text-[#1C1C1E]">{postDetail.title}</h1>
           <p className="mt-4 text-sm text-[#1C1C1E]">{postDetail.content}</p>
         </header>
 
@@ -481,23 +473,19 @@ const PostDetailPage: React.FC = () => {
 
               return (
                 <div key={vote.id} className="rounded-[20px] bg-white p-5 shadow-sm">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
-                      {!isClosed && vote.deadline && (
-                        <p className="mt-1 text-xs font-semibold text-[#8E8E93]">투표 마감일: {vote.deadline}</p>
-                      )}
-                      {!isClosed && vote.allowDuplicate && (
-                        <p className="mt-1 text-[11px] font-semibold text-[#5856D6]">중복 투표 가능</p>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
                     {!isClosed && (
-                      <button
-                        onClick={() => handleEndVote(vote.id)}
-                        className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
-                      >
-                        투표 종료
-                      </button>
+                      <div className="flex items-center gap-2 text-[11px] font-semibold text-[#8E8E93]">
+                        {vote.deadline && <span>{vote.deadline.split(" ")[0]}</span>}
+                        {vote.allowDuplicate && <span>중복 가능</span>}
+                        <button
+                          onClick={() => handleEndVote(vote.id)}
+                          className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
+                        >
+                          투표 종료
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -516,41 +504,37 @@ const PostDetailPage: React.FC = () => {
         </section>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-[#1C1C1E]">참여 여부 투표</h2>
-            {!participationVote && (
-              <button
-                onClick={handleCreateParticipationVote}
-                className="rounded-[16px] border border-[#5856D6] px-4 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#4C4ACB]"
-              >
-                참여 여부 투표 생성하기
-              </button>
-            )}
-          </div>
+          {(!participationVote || participationVote.activeYn !== "N") && (
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-[#1C1C1E]">참여 여부 투표</h2>
+              {!participationVote && (
+                <button
+                  onClick={handleCreateParticipationVote}
+                  className="rounded-[16px] border border-[#5856D6] px-4 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#4C4ACB]"
+                >
+                  참여 여부 투표 생성하기
+                </button>
+              )}
+            </div>
+          )}
 
           <div>
             {participationVote ? (
               participationVote.activeYn === "N" ? (
-                <div className="space-y-3">
-                  <div className="rounded-[16px] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#5856D6]">
-                    {participationVote.yesCount >= participationVote.noCount ? "참여" : "불참"}
-                  </div>
-                  <div className="rounded-[16px] bg-white p-4 text-xs text-[#8E8E93]">
-                    <p className="text-[11px] font-semibold text-[#5856D6]">참여자 이름 목록</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {participationVote.yesMembers.length > 0 ? (
-                        participationVote.yesMembers.map((member) => (
-                          <span
-                            key={`participant-${member.name}`}
-                            className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
-                          >
-                            {member.name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-[10px]">참여자가 없습니다.</span>
-                      )}
-                    </div>
+                <div className="rounded-[16px] bg-white p-4 text-xs text-[#8E8E93]">
+                  <div className="flex flex-wrap gap-2">
+                    {participationVote.yesMembers.length > 0 ? (
+                      participationVote.yesMembers.map((member) => (
+                        <span
+                          key={`participant-${member.name}`}
+                          className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
+                        >
+                          {member.name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[10px]">참여자가 없습니다.</span>
+                    )}
                   </div>
                 </div>
               ) : (
