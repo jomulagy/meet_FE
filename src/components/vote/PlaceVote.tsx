@@ -8,7 +8,7 @@ const OptionResults: React.FC<{ options: Vote["options"]; highlightVoted?: boole
     {options.map((option) => (
       <div
         key={option.id}
-        className={`flex items-center justify-between rounded-xl border px-4 py-3 text-xs font-medium ${
+        className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs font-medium ${
           highlightVoted && option.voted
             ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]"
             : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
@@ -49,7 +49,7 @@ export const PlaceVoteBefore: React.FC<{
     <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
       <div className="mt-3 flex flex-col gap-3">
         {vote.options.map((option) => (
-          <label key={option.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs text-[#1C1C1E]">
+          <label key={option.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-2 text-xs text-[#1C1C1E]">
             <input
               type={allowDuplicate ? "checkbox" : "radio"}
               name={allowDuplicate ? undefined : `place-vote-${vote.id}`}
@@ -66,7 +66,7 @@ export const PlaceVoteBefore: React.FC<{
         <button
           type="button"
           onClick={() => setIsAdding(true)}
-          className="w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+          className="w-full rounded-[12px] bg-[#EAE9FF] px-3 py-2 text-xs font-semibold text-[#5856D6]"
         >
           항목 추가하기
         </button>
@@ -123,9 +123,9 @@ export const PlaceVoteAfter: React.FC<{ vote: Vote; onRevote: () => void }> = ({
         {vote.options.map((option) => (
           <div
             key={option.id}
-            className={`flex items-center justify-between rounded-xl border px-4 py-3 text-xs font-medium ${
-              option.voted ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]" : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
-            }`}
+          className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs font-medium ${
+            option.voted ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]" : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
+          }`}
           >
             <span>{option.label}</span>
             <button

@@ -494,7 +494,7 @@ const PostDetailPage: React.FC = () => {
                     {!isClosed && (
                       <button
                         onClick={() => handleEndVote(vote.id)}
-                        className="rounded-full border border-[#E5E5EA] px-3 py-1 text-[11px] font-semibold text-[#8E8E93]"
+                        className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
                       >
                         투표 종료
                       </button>
@@ -538,7 +538,7 @@ const PostDetailPage: React.FC = () => {
                   {participationVote.activeYn !== "N" && (
                     <button
                       onClick={handleEndParticipationVote}
-                      className="rounded-full border border-[#E5E5EA] px-3 py-1 text-[11px] font-semibold text-[#8E8E93]"
+                      className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
                     >
                       투표 종료
                     </button>
@@ -570,20 +570,10 @@ const PostDetailPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setParticipationPopupMembers(participationVote.yesMembers)}
-                          className="text-[11px] font-semibold text-[#5856D6]"
+                          className="bg-transparent text-[11px] font-semibold text-[#5856D6]"
                         >
                           {participationVote.yesCount}명
                         </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2 px-2 text-[10px] text-[#8E8E93]">
-                        {participationVote.yesMembers.slice(0, 5).map((member) => (
-                          <span
-                            key={`yes-preview-${member.name}`}
-                            className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 font-semibold text-[#5856D6]"
-                          >
-                            {member.name}
-                          </span>
-                        ))}
                       </div>
                       <div
                         className={`flex items-center justify-between rounded-xl border px-4 py-2 ${
@@ -596,20 +586,10 @@ const PostDetailPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setParticipationPopupMembers(participationVote.noMembers)}
-                          className="text-[11px] font-semibold text-[#5856D6]"
+                          className="bg-transparent text-[11px] font-semibold text-[#5856D6]"
                         >
                           {participationVote.noCount}명
                         </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2 px-2 text-[10px] text-[#8E8E93]">
-                        {participationVote.noMembers.slice(0, 5).map((member) => (
-                          <span
-                            key={`no-preview-${member.name}`}
-                            className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 font-semibold text-[#5856D6]"
-                          >
-                            {member.name}
-                          </span>
-                        ))}
                       </div>
                     </div>
                     <button
