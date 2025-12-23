@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import FooterNav from "../components/FooterNav";
+import VotedMemberList from "../components/popUp/VotedMemberList";
 import { DateVoteAfter, DateVoteBefore, DateVoteComplete } from "../components/vote/DateVote";
 import { PlaceVoteAfter, PlaceVoteBefore, PlaceVoteComplete } from "../components/vote/PlaceVote";
 import { TextVoteAfter, TextVoteBefore, TextVoteComplete } from "../components/vote/TextVote";
@@ -144,6 +145,7 @@ const PostDetailPage: React.FC = () => {
   const [participationVotedChoice, setParticipationVotedChoice] = useState<"yes" | "no" | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
+  const [participationPopupMembers, setParticipationPopupMembers] = useState<{ name: string }[] | null>(null);
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
   const [newVoteTitle, setNewVoteTitle] = useState("");
   const [newVoteType, setNewVoteType] = useState<VoteType>("text");
@@ -235,6 +237,15 @@ const PostDetailPage: React.FC = () => {
 
   const handleToggleOption = (voteId: string, optionId: string) => {
     setSelectedOptions((prev) => {
+      const vote = votes.find((item) => item.id === voteId);
+      if (!vote) return prev;
+      if (vote.allowDuplicate === false) {
+        return {
+          ...prev,
+          [voteId]: [optionId],
+        };
+      }
+
       const current = new Set(prev[voteId] ?? []);
       if (current.has(optionId)) {
         current.delete(optionId);
@@ -361,13 +372,8 @@ const PostDetailPage: React.FC = () => {
     }, null);
 
     return (
-      <div className="mt-3 rounded-[16px] bg-[#F9F9FB] p-4 text-xs text-[#1C1C1E]">
-        <p className="font-semibold text-[#8E8E93]">결정된 항목</p>
-        {decidedOption ? (
-          <p className="mt-2 text-sm font-semibold text-[#5856D6]">{decidedOption.label}</p>
-        ) : (
-          <p className="mt-2 text-sm text-[#8E8E93]">선택된 항목이 없습니다.</p>
-        )}
+      <div className="mt-3 rounded-[16px] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#5856D6]">
+        {decidedOption ? decidedOption.label : "선택된 항목이 없습니다."}
       </div>
     );
   };
@@ -387,6 +393,7 @@ const PostDetailPage: React.FC = () => {
         return (
           <DateVoteBefore
             vote={vote}
+            allowDuplicate={vote.allowDuplicate !== false}
             selectedOptionIds={selectedOptionIds}
             onToggleOption={onToggleOption}
             onVote={onVote}
@@ -402,6 +409,7 @@ const PostDetailPage: React.FC = () => {
         return (
           <PlaceVoteBefore
             vote={vote}
+            allowDuplicate={vote.allowDuplicate !== false}
             selectedOptionIds={selectedOptionIds}
             onToggleOption={onToggleOption}
             onVote={onVote}
@@ -416,6 +424,7 @@ const PostDetailPage: React.FC = () => {
       return (
         <TextVoteBefore
           vote={vote}
+          allowDuplicate={vote.allowDuplicate !== false}
           selectedOptionIds={selectedOptionIds}
           onToggleOption={onToggleOption}
           onVote={onVote}
@@ -558,7 +567,23 @@ const PostDetailPage: React.FC = () => {
                         }`}
                       >
                         <span>참여</span>
-                        <span className="font-semibold text-[#8E8E93]">{participationVote.yesCount}명</span>
+                        <button
+                          type="button"
+                          onClick={() => setParticipationPopupMembers(participationVote.yesMembers)}
+                          className="text-[11px] font-semibold text-[#5856D6]"
+                        >
+                          {participationVote.yesCount}명
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 px-2 text-[10px] text-[#8E8E93]">
+                        {participationVote.yesMembers.slice(0, 5).map((member) => (
+                          <span
+                            key={`yes-preview-${member.name}`}
+                            className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 font-semibold text-[#5856D6]"
+                          >
+                            {member.name}
+                          </span>
+                        ))}
                       </div>
                       <div
                         className={`flex items-center justify-between rounded-xl border px-4 py-2 ${
@@ -568,43 +593,23 @@ const PostDetailPage: React.FC = () => {
                         }`}
                       >
                         <span>불참</span>
-                        <span className="font-semibold text-[#8E8E93]">{participationVote.noCount}명</span>
+                        <button
+                          type="button"
+                          onClick={() => setParticipationPopupMembers(participationVote.noMembers)}
+                          className="text-[11px] font-semibold text-[#5856D6]"
+                        >
+                          {participationVote.noCount}명
+                        </button>
                       </div>
-                    </div>
-                    <div className="mt-4 space-y-3 rounded-[12px] bg-[#F9F9FB] px-3 py-3 text-[11px] text-[#8E8E93]">
-                      <div className="flex flex-col gap-2">
-                        <span className="font-semibold text-[#5856D6]">참여한 사람</span>
-                        <div className="flex flex-wrap gap-2">
-                          {participationVote.yesMembers.length > 0 ? (
-                            participationVote.yesMembers.map((member) => (
-                              <span
-                                key={`yes-${member.name}`}
-                                className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
-                              >
-                                {member.name}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-[10px]">아직 없음</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <span className="font-semibold text-[#5856D6]">불참한 사람</span>
-                        <div className="flex flex-wrap gap-2">
-                          {participationVote.noMembers.length > 0 ? (
-                            participationVote.noMembers.map((member) => (
-                              <span
-                                key={`no-${member.name}`}
-                                className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
-                              >
-                                {member.name}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-[10px]">아직 없음</span>
-                          )}
-                        </div>
+                      <div className="flex flex-wrap gap-2 px-2 text-[10px] text-[#8E8E93]">
+                        {participationVote.noMembers.slice(0, 5).map((member) => (
+                          <span
+                            key={`no-preview-${member.name}`}
+                            className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 font-semibold text-[#5856D6]"
+                          >
+                            {member.name}
+                          </span>
+                        ))}
                       </div>
                     </div>
                     <button
@@ -768,6 +773,13 @@ const PostDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {participationPopupMembers && (
+        <VotedMemberList
+          selectedItem={{ memberList: participationPopupMembers }}
+          closePopup={() => setParticipationPopupMembers(null)}
+        />
       )}
 
       <FooterNav />

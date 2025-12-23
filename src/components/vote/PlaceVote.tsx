@@ -14,14 +14,7 @@ const OptionResults: React.FC<{ options: Vote["options"]; highlightVoted?: boole
             : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
         }`}
       >
-        <div className="flex items-center gap-2">
-          <span>{option.label}</span>
-          {highlightVoted && option.voted && (
-            <span className="rounded-full bg-[#EAE9FF] px-2 py-[2px] text-[10px] font-semibold text-[#4C4ACB]">
-              내가 투표함
-            </span>
-          )}
-        </div>
+        <span>{option.label}</span>
         <span className="text-[11px] font-semibold text-[#8E8E93]">{option.count}표</span>
       </div>
     ))}
@@ -30,11 +23,12 @@ const OptionResults: React.FC<{ options: Vote["options"]; highlightVoted?: boole
 
 export const PlaceVoteBefore: React.FC<{
   vote: Vote;
+  allowDuplicate: boolean;
   selectedOptionIds: string[];
   onToggleOption: (optionId: string) => void;
   onVote: () => void;
   onAddOption: (label: string) => void;
-}> = ({ vote, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
+}> = ({ vote, allowDuplicate, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<string>("");
   const [isAdding, setIsAdding] = useState(false);
@@ -57,7 +51,8 @@ export const PlaceVoteBefore: React.FC<{
         {vote.options.map((option) => (
           <label key={option.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs text-[#1C1C1E]">
             <input
-              type="checkbox"
+              type={allowDuplicate ? "checkbox" : "radio"}
+              name={allowDuplicate ? undefined : `place-vote-${vote.id}`}
               checked={selectedOptionIds.includes(option.id)}
               onChange={() => onToggleOption(option.id)}
               className="h-4 w-4 text-[#5856D6]"
@@ -67,7 +62,6 @@ export const PlaceVoteBefore: React.FC<{
         ))}
       </div>
     <div className="mt-4 space-y-2">
-      <label className="text-[11px] font-semibold text-[#8E8E93]">장소 추가</label>
       {!isAdding ? (
         <button
           type="button"
@@ -133,14 +127,7 @@ export const PlaceVoteAfter: React.FC<{ vote: Vote; onRevote: () => void }> = ({
               option.voted ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]" : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
             }`}
           >
-            <div className="flex items-center gap-2">
-              <span>{option.label}</span>
-              {option.voted && (
-                <span className="rounded-full bg-[#EAE9FF] px-2 py-[2px] text-[10px] font-semibold text-[#4C4ACB]">
-                  내가 투표함
-                </span>
-              )}
-            </div>
+            <span>{option.label}</span>
             <button
               type="button"
               className="text-[11px] font-semibold text-[#5856D6]"
