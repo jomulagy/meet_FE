@@ -473,18 +473,24 @@ const PostDetailPage: React.FC = () => {
 
               return (
                 <div key={vote.id} className="rounded-[20px] bg-white p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  {!isClosed && (
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => handleEndVote(vote.id)}
+                        className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
+                      >
+                        투표 종료
+                      </button>
+                    </div>
+                  )}
+                  <div className="mt-2 flex items-center justify-between">
                     <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
                     {!isClosed && (
                       <div className="flex items-center gap-2 text-[11px] font-semibold text-[#8E8E93]">
-                        {vote.deadline && <span>{vote.deadline.split(" ")[0]}</span>}
+                        {vote.deadline && (
+                          <span>마감일 : {vote.deadline.split(" ")[0].replace(/-/g, ".")}</span>
+                        )}
                         {vote.allowDuplicate && <span>중복 가능</span>}
-                        <button
-                          onClick={() => handleEndVote(vote.id)}
-                          className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
-                        >
-                          투표 종료
-                        </button>
                       </div>
                     )}
                   </div>
@@ -522,6 +528,7 @@ const PostDetailPage: React.FC = () => {
             {participationVote ? (
               participationVote.activeYn === "N" ? (
                 <div className="rounded-[16px] bg-white p-4 text-xs text-[#8E8E93]">
+                  {participantCountText && <p className="mb-2 text-[11px] font-semibold text-[#5856D6]">{participantCountText}</p>}
                   <div className="flex flex-wrap gap-2">
                     {participationVote.yesMembers.length > 0 ? (
                       participationVote.yesMembers.map((member) => (
@@ -639,7 +646,9 @@ const PostDetailPage: React.FC = () => {
             )}
           </div>
 
-          {participantCountText && <p className="text-sm font-semibold text-[#4C4ACB]">{participantCountText}</p>}
+          {!participationVote || participationVote.activeYn !== "N" ? (
+            participantCountText && <p className="text-sm font-semibold text-[#4C4ACB]">{participantCountText}</p>
+          ) : null}
         </section>
 
         {postDetail.isAuthor && (

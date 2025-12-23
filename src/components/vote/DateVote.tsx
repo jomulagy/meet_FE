@@ -29,15 +29,21 @@ export const DateVoteBefore: React.FC<{
   onAddOption: (label: string) => void;
 }> = ({ vote, allowDuplicate, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedDay, setSelectedDay] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState<"오전" | "오후">("오전");
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedMinute, setSelectedMinute] = useState("");
 
   const handleConfirm = () => {
-    if (!selectedDate || !selectedHour || !selectedMinute) return;
-    onAddOption(`${selectedDate} ${selectedPeriod} ${selectedHour}:${selectedMinute}`);
-    setSelectedDate("");
+    if (!selectedYear || !selectedMonth || !selectedDay || !selectedHour || !selectedMinute) return;
+    const month = selectedMonth.padStart(2, "0");
+    const day = selectedDay.padStart(2, "0");
+    onAddOption(`${selectedYear}.${month}.${day} ${selectedPeriod} ${selectedHour}:${selectedMinute}`);
+    setSelectedYear("");
+    setSelectedMonth("");
+    setSelectedDay("");
     setSelectedPeriod("오전");
     setSelectedHour("");
     setSelectedMinute("");
@@ -45,14 +51,9 @@ export const DateVoteBefore: React.FC<{
   };
 
   const today = new Date();
-  const dateOptions = Array.from({ length: 5 }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + index);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}.${month}.${day}`;
-  });
+  const yearOptions = [String(today.getFullYear()), String(today.getFullYear() + 1)];
+  const monthOptions = Array.from({ length: 12 }, (_, index) => String(index + 1));
+  const dayOptions = Array.from({ length: 31 }, (_, index) => String(index + 1));
   const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
   const minuteOptions = ["00", "30"];
 
@@ -92,30 +93,62 @@ export const DateVoteBefore: React.FC<{
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5856D6]/20 px-4">
         <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg">
           <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {dateOptions.map((date) => (
-                <button
-                  key={date}
-                  type="button"
-                  onClick={() => setSelectedDate(date)}
-                  className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                    selectedDate === date
-                      ? "bg-[#5856D6] text-white"
-                      : "border border-[#E5E5EA] bg-white text-[#5856D6]"
-                  }`}
-                >
-                  {date}
-                </button>
-              ))}
+            <div className="space-y-2">
+              <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
+              <div className="flex gap-2 overflow-x-auto">
+                {yearOptions.map((year) => (
+                  <button
+                    key={year}
+                    type="button"
+                    onClick={() => setSelectedYear(year)}
+                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                      selectedYear === year ? "bg-[#5856D6] text-white" : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    {year}년
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2 overflow-x-auto">
+                {monthOptions.map((month) => (
+                  <button
+                    key={month}
+                    type="button"
+                    onClick={() => setSelectedMonth(month)}
+                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                      selectedMonth === month
+                        ? "bg-[#5856D6] text-white"
+                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    {month}월
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2 overflow-x-auto">
+                {dayOptions.map((day) => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => setSelectedDay(day)}
+                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                      selectedDay === day ? "bg-[#5856D6] text-white" : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    {day}일
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
+            <div className="space-y-2">
+              <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
+              <div className="flex gap-2 overflow-x-auto">
                 {(["오전", "오후"] as const).map((period) => (
                   <button
                     key={period}
                     type="button"
                     onClick={() => setSelectedPeriod(period)}
-                    className={`flex-1 rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
                       selectedPeriod === period
                         ? "bg-[#5856D6] text-white"
                         : "border border-[#E5E5EA] bg-white text-[#5856D6]"
@@ -125,35 +158,33 @@ export const DateVoteBefore: React.FC<{
                   </button>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 overflow-x-auto">
                 {hourOptions.map((hour) => (
                   <button
                     key={hour}
                     type="button"
                     onClick={() => setSelectedHour(hour)}
                     className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                      selectedHour === hour
-                        ? "bg-[#5856D6] text-white"
-                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                      selectedHour === hour ? "bg-[#5856D6] text-white" : "border border-[#E5E5EA] bg-white text-[#5856D6]"
                     }`}
                   >
-                    {hour}
+                    {hour}시
                   </button>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto">
                 {minuteOptions.map((minute) => (
                   <button
                     key={minute}
                     type="button"
                     onClick={() => setSelectedMinute(minute)}
-                    className={`flex-1 rounded-[10px] px-3 py-2 text-xs font-semibold ${
+                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
                       selectedMinute === minute
                         ? "bg-[#5856D6] text-white"
                         : "border border-[#E5E5EA] bg-white text-[#5856D6]"
                     }`}
                   >
-                    {minute}
+                    {minute}분
                   </button>
                 ))}
               </div>
