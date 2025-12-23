@@ -3,6 +3,7 @@ export type VoteOption = {
   label: string;
   count: number;
   voted: boolean;
+  memberList?: { name: string }[];
 };
 
 export type VoteType = "date" | "place" | "text";
