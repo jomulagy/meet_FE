@@ -18,4 +18,5 @@ export type Vote = {
   status: VoteStatus;
   options: VoteOption[];
   deadline?: string;
+  allowDuplicate?: boolean;
 };

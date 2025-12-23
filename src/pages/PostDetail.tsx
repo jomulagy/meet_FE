@@ -22,6 +22,8 @@ type ParticipationVote = {
   yesCount: number;
   noCount: number;
   participantCount: number;
+  yesMembers: { name: string }[];
+  noMembers: { name: string }[];
 };
 
 const fetchPostDetail = async (postId: string): Promise<PostDetail> => {
@@ -46,6 +48,7 @@ const fetchVoteList = async (): Promise<Vote[]> => {
       activeYn: "Y",
       status: "before",
       deadline: "2024-05-24 18:00",
+      allowDuplicate: true,
       options: [
         {
           id: "d1",
@@ -71,6 +74,7 @@ const fetchVoteList = async (): Promise<Vote[]> => {
       activeYn: "Y",
       status: "after",
       deadline: "2024-05-24 20:00",
+      allowDuplicate: false,
       options: [
         {
           id: "p1",
@@ -90,6 +94,7 @@ const fetchVoteList = async (): Promise<Vote[]> => {
       activeYn: "N",
       status: "complete",
       deadline: "2024-05-18 12:00",
+      allowDuplicate: false,
       options: [
         {
           id: "t1",
@@ -123,6 +128,8 @@ const fetchParticipationVote = async (): Promise<ParticipationVote | null> => {
     yesCount: 4,
     noCount: 1,
     participantCount: 0,
+    yesMembers: [{ name: "지민" }, { name: "서연" }, { name: "태호" }, { name: "윤아" }],
+    noMembers: [{ name: "현수" }],
   };
 };
 
@@ -141,6 +148,7 @@ const PostDetailPage: React.FC = () => {
   const [newVoteTitle, setNewVoteTitle] = useState("");
   const [newVoteType, setNewVoteType] = useState<VoteType>("text");
   const [newVoteDeadline, setNewVoteDeadline] = useState("");
+  const [newVoteAllowDuplicate, setNewVoteAllowDuplicate] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -204,10 +212,15 @@ const PostDetailPage: React.FC = () => {
   };
 
   const handleRevote = (voteId: string) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [voteId]: [],
-    }));
+    setSelectedOptions((prev) => {
+      const vote = votes.find((item) => item.id === voteId);
+      if (!vote) return prev;
+      const previouslySelected = vote.options.filter((option) => option.voted).map((option) => option.id);
+      return {
+        ...prev,
+        [voteId]: previouslySelected,
+      };
+    });
     setVotes((prev) =>
       prev.map((vote) =>
         vote.id === voteId
@@ -263,6 +276,7 @@ const PostDetailPage: React.FC = () => {
   const handleAddVote = () => {
     if (!newVoteTitle.trim()) return;
     setVotes((prev) => [
+      ...prev,
       {
         id: `vote-${Date.now()}`,
         title: newVoteTitle.trim(),
@@ -271,12 +285,13 @@ const PostDetailPage: React.FC = () => {
         status: "before",
         options: [],
         deadline: newVoteDeadline ? newVoteDeadline.replace("T", " ") : undefined,
+        allowDuplicate: newVoteAllowDuplicate,
       },
-      ...prev,
     ]);
     setNewVoteTitle("");
     setNewVoteType("text");
     setNewVoteDeadline("");
+    setNewVoteAllowDuplicate(false);
     setIsVoteModalOpen(false);
   };
 
@@ -288,6 +303,8 @@ const PostDetailPage: React.FC = () => {
       yesCount: 0,
       noCount: 0,
       participantCount: 0,
+      yesMembers: [],
+      noMembers: [],
     });
   };
 
@@ -318,6 +335,14 @@ const PostDetailPage: React.FC = () => {
               participationChoice === "no"
                 ? prev.noCount + 1 - (participationVotedChoice === "no" ? 1 : 0)
                 : prev.noCount - (participationVotedChoice === "no" ? 1 : 0),
+            yesMembers:
+              participationChoice === "yes"
+                ? [{ name: "나" }, ...prev.yesMembers.filter((member) => member.name !== "나")]
+                : prev.yesMembers.filter((member) => member.name !== "나"),
+            noMembers:
+              participationChoice === "no"
+                ? [{ name: "나" }, ...prev.noMembers.filter((member) => member.name !== "나")]
+                : prev.noMembers.filter((member) => member.name !== "나"),
           }
         : prev,
     );
@@ -329,16 +354,23 @@ const PostDetailPage: React.FC = () => {
     return `참여 인원: ${participationVote.participantCount}명`;
   }, [participationVote]);
 
-  const renderClosedVote = (vote: Vote) => (
-    <div className="mt-3 rounded-[16px] bg-[#F9F9FB] p-4 text-xs text-[#1C1C1E]">
-      {vote.options.map((option) => (
-        <p key={option.id} className="flex items-center justify-between py-1">
-          <span>{option.label}</span>
-          <span className="font-semibold text-[#8E8E93]">{option.count}표</span>
-        </p>
-      ))}
-    </div>
-  );
+  const renderClosedVote = (vote: Vote) => {
+    const decidedOption = vote.options.reduce<Vote["options"][number] | null>((winner, option) => {
+      if (!winner || option.count > winner.count) return option;
+      return winner;
+    }, null);
+
+    return (
+      <div className="mt-3 rounded-[16px] bg-[#F9F9FB] p-4 text-xs text-[#1C1C1E]">
+        <p className="font-semibold text-[#8E8E93]">결정된 항목</p>
+        {decidedOption ? (
+          <p className="mt-2 text-sm font-semibold text-[#5856D6]">{decidedOption.label}</p>
+        ) : (
+          <p className="mt-2 text-sm text-[#8E8E93]">선택된 항목이 없습니다.</p>
+        )}
+      </div>
+    );
+  };
 
   const renderVoteState = (vote: Vote) => {
     if (vote.activeYn === "N") {
@@ -443,8 +475,11 @@ const PostDetailPage: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
-                      {vote.deadline && (
+                      {!isClosed && vote.deadline && (
                         <p className="mt-1 text-xs font-semibold text-[#8E8E93]">투표 마감일: {vote.deadline}</p>
+                      )}
+                      {!isClosed && vote.allowDuplicate && (
+                        <p className="mt-1 text-[11px] font-semibold text-[#5856D6]">중복 투표 가능</p>
                       )}
                     </div>
                     {!isClosed && (
@@ -473,13 +508,13 @@ const PostDetailPage: React.FC = () => {
 
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-[#1C1C1E]">참여여부 투표</h2>
+            <h2 className="text-base font-semibold text-[#1C1C1E]">참여 여부 투표</h2>
             {!participationVote && (
               <button
                 onClick={handleCreateParticipationVote}
                 className="rounded-[16px] border border-[#5856D6] px-4 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#4C4ACB]"
               >
-                참여여부 투표 생성하기
+                참여 여부 투표 생성하기
               </button>
             )}
           </div>
@@ -489,7 +524,7 @@ const PostDetailPage: React.FC = () => {
               <div className="rounded-[20px] bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-base font-semibold text-[#1C1C1E]">참여 가능 여부</h3>
+                    <h3 className="text-base font-semibold text-[#1C1C1E]">참여 여부</h3>
                   </div>
                   {participationVote.activeYn !== "N" && (
                     <button
@@ -536,10 +571,46 @@ const PostDetailPage: React.FC = () => {
                         <span className="font-semibold text-[#8E8E93]">{participationVote.noCount}명</span>
                       </div>
                     </div>
+                    <div className="mt-4 space-y-3 rounded-[12px] bg-[#F9F9FB] px-3 py-3 text-[11px] text-[#8E8E93]">
+                      <div className="flex flex-col gap-2">
+                        <span className="font-semibold text-[#5856D6]">참여한 사람</span>
+                        <div className="flex flex-wrap gap-2">
+                          {participationVote.yesMembers.length > 0 ? (
+                            participationVote.yesMembers.map((member) => (
+                              <span
+                                key={`yes-${member.name}`}
+                                className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
+                              >
+                                {member.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-[10px]">아직 없음</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <span className="font-semibold text-[#5856D6]">불참한 사람</span>
+                        <div className="flex flex-wrap gap-2">
+                          {participationVote.noMembers.length > 0 ? (
+                            participationVote.noMembers.map((member) => (
+                              <span
+                                key={`no-${member.name}`}
+                                className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
+                              >
+                                {member.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-[10px]">아직 없음</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
-                        setParticipationChoice(null);
+                        setParticipationChoice(participationVotedChoice);
                         setParticipationVote((prev) => (prev ? { ...prev, hasVoted: false } : prev));
                       }}
                       className="mt-4 w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
@@ -554,6 +625,7 @@ const PostDetailPage: React.FC = () => {
                         <input
                           type="radio"
                           name="participation"
+                          checked={participationChoice === "yes"}
                           className="h-4 w-4 text-[#5856D6]"
                           onChange={() => setParticipationChoice("yes")}
                         />
@@ -563,6 +635,7 @@ const PostDetailPage: React.FC = () => {
                         <input
                           type="radio"
                           name="participation"
+                          checked={participationChoice === "no"}
                           className="h-4 w-4 text-[#5856D6]"
                           onChange={() => setParticipationChoice("no")}
                         />
@@ -580,7 +653,7 @@ const PostDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-5 text-xs text-[#8E8E93]">
-                참여여부 투표를 생성하면 참여 여부를 모을 수 있습니다.
+                참여 여부 투표를 생성하면 참여 여부를 모을 수 있습니다.
               </div>
             )}
           </div>
@@ -607,7 +680,7 @@ const PostDetailPage: React.FC = () => {
       </div>
 
       {isVoteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5856D6]/20 px-4">
           <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg">
             <h3 className="text-base font-semibold text-[#1C1C1E]">투표 추가</h3>
             <div className="mt-4 space-y-4">
@@ -648,6 +721,33 @@ const PostDetailPage: React.FC = () => {
                   onChange={(event) => setNewVoteDeadline(event.target.value)}
                   className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#8E8E93]">중복 투표</label>
+                <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setNewVoteAllowDuplicate(true)}
+                    className={`rounded-[12px] px-3 py-2 ${
+                      newVoteAllowDuplicate
+                        ? "bg-[#5856D6] text-white shadow-sm"
+                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    가능
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewVoteAllowDuplicate(false)}
+                    className={`rounded-[12px] px-3 py-2 ${
+                      !newVoteAllowDuplicate
+                        ? "bg-[#5856D6] text-white shadow-sm"
+                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
+                    }`}
+                  >
+                    불가
+                  </button>
+                </div>
               </div>
             </div>
             <div className="mt-6 flex gap-2">

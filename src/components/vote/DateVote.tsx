@@ -60,46 +60,46 @@ export const DateVoteBefore: React.FC<{
           </label>
         ))}
       </div>
-      <div className="mt-4 rounded-xl bg-white px-4 py-3">
-        <label className="text-[11px] font-semibold text-[#8E8E93]">날짜 추가</label>
-        {!isAdding ? (
-          <button
-            type="button"
-            onClick={() => setIsAdding(true)}
-            className="mt-3 w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
-          >
-            항목 추가하기
-          </button>
-        ) : (
-          <div className="mt-2 space-y-2">
-            <input
-              type="datetime-local"
-              value={newOption}
-              onChange={(event) => setNewOption(event.target.value)}
-              className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-xs font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
-              >
-                추가하기
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdding(false);
-                  setNewOption("");
-                }}
-                className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
-              >
-                취소
-              </button>
-            </div>
+    <div className="mt-4 space-y-2">
+      <label className="text-[11px] font-semibold text-[#8E8E93]">날짜 추가</label>
+      {!isAdding ? (
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          className="w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+        >
+          항목 추가하기
+        </button>
+      ) : (
+        <div className="space-y-2">
+          <input
+            type="datetime-local"
+            value={newOption}
+            onChange={(event) => setNewOption(event.target.value)}
+            className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-xs font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
+            >
+              추가하기
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsAdding(false);
+                setNewOption("");
+              }}
+              className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+            >
+              취소
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
       <button
         type="button"
         onClick={onVote}

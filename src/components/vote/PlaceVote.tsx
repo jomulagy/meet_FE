@@ -66,47 +66,47 @@ export const PlaceVoteBefore: React.FC<{
           </label>
         ))}
       </div>
-      <div className="mt-4 rounded-xl bg-white px-4 py-3">
-        <label className="text-[11px] font-semibold text-[#8E8E93]">장소 추가</label>
-        {!isAdding ? (
+    <div className="mt-4 space-y-2">
+      <label className="text-[11px] font-semibold text-[#8E8E93]">장소 추가</label>
+      {!isAdding ? (
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          className="w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+        >
+          항목 추가하기
+        </button>
+      ) : (
+        <div className="space-y-2">
           <button
             type="button"
-            onClick={() => setIsAdding(true)}
-            className="mt-3 w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+            className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-left text-xs font-semibold text-[#5856D6] focus:border-[#FFE607]"
+            onClick={() => setIsPopupOpen(true)}
           >
-            항목 추가하기
+            {selectedPlace || "장소를 선택하세요"}
           </button>
-        ) : (
-          <div className="mt-2 space-y-2">
+          <div className="flex gap-2">
             <button
               type="button"
-              className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-left text-xs font-semibold text-[#5856D6] focus:border-[#FFE607]"
-              onClick={() => setIsPopupOpen(true)}
+              onClick={handleAdd}
+              className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
             >
-              {selectedPlace || "장소를 선택하세요"}
+              추가하기
             </button>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
-              >
-                추가하기
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdding(false);
-                  setSelectedPlace("");
-                }}
-                className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
-              >
-                취소
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsAdding(false);
+                setSelectedPlace("");
+              }}
+              className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+            >
+              취소
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
       <button
         type="button"
         onClick={onVote}
