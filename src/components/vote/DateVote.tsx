@@ -131,23 +131,22 @@ export const DateVoteBefore: React.FC<{
       >
         <button
           type="button"
-          className="w-full py-2 text-[#5856D6]"
+          className="w-full bg-transparent py-2 text-[#5856D6]"
           onClick={() => moveSelection(-1)}
         >
-          <span className="block h-5">{prev || ""}</span>
-          <div className="mt-1 h-px w-full bg-[#5856D6]" />
+          <span className="block h-5 leading-5">{prev || ""}</span>
         </button>
-        <div className="flex w-full flex-col items-center py-2 text-sm font-bold text-[#5856D6]">
-          <span className="w-full border-b border-[#5856D6] pb-1">{current}</span>
-          <div className="mt-1 h-px w-full bg-transparent" />
+        <div className="h-px w-full bg-[#5856D6]" />
+        <div className="w-full py-2 text-sm font-bold text-[#5856D6]">
+          <span className="block h-6 leading-6">{current}</span>
         </div>
+        <div className="h-px w-full bg-[#5856D6]" />
         <button
           type="button"
-          className="w-full py-2 text-[#5856D6]"
+          className="w-full bg-transparent py-2 text-[#5856D6]"
           onClick={() => moveSelection(1)}
         >
-          <div className="mb-1 h-px w-full bg-[#5856D6]" />
-          <span className="block h-5">{next || ""}</span>
+          <span className="block h-5 leading-5">{next || ""}</span>
         </button>
       </div>
     );

@@ -533,7 +533,7 @@ const PostDetailPage: React.FC = () => {
             })}
           </div>
 
-          {!participationVote && (
+          {hasActiveVotes && (
             <>
               <button
                 onClick={() => {
