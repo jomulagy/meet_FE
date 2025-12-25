@@ -483,10 +483,10 @@ const PostDetailPage: React.FC = () => {
                       </button>
                     </div>
                   )}
-                  <div className="mt-2 flex items-center justify-between">
+                  <div className="mt-2 flex items-start justify-between">
                     <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
                     {!isClosed && (
-                      <div className="flex items-center gap-2 text-[11px] font-semibold text-[#8E8E93]">
+                      <div className="flex flex-col items-end gap-1 text-[11px] font-semibold text-[#8E8E93]">
                         {vote.deadline && (
                           <span>마감일 : {vote.deadline.split(" ")[0].replace(/-/g, ".")}</span>
                         )}
@@ -527,21 +527,25 @@ const PostDetailPage: React.FC = () => {
           <div>
             {participationVote ? (
               participationVote.activeYn === "N" ? (
-                <div className="rounded-[16px] bg-white p-4 text-xs text-[#8E8E93]">
-                  {participantCountText && <p className="mb-2 text-[11px] font-semibold text-[#5856D6]">{participantCountText}</p>}
-                  <div className="flex flex-wrap gap-2">
-                    {participationVote.yesMembers.length > 0 ? (
-                      participationVote.yesMembers.map((member) => (
-                        <span
-                          key={`participant-${member.name}`}
-                          className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
-                        >
-                          {member.name}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-[10px]">참여자가 없습니다.</span>
-                    )}
+                <div className="space-y-2">
+                  {participantCountText && (
+                    <p className="text-sm font-semibold text-[#4C4ACB]">{participantCountText}</p>
+                  )}
+                  <div className="rounded-[16px] bg-white p-4 text-xs text-[#8E8E93]">
+                    <div className="flex flex-wrap gap-2">
+                      {participationVote.yesMembers.length > 0 ? (
+                        participationVote.yesMembers.map((member) => (
+                          <span
+                            key={`participant-${member.name}`}
+                            className="rounded-full border border-[#E5E5EA] bg-white px-2 py-1 text-[10px] font-semibold text-[#5856D6]"
+                          >
+                            {member.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[10px]">참여자가 없습니다.</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (

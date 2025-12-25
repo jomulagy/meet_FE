@@ -56,6 +56,20 @@ export const DateVoteBefore: React.FC<{
   const dayOptions = Array.from({ length: 31 }, (_, index) => String(index + 1));
   const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
   const minuteOptions = ["00", "30"];
+  const renderPickerColumn = <T extends string>(items: T[], selected: T, onSelect: (value: T) => void) => (
+    <div className="h-36 w-16 overflow-y-auto rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] py-2 text-center text-xs font-semibold text-[#5856D6]">
+      {items.map((item) => (
+        <button
+          key={item}
+          type="button"
+          onClick={() => onSelect(item)}
+          className={`block w-full py-2 ${selected === item ? "bg-[#EAE9FF] text-[#5856D6]" : "text-[#8E8E93]"}`}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
@@ -95,98 +109,18 @@ export const DateVoteBefore: React.FC<{
           <div className="space-y-4">
             <div className="space-y-2">
               <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
-              <div className="flex gap-2 overflow-x-auto">
-                {yearOptions.map((year) => (
-                  <button
-                    key={year}
-                    type="button"
-                    onClick={() => setSelectedYear(year)}
-                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                      selectedYear === year ? "bg-[#5856D6] text-white" : "border border-[#E5E5EA] bg-white text-[#5856D6]"
-                    }`}
-                  >
-                    {year}년
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2 overflow-x-auto">
-                {monthOptions.map((month) => (
-                  <button
-                    key={month}
-                    type="button"
-                    onClick={() => setSelectedMonth(month)}
-                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                      selectedMonth === month
-                        ? "bg-[#5856D6] text-white"
-                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
-                    }`}
-                  >
-                    {month}월
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2 overflow-x-auto">
-                {dayOptions.map((day) => (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => setSelectedDay(day)}
-                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                      selectedDay === day ? "bg-[#5856D6] text-white" : "border border-[#E5E5EA] bg-white text-[#5856D6]"
-                    }`}
-                  >
-                    {day}일
-                  </button>
-                ))}
+              <div className="flex gap-2">
+                {renderPickerColumn(yearOptions, selectedYear, setSelectedYear)}
+                {renderPickerColumn(monthOptions, selectedMonth, setSelectedMonth)}
+                {renderPickerColumn(dayOptions, selectedDay, setSelectedDay)}
               </div>
             </div>
             <div className="space-y-2">
               <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
-              <div className="flex gap-2 overflow-x-auto">
-                {(["오전", "오후"] as const).map((period) => (
-                  <button
-                    key={period}
-                    type="button"
-                    onClick={() => setSelectedPeriod(period)}
-                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                      selectedPeriod === period
-                        ? "bg-[#5856D6] text-white"
-                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
-                    }`}
-                  >
-                    {period}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2 overflow-x-auto">
-                {hourOptions.map((hour) => (
-                  <button
-                    key={hour}
-                    type="button"
-                    onClick={() => setSelectedHour(hour)}
-                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                      selectedHour === hour ? "bg-[#5856D6] text-white" : "border border-[#E5E5EA] bg-white text-[#5856D6]"
-                    }`}
-                  >
-                    {hour}시
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2 overflow-x-auto">
-                {minuteOptions.map((minute) => (
-                  <button
-                    key={minute}
-                    type="button"
-                    onClick={() => setSelectedMinute(minute)}
-                    className={`rounded-[10px] px-3 py-2 text-xs font-semibold ${
-                      selectedMinute === minute
-                        ? "bg-[#5856D6] text-white"
-                        : "border border-[#E5E5EA] bg-white text-[#5856D6]"
-                    }`}
-                  >
-                    {minute}분
-                  </button>
-                ))}
+              <div className="flex gap-2">
+                {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod)}
+                {renderPickerColumn(hourOptions, selectedHour, setSelectedHour)}
+                {renderPickerColumn(minuteOptions, selectedMinute, setSelectedMinute)}
               </div>
             </div>
           </div>
