@@ -227,7 +227,10 @@ const VotePage = () => {
           투표 진행 중
         </span>
         <h1 className="mt-3 text-[23px] font-bold leading-tight text-[#111827]">{meet.meetTitle}</h1>
-        <p className="mt-2 text-[13px] text-[#4B5563]">{deadlineLabel}</p>
+        <div className="mt-2 flex flex-col gap-1 text-[13px] text-[#4B5563]">
+          <p>{deadlineLabel}</p>
+          <p>중복 투표 가능</p>
+        </div>
         {meet.isAuthor && (
           <div className="mt-5 flex gap-2">
             <button

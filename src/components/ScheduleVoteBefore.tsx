@@ -21,7 +21,7 @@ const ScheduleVoteBefore = ({
   const [schedules, setSchedules] = useState<Schedule[]>(scheduleList);
   const [newDate, setNewDate] = useState<string>("");
   const [newTime, setNewTime] = useState<string>("");
-  const [isAdding, setIsAdding] = useState<boolean>(false); 
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // 컴포넌트 마운트 시 초기 일정 목록 설정
@@ -41,6 +41,11 @@ const ScheduleVoteBefore = ({
 
   // 일정 추가 함수
   const handleAddSchedule = async () => {
+    if (!newDate || !newTime) {
+      alert("날짜와 시간을 모두 입력해 주세요.");
+      return;
+    }
+
     server.post(
       `/schedule/item`,
       {
@@ -64,7 +69,7 @@ const ScheduleVoteBefore = ({
       setSchedules((prevSchedules) => [...prevSchedules, newSchedule]);
       setNewDate("");
       setNewTime("");
-      setIsAdding(false);
+      setIsAddModalOpen(false);
     })
     .catch((error) => {
       if (error.code === "403") {
@@ -73,6 +78,12 @@ const ScheduleVoteBefore = ({
         navigate("/not-found");
       }
     });
+  };
+
+  const handleCloseModal = () => {
+    setIsAddModalOpen(false);
+    setNewDate("");
+    setNewTime("");
   };
 
   // 일정 삭제 함수
@@ -130,44 +141,74 @@ const ScheduleVoteBefore = ({
       ))}
       </div>
       <div className="flex justify-end">
-        {!isAdding ? (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="text-[13px] text-[#8E8E93] bg-transparent p-0 mt-1"
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="text-[13px] text-[#8E8E93] bg-transparent p-0 mt-1"
+        >
+          <i className="fa-solid fa-plus"></i> 일정 추가
+        </button>
+      </div>
+
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={handleCloseModal}>
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
           >
-            <i className="fa-solid fa-plus"></i> 일정 추가
-          </button>
-        ) : (
-          <div className="space-y-2 w-full">
-            <input
-              type="date"
-              value = {newDate}
-              onChange={handleDateChange}
-              className="border border-[#F2F2F7] rounded-lg px-2 py-1 w-full"
-            />
-            <input
-            type="time"
-            value={newTime}
-            onChange={handleTimeChange}
-            className="border border-[#F2F2F7] rounded-lg px-2 py-1 w-full"
-            />
-            <div className="flex space-x-2">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-[#1C1C1E]">날짜 투표 항목 추가</h3>
+                <p className="mt-1 text-sm text-[#6B7280]">날짜와 시간을 입력해 주세요.</p>
+              </div>
               <button
-                onClick={() => setIsAdding(false)}
-                className="bg-[#F2F2F7] rounded-lg px-4 py-2 text-black w-1/2"
+                type="button"
+                onClick={handleCloseModal}
+                className="text-[#8E8E93] transition hover:text-[#1C1C1E]"
+              >
+                <i className="fa-regular fa-xmark"></i>
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <label className="flex flex-col gap-2 text-sm font-medium text-[#1C1C1E]">
+                <span className="text-xs font-semibold text-[#6B7280]">날짜</span>
+                <input
+                  type="date"
+                  value={newDate}
+                  onChange={handleDateChange}
+                  className="rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-3 text-sm font-semibold focus:border-[#FFE607] focus:outline-none"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-medium text-[#1C1C1E]">
+                <span className="text-xs font-semibold text-[#6B7280]">시간</span>
+                <input
+                  type="time"
+                  value={newTime}
+                  onChange={handleTimeChange}
+                  className="rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-3 text-sm font-semibold focus:border-[#FFE607] focus:outline-none"
+                />
+              </label>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                className="w-full rounded-[12px] border border-[#E5E5EA] bg-white px-4 py-3 text-sm font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC]"
               >
                 취소
               </button>
               <button
+                type="button"
                 onClick={handleAddSchedule}
-                className="bg-[#F2F2F7] rounded-lg px-4 py-2 text-black w-1/2"
+                className="w-full rounded-[12px] bg-[#5856D6] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
               >
-                확인
+                추가
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -380,6 +380,8 @@ const PostDetailPage: React.FC = () => {
             )}
           </div>
 
+          {participantCountText && <p className="text-sm font-semibold text-[#4C4ACB]">{participantCountText}</p>}
+
           <div>
             {participationVote ? (
               <div className="rounded-[20px] bg-white p-5 shadow-sm">
@@ -470,8 +472,6 @@ const PostDetailPage: React.FC = () => {
               </div>
             )}
           </div>
-
-          {participantCountText && <p className="text-sm font-semibold text-[#4C4ACB]">{participantCountText}</p>}
         </section>
 
         {postDetail.isAuthor && (

@@ -42,20 +42,25 @@ const JoinVoteBefore = ({
   
   return (
     <div className="space-y-4">
-      <div className="w-full bg-white p-6 rounded-[24px] space-y-2">
+      <div className="w-full bg-white p-6 rounded-[24px] space-y-3">
         {itemList.map((item) => (
-          <label key = {item.id} className="flex items-center text-lg">
-            <input
-              key = {item.id}
-              id={item.id}
-              type="radio"
-              name="vote"
-              value={item.name}
-              checked={participateId === item.id}
-              onChange={(e) => setParticipateId(e.target.id)}
-              className="mr-3 w-5 h-5"
-            />
-            {item.name}
+          <label
+            key={item.id}
+            className="flex items-center justify-between rounded-[12px] border border-[#E5E5EA] px-4 py-4 text-lg"
+          >
+            <div className="flex items-center gap-3">
+              <input
+                id={item.id}
+                type="radio"
+                name="vote"
+                value={item.name}
+                checked={participateId === item.id}
+                onChange={(e) => setParticipateId(e.target.id)}
+                className="h-5 w-5"
+              />
+              <span className="font-semibold text-[#1C1C1E]">{item.name}</span>
+            </div>
+            <span className="text-[13px] font-medium text-[#8E8E93]">선택</span>
           </label>
         ))}
       </div>
