@@ -65,7 +65,9 @@ export const DateVoteBefore: React.FC<{
 
     const month = selectedMonth.padStart(2, "0");
     const day = selectedDay.padStart(2, "0");
-    onAddOption(`${selectedYear}.${month}.${day} ${selectedPeriod} ${selectedHour}:${selectedMinute}`);
+    const hourNumber = Number(selectedHour);
+    const hour24 = selectedPeriod === "오후" ? ((hourNumber % 12) + 12).toString().padStart(2, "0") : (hourNumber % 12).toString().padStart(2, "0");
+    onAddOption(`${selectedYear}.${month}.${day} ${hour24}:${selectedMinute}`);
     resetSelections();
     setIsPopupOpen(false);
   };
@@ -133,15 +135,18 @@ export const DateVoteBefore: React.FC<{
           onClick={() => moveSelection(-1)}
         >
           <span className="block h-5">{prev || ""}</span>
+          <div className="mt-1 h-px w-full bg-[#5856D6]" />
         </button>
-        <div className="flex w-full flex-col items-center border-y border-[#E5E5EA] py-2 text-sm font-bold text-[#5856D6]">
-          <span>{current}</span>
+        <div className="flex w-full flex-col items-center py-2 text-sm font-bold text-[#5856D6]">
+          <span className="w-full border-b border-[#5856D6] pb-1">{current}</span>
+          <div className="mt-1 h-px w-full bg-transparent" />
         </div>
         <button
           type="button"
           className="w-full py-2 text-[#5856D6]"
           onClick={() => moveSelection(1)}
         >
+          <div className="mb-1 h-px w-full bg-[#5856D6]" />
           <span className="block h-5">{next || ""}</span>
         </button>
       </div>
