@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { Vote } from "../../types/vote";
 import VotedMemberList from "../popUp/VotedMemberList";
 
@@ -35,18 +35,51 @@ export const DateVoteBefore: React.FC<{
   const [selectedPeriod, setSelectedPeriod] = useState<"오전" | "오후">("오전");
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedMinute, setSelectedMinute] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const handleConfirm = () => {
-    if (!selectedYear || !selectedMonth || !selectedDay || !selectedHour || !selectedMinute) return;
-    const month = selectedMonth.padStart(2, "0");
-    const day = selectedDay.padStart(2, "0");
-    onAddOption(`${selectedYear}.${month}.${day} ${selectedPeriod} ${selectedHour}:${selectedMinute}`);
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    if (isPopupOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isPopupOpen]);
+
+  const resetSelections = () => {
     setSelectedYear("");
     setSelectedMonth("");
     setSelectedDay("");
     setSelectedPeriod("오전");
     setSelectedHour("");
     setSelectedMinute("");
+    setErrorMessage("");
+  };
+
+  const handleConfirm = () => {
+    if (!selectedYear || !selectedMonth || !selectedDay || !selectedHour || !selectedMinute) {
+      setErrorMessage("날짜와 시간을 모두 선택해주세요.");
+      return;
+    }
+
+    const yearNum = Number(selectedYear);
+    const monthNum = Number(selectedMonth);
+    const dayNum = Number(selectedDay);
+    const maxDay = new Date(yearNum, monthNum, 0).getDate();
+
+    if (dayNum > maxDay) {
+      setErrorMessage("해당 월에 없는 날짜입니다. 다시 선택해주세요.");
+      return;
+    }
+
+    const month = selectedMonth.padStart(2, "0");
+    const day = selectedDay.padStart(2, "0");
+    const hourNumber = Number(selectedHour);
+    const hour24 = selectedPeriod === "오후" ? ((hourNumber % 12) + 12).toString().padStart(2, "0") : (hourNumber % 12).toString().padStart(2, "0");
+    onAddOption(`${selectedYear}.${month}.${day} ${hour24}:${selectedMinute}`);
+    resetSelections();
     setIsPopupOpen(false);
   };
 
@@ -55,21 +88,80 @@ export const DateVoteBefore: React.FC<{
   const monthOptions = Array.from({ length: 12 }, (_, index) => String(index + 1));
   const dayOptions = Array.from({ length: 31 }, (_, index) => String(index + 1));
   const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
-  const minuteOptions = ["00", "30"];
-  const renderPickerColumn = <T extends string>(items: T[], selected: T, onSelect: (value: T) => void) => (
-    <div className="h-36 w-16 overflow-y-auto rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] py-2 text-center text-xs font-semibold text-[#5856D6]">
-      {items.map((item) => (
+  const minuteOptions = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, "0"));
+  const renderPickerColumn = <T extends string>(
+    items: T[],
+    selected: T,
+    onSelect: (value: T) => void,
+    { allowWrap = true }: { allowWrap?: boolean } = {},
+  ) => {
+    const selectedIndex = Math.max(0, items.indexOf(selected === "" ? items[0] : selected));
+    const getNeighbor = (direction: 1 | -1) => {
+      if (allowWrap) {
+        return items[(selectedIndex + direction + items.length) % items.length];
+      }
+      const nextIndex = selectedIndex + direction;
+      if (nextIndex < 0 || nextIndex >= items.length) return "" as T;
+      return items[nextIndex];
+    };
+
+    const current = items[selectedIndex];
+    const prev = getNeighbor(-1);
+    const next = getNeighbor(1);
+
+    const moveSelection = (direction: 1 | -1) => {
+      let newIndex = selectedIndex + direction;
+      if (allowWrap) {
+        newIndex = (newIndex + items.length) % items.length;
+      } else {
+        newIndex = Math.min(items.length - 1, Math.max(0, newIndex));
+      }
+      onSelect(items[newIndex]);
+    };
+
+    let touchStartY: number | null = null;
+
+    return (
+      <div
+        className="flex h-40 w-16 flex-col items-center justify-center text-center text-xs font-semibold text-[#5856D6]"
+        onWheel={(event) => {
+          event.preventDefault();
+          moveSelection(event.deltaY > 0 ? 1 : -1);
+        }}
+        onTouchStart={(event) => {
+          touchStartY = event.touches[0].clientY;
+        }}
+        onTouchEnd={(event) => {
+          if (touchStartY === null) return;
+          const deltaY = event.changedTouches[0].clientY - touchStartY;
+          if (Math.abs(deltaY) > 10) {
+            moveSelection(deltaY > 0 ? -1 : 1);
+          }
+          touchStartY = null;
+        }}
+      >
         <button
-          key={item}
           type="button"
-          onClick={() => onSelect(item)}
-          className={`block w-full py-2 ${selected === item ? "bg-[#EAE9FF] text-[#5856D6]" : "text-[#8E8E93]"}`}
+          className="w-full bg-transparent py-2 text-[#5856D6]"
+          onClick={() => moveSelection(-1)}
         >
-          {item}
+          <span className="block h-5 leading-5">{prev || ""}</span>
         </button>
-      ))}
-    </div>
-  );
+        <div className="h-px w-full bg-[#5856D6]" />
+        <div className="w-full py-2 text-sm font-bold text-[#5856D6]">
+          <span className="block h-6 leading-6">{current}</span>
+        </div>
+        <div className="h-px w-full bg-[#5856D6]" />
+        <button
+          type="button"
+          className="w-full bg-transparent py-2 text-[#5856D6]"
+          onClick={() => moveSelection(1)}
+        >
+          <span className="block h-5 leading-5">{next || ""}</span>
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
@@ -87,62 +179,86 @@ export const DateVoteBefore: React.FC<{
           </label>
         ))}
       </div>
-    <div className="mt-4">
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedYear(yearOptions[0]);
+            setSelectedMonth(monthOptions[0]);
+            setSelectedDay(dayOptions[0]);
+            setSelectedPeriod("오전");
+            setSelectedHour(hourOptions[0]);
+            setSelectedMinute(minuteOptions[0]);
+            setErrorMessage("");
+            setIsPopupOpen(true);
+          }}
+          className="w-full rounded-[12px] bg-[#EAE9FF] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+        >
+          항목 추가하기
+        </button>
+      </div>
       <button
-        type="button"
-        onClick={() => setIsPopupOpen(true)}
-        className="w-full rounded-[12px] bg-[#EAE9FF] px-3 py-2 text-xs font-semibold text-[#5856D6]"
-      >
-        항목 추가하기
-      </button>
-    </div>
-    <button
         type="button"
         onClick={onVote}
         className="mt-4 w-full rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
       >
-      투표하기
-    </button>
-    {isPopupOpen && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5856D6]/20 px-4">
-        <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
-              <div className="flex gap-2">
-                {renderPickerColumn(yearOptions, selectedYear, setSelectedYear)}
-                {renderPickerColumn(monthOptions, selectedMonth, setSelectedMonth)}
-                {renderPickerColumn(dayOptions, selectedDay, setSelectedDay)}
+        투표하기
+      </button>
+      {isPopupOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#5856D6]/20 px-4"
+          onClick={() => {
+            resetSelections();
+            setIsPopupOpen(false);
+          }}
+          onWheel={(event) => event.preventDefault()}
+          onTouchMove={(event) => event.preventDefault()}
+        >
+          <div
+            className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
+                <div className="flex items-center justify-center gap-3">
+                  {renderPickerColumn(yearOptions, selectedYear || yearOptions[0], setSelectedYear, { allowWrap: false })}
+                  {renderPickerColumn(monthOptions, selectedMonth || monthOptions[0], setSelectedMonth)}
+                  {renderPickerColumn(dayOptions, selectedDay || dayOptions[0], setSelectedDay)}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
+                <div className="flex items-center justify-center gap-3">
+                  {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod, { allowWrap: false })}
+                  {renderPickerColumn(hourOptions, selectedHour || hourOptions[0], setSelectedHour)}
+                  {renderPickerColumn(minuteOptions, selectedMinute || minuteOptions[0], setSelectedMinute)}
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
-              <div className="flex gap-2">
-                {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod)}
-                {renderPickerColumn(hourOptions, selectedHour, setSelectedHour)}
-                {renderPickerColumn(minuteOptions, selectedMinute, setSelectedMinute)}
-              </div>
+            {errorMessage && <p className="mt-3 text-[11px] font-semibold text-[#FF3B30]">{errorMessage}</p>}
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  resetSelections();
+                  setIsPopupOpen(false);
+                }}
+                className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6]"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
+              >
+                확인
+              </button>
             </div>
-          </div>
-          <div className="mt-5 flex gap-2">
-            <button
-              type="button"
-              onClick={() => setIsPopupOpen(false)}
-              className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6]"
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
-            >
-              확인
-            </button>
           </div>
         </div>
-      </div>
-    )}
+      )}
   </div>
 );
 };
