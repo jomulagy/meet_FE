@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { Vote } from "../../types/vote";
 import VotedMemberList from "../popUp/VotedMemberList";
 
@@ -36,6 +36,17 @@ export const DateVoteBefore: React.FC<{
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedMinute, setSelectedMinute] = useState("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    if (isPopupOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isPopupOpen]);
 
   const resetSelections = () => {
     setSelectedYear("");
@@ -200,6 +211,8 @@ export const DateVoteBefore: React.FC<{
             resetSelections();
             setIsPopupOpen(false);
           }}
+          onWheel={(event) => event.preventDefault()}
+          onTouchMove={(event) => event.preventDefault()}
         >
           <div
             className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg"
