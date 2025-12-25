@@ -8,61 +8,106 @@ const OptionResults: React.FC<{ options: Vote["options"]; highlightVoted?: boole
     {options.map((option) => (
       <div
         key={option.id}
-        className={`flex items-center justify-between rounded-xl border px-4 py-3 text-xs font-medium ${
+        className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs font-medium ${
           highlightVoted && option.voted
             ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]"
             : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
         }`}
       >
-        <div className="flex items-center gap-2">
-          <span>{option.label}</span>
-          {highlightVoted && option.voted && (
-            <span className="rounded-full bg-[#EAE9FF] px-2 py-[2px] text-[10px] font-semibold text-[#4C4ACB]">
-              내가 투표함
-            </span>
-          )}
-        </div>
+        <span>{option.label}</span>
         <span className="text-[11px] font-semibold text-[#8E8E93]">{option.count}표</span>
       </div>
     ))}
   </div>
 );
 
-export const PlaceVoteBefore: React.FC<{ vote: Vote; onVote: () => void }> = ({ vote, onVote }) => {
+export const PlaceVoteBefore: React.FC<{
+  vote: Vote;
+  allowDuplicate: boolean;
+  selectedOptionIds: string[];
+  onToggleOption: (optionId: string) => void;
+  onVote: () => void;
+  onAddOption: (label: string) => void;
+}> = ({ vote, allowDuplicate, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<string>("");
+  const [isAdding, setIsAdding] = useState(false);
 
   const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
+    if (isAdding) {
+      onAddOption(location.address);
+      setSelectedPlace("");
+      setIsAdding(false);
+      setIsPopupOpen(false);
+      return;
+    }
     setSelectedPlace(location.address);
     setIsPopupOpen(false);
+  };
+
+  const handleAdd = () => {
+    if (!selectedPlace) return;
+    onAddOption(selectedPlace);
+    setSelectedPlace("");
+    setIsAdding(false);
   };
 
   return (
     <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
       <div className="mt-3 flex flex-col gap-3">
         {vote.options.map((option) => (
-          <label key={option.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs text-[#1C1C1E]">
-            <input type="radio" name={`place-vote-${vote.id}`} className="h-4 w-4 text-[#5856D6]" />
+          <label key={option.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-2 text-xs text-[#1C1C1E]">
+            <input
+              type={allowDuplicate ? "checkbox" : "radio"}
+              name={allowDuplicate ? undefined : `place-vote-${vote.id}`}
+              checked={selectedOptionIds.includes(option.id)}
+              onChange={() => onToggleOption(option.id)}
+              className="h-4 w-4 text-[#5856D6]"
+            />
             {option.label}
           </label>
         ))}
       </div>
-      <div className="mt-4 rounded-xl bg-white px-4 py-3">
-        <label className="text-[11px] font-semibold text-[#8E8E93]">장소 추가</label>
+    <div className="mt-4 space-y-2">
+      {!isAdding ? (
         <button
           type="button"
-          className="mt-2 w-full rounded-lg border border-[#E5E5EA] px-3 py-2 text-left text-xs text-[#5856D6]"
-          onClick={() => setIsPopupOpen(true)}
-        >
-          {selectedPlace || "장소를 선택하세요"}
-        </button>
-        <button
-          type="button"
-          className="mt-3 w-full rounded-[12px] border border-[#5856D6] px-3 py-2 text-xs font-semibold text-[#5856D6]"
+          onClick={() => setIsAdding(true)}
+          className="w-full rounded-[12px] bg-[#EAE9FF] px-3 py-2 text-xs font-semibold text-[#5856D6]"
         >
           항목 추가하기
         </button>
-      </div>
+      ) : (
+        <div className="space-y-2">
+          <button
+            type="button"
+            className="w-full rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-2 text-left text-xs font-semibold text-[#5856D6] focus:border-[#FFE607]"
+            onClick={() => setIsPopupOpen(true)}
+          >
+            {selectedPlace || "장소를 선택하세요"}
+          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="flex-1 rounded-[12px] bg-[#5856D6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
+            >
+              추가하기
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsAdding(false);
+                setSelectedPlace("");
+              }}
+              className="flex-1 rounded-[12px] border border-[#E5E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
       <button
         type="button"
         onClick={onVote}
@@ -85,21 +130,14 @@ export const PlaceVoteAfter: React.FC<{ vote: Vote; onRevote: () => void }> = ({
         {vote.options.map((option) => (
           <div
             key={option.id}
-            className={`flex items-center justify-between rounded-xl border px-4 py-3 text-xs font-medium ${
-              option.voted ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]" : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
-            }`}
+          className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs font-medium ${
+            option.voted ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]" : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
+          }`}
           >
-            <div className="flex items-center gap-2">
-              <span>{option.label}</span>
-              {option.voted && (
-                <span className="rounded-full bg-[#EAE9FF] px-2 py-[2px] text-[10px] font-semibold text-[#4C4ACB]">
-                  내가 투표함
-                </span>
-              )}
-            </div>
+            <span>{option.label}</span>
             <button
               type="button"
-              className="text-[11px] font-semibold text-[#5856D6]"
+              className="bg-transparent text-[11px] font-semibold text-[#5856D6]"
               onClick={() => setSelectedOptionId(option.id)}
             >
               {option.count}명
