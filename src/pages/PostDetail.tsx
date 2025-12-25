@@ -151,6 +151,7 @@ const PostDetailPage: React.FC = () => {
   const [newVoteType, setNewVoteType] = useState<VoteType>("text");
   const [newVoteDeadline, setNewVoteDeadline] = useState("");
   const [newVoteAllowDuplicate, setNewVoteAllowDuplicate] = useState(false);
+  const [newVoteErrors, setNewVoteErrors] = useState<{ title?: string; deadline?: string }>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -285,7 +286,19 @@ const PostDetailPage: React.FC = () => {
   };
 
   const handleAddVote = () => {
-    if (!newVoteTitle.trim()) return;
+    const errors: { title?: string; deadline?: string } = {};
+    if (!newVoteTitle.trim()) {
+      errors.title = "투표 제목을 입력해주세요.";
+    }
+    if (!newVoteDeadline) {
+      errors.deadline = "투표 마감일을 입력해주세요.";
+    }
+
+    if (errors.title || errors.deadline) {
+      setNewVoteErrors(errors);
+      return;
+    }
+
     setVotes((prev) => [
       ...prev,
       {
@@ -303,7 +316,24 @@ const PostDetailPage: React.FC = () => {
     setNewVoteType("text");
     setNewVoteDeadline("");
     setNewVoteAllowDuplicate(false);
+    setNewVoteErrors({});
     setIsVoteModalOpen(false);
+  };
+
+  const handleEndAllVotes = () => {
+    setVotes((prev) => prev.map((vote) => ({ ...vote, activeYn: "N", status: "complete" })));
+    setParticipationVote((prev) =>
+      prev ?? {
+        id: `participation-${Date.now()}`,
+        activeYn: "Y",
+        hasVoted: false,
+        yesCount: 0,
+        noCount: 0,
+        participantCount: 0,
+        yesMembers: [],
+        noMembers: [],
+      },
+    );
   };
 
   const handleCreateParticipationVote = () => {
@@ -502,10 +532,19 @@ const PostDetailPage: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setIsVoteModalOpen(true)}
+            onClick={() => {
+              setNewVoteErrors({});
+              setIsVoteModalOpen(true);
+            }}
             className="w-full rounded-[16px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
           >
             투표 추가
+          </button>
+          <button
+            onClick={handleEndAllVotes}
+            className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-4 py-3 text-xs font-semibold text-[#5856D6] shadow-sm transition hover:border-[#C7C7CC]"
+          >
+            투표 종료
           </button>
         </section>
 
@@ -683,10 +722,16 @@ const PostDetailPage: React.FC = () => {
                 <input
                   type="text"
                   value={newVoteTitle}
-                  onChange={(event) => setNewVoteTitle(event.target.value)}
+                  onChange={(event) => {
+                    setNewVoteTitle(event.target.value);
+                    setNewVoteErrors((prev) => ({ ...prev, title: undefined }));
+                  }}
                   placeholder="제목을 입력하세요"
                   className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
                 />
+                {newVoteErrors.title && (
+                  <p className="text-[11px] font-semibold text-[#FF3B30]">{newVoteErrors.title}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-[#8E8E93]">투표 타입</label>
@@ -712,9 +757,15 @@ const PostDetailPage: React.FC = () => {
                 <input
                   type="datetime-local"
                   value={newVoteDeadline}
-                  onChange={(event) => setNewVoteDeadline(event.target.value)}
+                  onChange={(event) => {
+                    setNewVoteDeadline(event.target.value);
+                    setNewVoteErrors((prev) => ({ ...prev, deadline: undefined }));
+                  }}
                   className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
                 />
+                {newVoteErrors.deadline && (
+                  <p className="text-[11px] font-semibold text-[#FF3B30]">{newVoteErrors.deadline}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-[#8E8E93]">중복 투표</label>

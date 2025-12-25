@@ -76,14 +76,33 @@ export const DateVoteBefore: React.FC<{
   const dayOptions = Array.from({ length: 31 }, (_, index) => String(index + 1));
   const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
   const minuteOptions = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, "0"));
-  const renderPickerColumn = <T extends string>(items: T[], selected: T, onSelect: (value: T) => void) => {
+  const renderPickerColumn = <T extends string>(
+    items: T[],
+    selected: T,
+    onSelect: (value: T) => void,
+    { allowWrap = true }: { allowWrap?: boolean } = {},
+  ) => {
     const selectedIndex = Math.max(0, items.indexOf(selected === "" ? items[0] : selected));
+    const getNeighbor = (direction: 1 | -1) => {
+      if (allowWrap) {
+        return items[(selectedIndex + direction + items.length) % items.length];
+      }
+      const nextIndex = selectedIndex + direction;
+      if (nextIndex < 0 || nextIndex >= items.length) return "" as T;
+      return items[nextIndex];
+    };
+
     const current = items[selectedIndex];
-    const prev = items[(selectedIndex - 1 + items.length) % items.length];
-    const next = items[(selectedIndex + 1) % items.length];
+    const prev = getNeighbor(-1);
+    const next = getNeighbor(1);
 
     const moveSelection = (direction: 1 | -1) => {
-      const newIndex = (selectedIndex + direction + items.length) % items.length;
+      let newIndex = selectedIndex + direction;
+      if (allowWrap) {
+        newIndex = (newIndex + items.length) % items.length;
+      } else {
+        newIndex = Math.min(items.length - 1, Math.max(0, newIndex));
+      }
       onSelect(items[newIndex]);
     };
 
@@ -91,7 +110,7 @@ export const DateVoteBefore: React.FC<{
 
     return (
       <div
-        className="flex h-40 w-16 flex-col items-center justify-center rounded-[12px] border border-[#E5E5EA] bg-[#F9F9FB] px-1 py-2 text-center text-xs font-semibold text-[#5856D6]"
+        className="flex h-40 w-16 flex-col items-center justify-center text-center text-xs font-semibold text-[#5856D6]"
         onWheel={(event) => {
           event.preventDefault();
           moveSelection(event.deltaY > 0 ? 1 : -1);
@@ -110,18 +129,20 @@ export const DateVoteBefore: React.FC<{
       >
         <button
           type="button"
-          className="w-full rounded-[8px] bg-[#EAE9FF] py-2 text-[#5856D6]"
+          className="w-full py-2 text-[#5856D6]"
           onClick={() => moveSelection(-1)}
         >
-          {prev}
+          <span className="block h-5">{prev || ""}</span>
         </button>
-        <div className="mt-1 w-full rounded-[8px] bg-[#5856D6] py-2 text-white">{current}</div>
+        <div className="flex w-full flex-col items-center border-y border-[#E5E5EA] py-2 text-sm font-bold text-[#5856D6]">
+          <span>{current}</span>
+        </div>
         <button
           type="button"
-          className="mt-1 w-full rounded-[8px] bg-[#EAE9FF] py-2 text-[#5856D6]"
+          className="w-full py-2 text-[#5856D6]"
           onClick={() => moveSelection(1)}
         >
-          {next}
+          <span className="block h-5">{next || ""}</span>
         </button>
       </div>
     );
@@ -183,16 +204,16 @@ export const DateVoteBefore: React.FC<{
             <div className="space-y-4">
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
-                <div className="flex gap-2">
-                  {renderPickerColumn(yearOptions, selectedYear || yearOptions[0], setSelectedYear)}
+                <div className="flex items-center justify-center gap-3">
+                  {renderPickerColumn(yearOptions, selectedYear || yearOptions[0], setSelectedYear, { allowWrap: false })}
                   {renderPickerColumn(monthOptions, selectedMonth || monthOptions[0], setSelectedMonth)}
                   {renderPickerColumn(dayOptions, selectedDay || dayOptions[0], setSelectedDay)}
                 </div>
               </div>
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
-                <div className="flex gap-2">
-                  {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod)}
+                <div className="flex items-center justify-center gap-3">
+                  {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod, { allowWrap: false })}
                   {renderPickerColumn(hourOptions, selectedHour || hourOptions[0], setSelectedHour)}
                   {renderPickerColumn(minuteOptions, selectedMinute || minuteOptions[0], setSelectedMinute)}
                 </div>
