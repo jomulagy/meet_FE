@@ -17,7 +17,12 @@ import {
   deleteVote,
   reopenVote,
 } from "../api/postDetail";
-import { PostDetailResponse, VoteItemResponse, VoteListResponse } from "../types/postDetailResponse";
+import {
+  PostDetailResponse,
+  VoteItemResponse,
+  VoteListResponse,
+  VoteOptionResponse,
+} from "../types/postDetailResponse";
 import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = PostDetailResponse;
@@ -58,6 +63,22 @@ const formatVoteDeadline = (deadline?: string | null) => {
   const [datePart] = deadline.split(/[T ]/);
   return datePart.replace(/-/g, ".");
 };
+
+const normalizeVoteOption = (option: VoteItemResponse["options"][number]) =>
+  new VoteOptionResponse(String(option.id), option.value, option.isVoted, option.voters);
+
+const normalizeVoteItem = (vote: VoteItemResponse) =>
+  new VoteItemResponse(
+    String(vote.id),
+    vote.title,
+    vote.isClosed,
+    vote.deadline,
+    vote.allowDuplicate,
+    vote.type,
+    vote.result,
+    vote.status,
+    vote.options.map(normalizeVoteOption),
+  );
 
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams();
@@ -109,30 +130,32 @@ const PostDetailPage: React.FC = () => {
       return addVoteOption({ voteId, optionValue });
     },
     onSuccess: (updatedVote) => {
+      const normalizedVote = normalizeVoteItem(updatedVote);
+
       queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
         if (!prev) return prev;
 
         const votes = prev.votes.map((vote) => {
-          if (vote.id !== updatedVote.id) return vote;
+          if (String(vote.id) !== normalizedVote.id) return vote;
 
           const existingOptions = new Map(vote.options.map((option) => [option.id, option]));
           const mergedOptions = [...vote.options];
 
-          updatedVote.options.forEach((option) => {
+          normalizedVote.options.forEach((option) => {
             if (!existingOptions.has(option.id)) {
               mergedOptions.push(option);
             }
           });
 
           return new VoteItemResponse(
-            updatedVote.id,
-            updatedVote.title,
-            updatedVote.isClosed,
-            updatedVote.deadline,
-            updatedVote.allowDuplicate,
-            updatedVote.type,
-            updatedVote.result,
-            updatedVote.status,
+            normalizedVote.id,
+            normalizedVote.title,
+            normalizedVote.isClosed,
+            normalizedVote.deadline,
+            normalizedVote.allowDuplicate,
+            normalizedVote.type,
+            normalizedVote.result,
+            normalizedVote.status,
             mergedOptions,
           );
         });
