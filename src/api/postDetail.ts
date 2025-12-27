@@ -59,6 +59,72 @@ type PostDetailApiResponse = {
   data?: RawPostDetailResponse;
 };
 
+type VoteOptionApiResponse = {
+  id?: string | number;
+  value?: string;
+  label?: string;
+  voted?: boolean;
+  isVoted?: boolean;
+  voterList?: string[];
+  memberList?: ({ name?: string } | string)[];
+};
+
+type VoteApiResponse = {
+  id?: number | string;
+  title?: string;
+  endDate?: string | null;
+  deadline?: string | null;
+  voteDeadline?: string | null;
+  duplicate?: boolean;
+  allowDuplicate?: boolean;
+  active?: boolean;
+  activeYn?: "Y" | "N";
+  voted?: boolean;
+  type?: VoteType;
+  result?: string | null;
+  status?: VoteStatus;
+  voteStatus?: VoteStatus;
+  itemList?: VoteOptionApiResponse[];
+  options?: VoteOptionApiResponse[];
+};
+
+type VoteListApiResponse = { data?: VoteApiResponse[] } | VoteApiResponse[];
+
+const toVoteOptionResponse = (option: VoteOptionApiResponse): VoteOptionResponse => {
+  const id = option.id != null ? String(option.id) : option.value ?? option.label ?? "";
+  const value = option.value ?? option.label ?? "";
+  const voters = (option.memberList ?? option.voterList ?? []).map((member) =>
+    typeof member === "string" ? member : member?.name ?? "",
+  );
+
+  return new VoteOptionResponse(id, value, Boolean(option.voted ?? option.isVoted), voters);
+};
+
+const toVoteItemResponse = (vote: VoteApiResponse): VoteItemResponse => {
+  const options = (vote.options ?? vote.itemList ?? []).map(toVoteOptionResponse);
+  const status = (vote.status ?? vote.voteStatus ?? (vote.voted ? "after" : "before")) as VoteStatus;
+  const activeYn = vote.activeYn ?? (vote.active === false ? "N" : "Y");
+  const deadline = vote.deadline ?? vote.endDate ?? vote.voteDeadline ?? null;
+
+  return new VoteItemResponse(
+    vote.id != null ? String(vote.id) : "",
+    vote.title ?? "",
+    activeYn !== "Y",
+    deadline,
+    Boolean(vote.allowDuplicate ?? vote.duplicate ?? false),
+    (vote.type ?? "text") as VoteType,
+    vote.result ?? null,
+    activeYn === "N" && status !== "complete" ? "complete" : status,
+    options,
+  );
+};
+
+const toVoteListResponse = (votes: VoteApiResponse[]): VoteListResponse => {
+  const normalizedVotes = votes.map(toVoteItemResponse);
+  voteStore = normalizedVotes;
+  return new VoteListResponse(normalizedVotes);
+};
+
 export const fetchPostDetail = async (postId: string): Promise<PostDetailResponse> => {
   ensurePostDetailStore(postId);
 
@@ -88,98 +154,36 @@ export const fetchPostDetail = async (postId: string): Promise<PostDetailRespons
 };
 
 export const fetchVoteList = async (postId: string): Promise<VoteListResponse> => {
-  type VoteItemApiResponse = {
-    id?: string | number;
-    value?: string;
-    voted?: boolean;
-    voterList?: string[];
-  };
-
-  type VoteApiResponse = {
-    id?: number;
-    title?: string;
-    endDate?: string | null;
-    duplicate?: boolean;
-    active?: boolean;
-    voted?: boolean;
-    type?: VoteType;
-    result?: string | null;
-    itemList?: VoteItemApiResponse[];
-  };
-
-  type VoteListApiResponse = { data?: VoteApiResponse[] } | VoteApiResponse[];
-
   ensurePostDetailStore(postId);
 
-  const response = await server.get<VoteListApiResponse>("/vote/list", {
-    params: { postId },
-  });
+  const response = await server.get<VoteListApiResponse>(`/posts/${postId}/votes`);
 
   const voteData = (response as { data?: VoteApiResponse[] })?.data ?? (response as VoteApiResponse[]) ?? [];
 
-  const votes = voteData.map((vote) => {
-    const options = (vote.itemList ?? []).map((option) => {
-      const id = option.id;
-      const value = option.value ?? "";
-      const voters = option.voterList ?? [];
-      return new VoteOptionResponse(id != null ? String(id) : value, value, Boolean(option.voted ?? false), voters);
-    });
-
-    const id = vote.id;
-    const type = (vote.type ?? "text") as VoteType;
-    var status = "complete";
-
-    if(vote.active) {
-      status = vote.voted ? "after" : "before"
-    }
-
-    return new VoteItemResponse(
-      id != null ? String(id) : "",
-      vote.title ?? "",
-      !Boolean(vote.active ?? false),
-      vote.endDate ?? null,
-      Boolean(vote.duplicate ?? false),
-      type,
-      vote.result ?? null,
-      status as VoteStatus,
-      options,
-    );
-  });
-
-  voteStore = votes;
-
-  return cloneVotes(votes);
+  return toVoteListResponse(voteData);
 };
 
 export const addVoteOption = async ({
+  postId,
   voteId,
   optionValue,
 }: {
+  postId: string;
   voteId: string;
   optionValue: string;
-}): Promise<VoteListResponse> => {
-  await delay();
-  voteStore = voteStore.map((vote) => {
-    if (vote.id !== voteId) return vote;
-    const newOption = new VoteOptionResponse(
-      `${voteId}-option-${vote.options.length + 1}`,
-      optionValue,
-      false,
-      [],
-    );
-    return new VoteItemResponse(
-      vote.id,
-      vote.title,
-      vote.isClosed,
-      vote.deadline,
-      vote.allowDuplicate,
-      vote.type,
-      vote.result,
-      vote.status,
-      [...vote.options, newOption],
-    );
-  });
-  return cloneVotes(voteStore);
+}): Promise<VoteItemResponse> => {
+  const response = await server.post<{ data?: VoteApiResponse }>(
+    `/posts/${postId}/votes/${voteId}/options`,
+    {
+      data: { label: optionValue },
+    },
+  );
+
+  const voteData = (response as { data?: VoteApiResponse })?.data ?? (response as VoteApiResponse);
+  const updatedVote = toVoteItemResponse(voteData);
+  voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
+
+  return updatedVote;
 };
 
 export const createVote = async ({

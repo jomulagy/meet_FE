@@ -17,7 +17,7 @@ import {
   deleteVote,
   reopenVote,
 } from "../api/postDetail";
-import type { PostDetailResponse, VoteListResponse } from "../types/postDetailResponse";
+import { PostDetailResponse, VoteItemResponse, VoteListResponse } from "../types/postDetailResponse";
 import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = PostDetailResponse;
@@ -104,8 +104,21 @@ const PostDetailPage: React.FC = () => {
   const showVoteCloseButton = canManageVotes && postDetail?.isVoteClosed === false && hasVotes;
 
   const addVoteOptionMutation = useMutation({
-    mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => addVoteOption({ voteId, optionValue }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["postVotes", postId] }),
+    mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => {
+      if (!postId) throw new Error("postId is required to add an option");
+      return addVoteOption({ postId, voteId, optionValue });
+    },
+    onSuccess: (updatedVote: VoteItemResponse) => {
+      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (previous) => {
+        if (!previous) return previous;
+
+        const votes = previous.votes.some((vote) => vote.id === updatedVote.id)
+          ? previous.votes.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote))
+          : [...previous.votes, updatedVote];
+
+        return new VoteListResponse(votes);
+      });
+    },
   });
 
   const createVoteMutation = useMutation({
@@ -235,7 +248,7 @@ const PostDetailPage: React.FC = () => {
 
   const handleAddOption = (voteId: string, label: string) => {
     const trimmedLabel = label.trim();
-    if (!trimmedLabel) return;
+    if (!trimmedLabel || !postId) return;
     addVoteOptionMutation.mutate({ voteId, optionValue: trimmedLabel });
   };
 
