@@ -183,7 +183,10 @@ const PostDetailPage: React.FC = () => {
   });
 
   const closeAllVotesMutation = useMutation({
-    mutationFn: () => closeAllVotes(),
+    mutationFn: () => {
+      if (!postId) throw new Error("postId is required to close all votes");
+      return closeAllVotes({ postId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
@@ -216,7 +219,47 @@ const PostDetailPage: React.FC = () => {
     mutationFn: ({ optionId }: { optionId: string }) =>
       deleteVoteItem({ voteItemId: optionId }),
     onSuccess: (deletedId) => {
-     
+      let affectedVoteId: string | null = null;
+
+      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (previous) => {
+        if (!previous) return previous;
+
+        const updatedVotes = previous.votes.map((vote) => {
+          const filteredOptions = vote.options.filter((option) => option.id !== String(deletedId));
+          if (filteredOptions.length === vote.options.length) return vote;
+
+          affectedVoteId = String(vote.id);
+          return new VoteItemResponse(
+            vote.id,
+            vote.title,
+            vote.isClosed,
+            vote.deadline,
+            vote.allowDuplicate,
+            vote.type,
+            vote.result,
+            vote.status,
+            filteredOptions,
+          );
+        });
+
+        return new VoteListResponse(updatedVotes);
+      });
+
+      setSelectedOptions((previous) => {
+        if (!affectedVoteId) return previous;
+        const selectedForVote = previous[affectedVoteId];
+        if (!selectedForVote) return previous;
+
+        const updatedSelections = selectedForVote.filter((optionId) => optionId !== String(deletedId));
+
+        if (updatedSelections.length === selectedForVote.length) return previous;
+
+        const updated = { ...previous };
+        if (updatedSelections.length > 0) updated[affectedVoteId] = updatedSelections;
+        else delete updated[affectedVoteId];
+
+        return updated;
+      });
     },
   });
 
