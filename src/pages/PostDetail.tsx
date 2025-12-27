@@ -53,6 +53,12 @@ const mapVoteResponses = (response?: VoteListResponse): Vote[] => {
   }));
 };
 
+const formatVoteDeadline = (deadline?: string | null) => {
+  if (!deadline) return "";
+  const [datePart] = deadline.split(/[T ]/);
+  return datePart.replace(/-/g, ".");
+};
+
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
@@ -77,7 +83,12 @@ const PostDetailPage: React.FC = () => {
     enabled: !!postId,
   });
 
-  const { data: voteListResponse, isPending: isVoteLoading, isFetching: isVoteFetching } = useQuery<VoteListResponse>({
+  const {
+    data: voteListResponse,
+    isPending: isVoteLoading,
+    isFetching: isVoteFetching,
+    refetch: refetchVoteList,
+  } = useQuery<VoteListResponse>({
     queryKey: ["postVotes", postId],
     queryFn: () => fetchVoteList(postId ?? ""),
     enabled: !!postId && postDetail?.isVoteClosed === false,
@@ -105,8 +116,8 @@ const PostDetailPage: React.FC = () => {
       allowDuplicate: boolean;
       deadline?: string;
     }) => createVote(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
+    onSuccess: async () => {
+      await refetchVoteList();
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
       setNewVoteTitle("");
       setNewVoteType("text");
@@ -249,7 +260,7 @@ const PostDetailPage: React.FC = () => {
       title: newVoteTitle.trim(),
       type: newVoteType,
       allowDuplicate: newVoteAllowDuplicate,
-      deadline: newVoteDeadline ? newVoteDeadline.replace("T", " ") : undefined,
+      deadline: newVoteDeadline || undefined,
     });
   };
 
@@ -432,9 +443,7 @@ const PostDetailPage: React.FC = () => {
                       <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
                       {!isClosed && (
                         <div className="flex flex-col items-end gap-1 text-[11px] font-semibold text-[#8E8E93]">
-                          {vote.deadline && (
-                            <span>마감일 : {vote.deadline.split(" ")[0].replace(/-/g, ".")}</span>
-                          )}
+                          {vote.deadline && <span>마감일 : {formatVoteDeadline(vote.deadline)}</span>}
                           {vote.allowDuplicate && <span>중복 가능</span>}
                         </div>
                       )}
@@ -664,7 +673,7 @@ const PostDetailPage: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-[#8E8E93]">투표 마감일</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={newVoteDeadline}
                   onChange={(event) => {
                     setNewVoteDeadline(event.target.value);
