@@ -104,11 +104,17 @@ const PostDetailPage: React.FC = () => {
   const showVoteCloseButton = canManageVotes && postDetail?.isVoteClosed === false && hasVotes;
 
   const addVoteOptionMutation = useMutation({
-     mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => {
+    mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => {
       if (!postId) throw new Error("postId is required to add an option");
       return addVoteOption({ voteId, optionValue });
     },
-    onSuccess: async () => {
+    onSuccess: async (updatedVote) => {
+      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
+        if (!prev) return prev;
+        const votes = prev.votes.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
+        return new VoteListResponse(votes);
+      });
+
       await queryClient.refetchQueries({
         queryKey: ["postVotes", postId],
       });
