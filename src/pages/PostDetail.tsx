@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import VotedMemberList from "../components/popUp/VotedMemberList";
 import { DateVoteAfter, DateVoteBefore, DateVoteComplete } from "../components/vote/DateVote";
@@ -8,7 +9,7 @@ import { TextVoteAfter, TextVoteBefore, TextVoteComplete } from "../components/v
 import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = {
-  id: string;
+  id: number;
   title: string;
   content: string;
   authorName: string;
@@ -28,14 +29,15 @@ type ParticipationVote = {
 };
 
 const fetchPostDetail = async (postId: string): Promise<PostDetail> => {
-  await new Promise((resolve) => setTimeout(resolve, 350));
+  const response = await server.get(`/post?postId=${postId}`);
+
   return {
-    id: postId,
-    title: "팀 빌딩 회의 일정 잡기",
-    content: "이번 주 금요일까지 가능한 시간과 장소를 투표해주세요.",
-    authorName: "지민",
-    createdAt: "2024-05-20 14:30",
-    isAuthor: true,
+    id: response.data.id,
+    title: response.data.title,
+    content: response.data.content ?? "",
+    authorName: response.data.authorName ?? "",
+    createdAt: response.data.createdAt ?? "",
+    isAuthor: response.data.isAuthor ?? false,
   };
 };
 
@@ -162,17 +164,32 @@ const PostDetailPage: React.FC = () => {
       if (!postId) return;
       setLoading(true);
 
-      const [postResponse, voteResponse, participationResponse] = await Promise.all([
-        fetchPostDetail(postId),
-        fetchVoteList(),
-        fetchParticipationVote(),
-      ]);
+      try {
+        const [postResponse, voteResponse, participationResponse] = await Promise.all([
+          fetchPostDetail(postId),
+          fetchVoteList(),
+          fetchParticipationVote(),
+        ]);
 
-      if (!isMounted) return;
-      setPostDetail(postResponse);
-      setVotes(voteResponse);
-      setParticipationVote(participationResponse);
-      setLoading(false);
+        if (!isMounted) return;
+        setPostDetail(postResponse);
+        setVotes(voteResponse);
+        setParticipationVote(participationResponse);
+      } catch (error: unknown) {
+        if (!isMounted) return;
+        console.error("게시글 정보를 불러오는 중 오류가 발생했습니다.", error);
+        const errorCode =
+          typeof error === "object" && error !== null && "code" in error
+            ? (error as { code?: string }).code
+            : undefined;
+        if (errorCode === "403") {
+          navigate("/Unauthorized");
+        } else if (errorCode === "404") {
+          navigate("/not-found");
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     };
 
     void loadDetail();
@@ -180,7 +197,7 @@ const PostDetailPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [postId]);
+  }, [navigate, postId]);
 
   const handleEndVote = (voteId: string) => {
     setVotes((prev) =>
