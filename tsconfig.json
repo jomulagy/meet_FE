@@ -23,7 +23,8 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@tanstack/react-query": ["src/lib/react-query"]
     }
   },
   "include": ["src"],

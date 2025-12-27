@@ -8,12 +8,16 @@ import { server } from "@/utils/axios";
 import { Schedule } from "@/types/ScheduleVote";
 import { Place } from "@/types/PlaceVote";
 import FooterNav from "../components/FooterNav";
-import { Post } from "@/types/Post";
+type MeetInfo = {
+  meetTitle: string;
+  endDate: string;
+  isAuthor: boolean;
+};
 
 const VotePage = () => {
   const navigate = useNavigate();
-  const {meetId} = useParams();
-  const [meet, setMeet] = useState<Post>({ meetTitle: '', endDate: '', isAuthor: false });
+  const { meetId } = useParams();
+  const [meet, setMeet] = useState<MeetInfo>({ meetTitle: "", endDate: "", isAuthor: false });
   const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
   const [placeList, setPlaceList] = useState<Place[]>([]);
   const [isScheduleVoted, setIsScheduleVoted] = useState<boolean>(false);
