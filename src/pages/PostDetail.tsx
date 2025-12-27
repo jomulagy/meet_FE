@@ -255,12 +255,14 @@ const PostDetailPage: React.FC = () => {
 
     if (!postId) return;
 
+    const deadlineDateOnly = newVoteDeadline.split("T")[0] || newVoteDeadline;
+
     createVoteMutation.mutate({
       postId,
       title: newVoteTitle.trim(),
       type: newVoteType,
       allowDuplicate: newVoteAllowDuplicate,
-      deadline: newVoteDeadline || undefined,
+      deadline: deadlineDateOnly || undefined,
     });
   };
 
@@ -677,7 +679,8 @@ const PostDetailPage: React.FC = () => {
                   type="date"
                   value={newVoteDeadline}
                   onChange={(event) => {
-                    setNewVoteDeadline(event.target.value);
+                    const dateOnly = event.target.value.split("T")[0] || event.target.value;
+                    setNewVoteDeadline(dateOnly);
                     setNewVoteErrors((prev) => ({ ...prev, deadline: undefined }));
                   }}
                   className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
