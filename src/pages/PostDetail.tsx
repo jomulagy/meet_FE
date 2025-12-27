@@ -138,12 +138,12 @@ const PostDetailPage: React.FC = () => {
         const votes = prev.votes.map((vote) => {
           if (String(vote.id) !== normalizedVote.id) return vote;
 
-          const existingOptions = new Map(vote.options.map((option) => [option.id, option]));
-          const mergedOptions = [...vote.options];
+          const optionMap = new Map<string, VoteOptionResponse>();
+          normalizedVote.options.forEach((option) => optionMap.set(option.id, option));
 
-          normalizedVote.options.forEach((option) => {
-            if (!existingOptions.has(option.id)) {
-              mergedOptions.push(option);
+          vote.options.forEach((existingOption) => {
+            if (!optionMap.has(existingOption.id)) {
+              optionMap.set(existingOption.id, existingOption);
             }
           });
 
@@ -156,7 +156,7 @@ const PostDetailPage: React.FC = () => {
             normalizedVote.type,
             normalizedVote.result,
             normalizedVote.status,
-            mergedOptions,
+            Array.from(optionMap.values()),
           );
         });
 
