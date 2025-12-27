@@ -157,29 +157,22 @@ export const addVoteOption = async ({
 }: {
   voteId: string;
   optionValue: string;
-}): Promise<VoteListResponse> => {
-  await delay();
-  voteStore = voteStore.map((vote) => {
-    if (vote.id !== voteId) return vote;
-    const newOption = new VoteOptionResponse(
-      `${voteId}-option-${vote.options.length + 1}`,
-      optionValue,
-      false,
-      [],
-    );
-    return new VoteItemResponse(
-      vote.id,
-      vote.title,
-      vote.isClosed,
-      vote.deadline,
-      vote.allowDuplicate,
-      vote.type,
-      vote.result,
-      vote.status,
-      [...vote.options, newOption],
-    );
-  });
-  return cloneVotes(voteStore);
+}): Promise<VoteItemResponse> => {
+  const response = await server.post<{ data?: VoteItemResponse }>(
+    `/vote/item`,
+    {
+      data: { 
+        voteId,
+        value: optionValue
+      },
+    },
+  );
+
+  const voteData = (response as { data?: VoteItemResponse })?.data ?? (response as VoteItemResponse);
+  const updatedVote = cloneVote(voteData);
+  voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
+
+  return updatedVote;
 };
 
 export const createVote = async ({

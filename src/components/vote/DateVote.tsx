@@ -78,7 +78,7 @@ export const DateVoteBefore: React.FC<{
     const day = selectedDay.padStart(2, "0");
     const hourNumber = Number(selectedHour);
     const hour24 = selectedPeriod === "오후" ? ((hourNumber % 12) + 12).toString().padStart(2, "0") : (hourNumber % 12).toString().padStart(2, "0");
-    onAddOption(`${selectedYear}.${month}.${day} ${hour24}:${selectedMinute}`);
+    onAddOption(`${selectedYear}-${month}-${day} ${hour24}:${selectedMinute}`);
     resetSelections();
     setIsPopupOpen(false);
   };
