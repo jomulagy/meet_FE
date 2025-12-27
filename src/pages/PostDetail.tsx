@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import FooterNav from "../components/FooterNav";
 import VotedMemberList from "../components/popUp/VotedMemberList";
 import { DateVoteAfter, DateVoteBefore, DateVoteComplete } from "../components/vote/DateVote";
@@ -109,7 +109,9 @@ const PostDetailPage: React.FC = () => {
       return addVoteOption({ voteId, optionValue });
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
+      await queryClient.refetchQueries({
+        queryKey: ["postVotes", postId],
+      });
     },
   });
 
