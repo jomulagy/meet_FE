@@ -51,11 +51,8 @@ type RawPostDetailResponse = {
   id?: string | number;
   title?: string;
   content?: string;
-  canEdit?: boolean;
-  isAuthor?: boolean | string;
-  isVoteClosed?: boolean;
+  author?: boolean | string;
   voteClosed?: boolean;
-  isVoteEnd?: boolean;
 };
 
 type PostDetailApiResponse = {
@@ -69,11 +66,9 @@ export const fetchPostDetail = async (postId: string): Promise<PostDetailRespons
   const payload = (response as PostDetailApiResponse)?.data ?? (response as RawPostDetailResponse) ?? {};
 
   const id = payload.id != null ? String(payload.id) : postId;
-  const canEdit =
-    typeof payload.isAuthor === "string"
-      ? payload.isAuthor === "true"
-      : Boolean(payload.isAuthor ?? payload.canEdit);
-  const isVoteClosed = Boolean(payload.isVoteClosed ?? payload.voteClosed ?? payload.isVoteEnd);
+  console.log(typeof payload.author)
+  const canEdit = Boolean(payload.author);
+  const isVoteClosed = Boolean(payload.voteClosed ?? payload.voteClosed);
 
   postDetailStore = new PostDetailResponse(
     id,
