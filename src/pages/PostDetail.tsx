@@ -234,14 +234,32 @@ const PostDetailPage: React.FC = () => {
   const deleteVoteItemMutation = useMutation({
     mutationFn: ({ voteId, optionId }: { voteId: string; optionId: string }) =>
       deleteVoteItem({ voteId, voteItemId: optionId }),
-    onSuccess: (updatedVote) => {
+    onSuccess: (updatedVote, variables) => {
       const normalizedVote = normalizeVoteItem(updatedVote);
+      const filteredOptions = normalizedVote.options.filter(
+        (option) => option.id !== variables.optionId,
+      );
+
+      const patchedVote =
+        filteredOptions.length !== normalizedVote.options.length
+          ? new VoteItemResponse(
+              normalizedVote.id,
+              normalizedVote.title,
+              normalizedVote.isClosed,
+              normalizedVote.deadline,
+              normalizedVote.allowDuplicate,
+              normalizedVote.type,
+              normalizedVote.result,
+              normalizedVote.status,
+              filteredOptions,
+            )
+          : normalizedVote;
 
       queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
         if (!prev) return prev;
 
         const votes = prev.votes.map((vote) =>
-          String(vote.id) === normalizedVote.id ? normalizedVote : vote,
+          String(vote.id) === patchedVote.id ? patchedVote : vote,
         );
 
         return new VoteListResponse(votes);
