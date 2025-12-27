@@ -100,6 +100,7 @@ export function useQuery<TData>(options: UseQueryOptions<TData>): UseQueryResult
   const serializedKey = useMemo(() => serializeQueryKey(queryKey), [queryKey]);
   const stableQueryKey = useMemo(() => queryKey, [serializedKey]);
   const initialData = useMemo(() => client.getQueryData<TData>(stableQueryKey), [client, serializedKey, stableQueryKey]);
+  const queryFnRef = useRef(queryFn);
   const isFetchingRef = useRef(false);
   const [state, setState] = useState<UseQueryResult<TData>>({
     data: initialData,
@@ -110,19 +111,23 @@ export function useQuery<TData>(options: UseQueryOptions<TData>): UseQueryResult
     refetch: async () => undefined,
   });
 
+  useEffect(() => {
+    queryFnRef.current = queryFn;
+  }, [queryFn]);
+
   const execute = useCallback(async () => {
     if (!enabled) return;
     isFetchingRef.current = true;
     setState((prev) => ({ ...prev, isPending: prev.data === undefined, isLoading: prev.data === undefined, isFetching: true }));
     try {
-      const data = await client.fetchQuery({ queryKey: stableQueryKey, queryFn });
+      const data = await client.fetchQuery({ queryKey: stableQueryKey, queryFn: () => queryFnRef.current() });
       setState((prev) => ({ ...prev, data, isPending: false, isLoading: false, isFetching: false, error: undefined }));
     } catch (error) {
       setState((prev) => ({ ...prev, error, isPending: false, isLoading: false, isFetching: false }));
     } finally {
       isFetchingRef.current = false;
     }
-  }, [client, enabled, queryFn, serializedKey, stableQueryKey]);
+  }, [client, enabled, serializedKey, stableQueryKey]);
 
   const executeRef = useRef(execute);
   useEffect(() => {
