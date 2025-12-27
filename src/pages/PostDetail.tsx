@@ -65,22 +65,6 @@ const formatVoteDeadline = (deadline?: string | null) => {
   return datePart.replace(/-/g, ".");
 };
 
-const normalizeVoteOption = (option: VoteItemResponse["options"][number]) =>
-  new VoteOptionResponse(String(option.id), option.value, option.isVoted, option.voters, option.editable);
-
-const normalizeVoteItem = (vote: VoteItemResponse) =>
-  new VoteItemResponse(
-    String(vote.id),
-    vote.title,
-    vote.isClosed,
-    vote.deadline,
-    vote.allowDuplicate,
-    vote.type,
-    vote.result,
-    vote.status,
-    vote.options.map(normalizeVoteOption),
-  );
-
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
@@ -131,16 +115,15 @@ const PostDetailPage: React.FC = () => {
       return addVoteOption({ voteId, optionValue });
     },
     onSuccess: (updatedVote) => {
-      const normalizedVote = normalizeVoteItem(updatedVote);
-
       queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
         if (!prev) return prev;
 
         const votes = prev.votes.map((vote) => {
-          if (String(vote.id) !== normalizedVote.id) return vote;
+          if (vote.id !== String(updatedVote.id)) return vote;
 
           const optionMap = new Map<string, VoteOptionResponse>();
-          normalizedVote.options.forEach((option) => optionMap.set(option.id, option));
+
+          updatedVote.options.forEach((option) => optionMap.set(String(option.id), option));
 
           vote.options.forEach((existingOption) => {
             if (!optionMap.has(existingOption.id)) {
@@ -149,14 +132,14 @@ const PostDetailPage: React.FC = () => {
           });
 
           return new VoteItemResponse(
-            normalizedVote.id,
-            normalizedVote.title,
-            normalizedVote.isClosed,
-            normalizedVote.deadline,
-            normalizedVote.allowDuplicate,
-            normalizedVote.type,
-            normalizedVote.result,
-            normalizedVote.status,
+            updatedVote.id,
+            updatedVote.title,
+            updatedVote.isClosed,
+            updatedVote.deadline,
+            updatedVote.allowDuplicate,
+            updatedVote.type,
+            updatedVote.result,
+            updatedVote.status,
             Array.from(optionMap.values()),
           );
         });
@@ -211,13 +194,11 @@ const PostDetailPage: React.FC = () => {
     mutationFn: ({ voteId, optionIds }: { voteId: string; optionIds: string[] }) =>
       castVote({ voteId, optionIds }),
     onSuccess: (updatedVote, variables) => {
-      const normalizedVote = normalizeVoteItem(updatedVote);
-
       queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
         if (!prev) return prev;
 
         const votes = prev.votes.map((vote) =>
-          String(vote.id) === normalizedVote.id ? normalizedVote : vote,
+          vote.id === String(updatedVote.id) ? updatedVote : vote,
         );
 
         return new VoteListResponse(votes);
@@ -232,38 +213,10 @@ const PostDetailPage: React.FC = () => {
   });
 
   const deleteVoteItemMutation = useMutation({
-    mutationFn: ({ voteId, optionId }: { voteId: string; optionId: string }) =>
-      deleteVoteItem({ voteId, voteItemId: optionId }),
-    onSuccess: (updatedVote, variables) => {
-      const normalizedVote = normalizeVoteItem(updatedVote);
-      const filteredOptions = normalizedVote.options.filter(
-        (option) => option.id !== variables.optionId,
-      );
-
-      const patchedVote =
-        filteredOptions.length !== normalizedVote.options.length
-          ? new VoteItemResponse(
-              normalizedVote.id,
-              normalizedVote.title,
-              normalizedVote.isClosed,
-              normalizedVote.deadline,
-              normalizedVote.allowDuplicate,
-              normalizedVote.type,
-              normalizedVote.result,
-              normalizedVote.status,
-              filteredOptions,
-            )
-          : normalizedVote;
-
-      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
-        if (!prev) return prev;
-
-        const votes = prev.votes.map((vote) =>
-          String(vote.id) === patchedVote.id ? patchedVote : vote,
-        );
-
-        return new VoteListResponse(votes);
-      });
+    mutationFn: ({ optionId }: { optionId: string }) =>
+      deleteVoteItem({ voteItemId: optionId }),
+    onSuccess: (deletedId) => {
+     
     },
   });
 
@@ -328,8 +281,8 @@ const PostDetailPage: React.FC = () => {
     });
   };
 
-  const handleDeleteOption = (voteId: string, optionId: string) => {
-    deleteVoteItemMutation.mutate({ voteId, optionId });
+  const handleDeleteOption = (optionId: string) => {
+    deleteVoteItemMutation.mutate({ optionId });
   };
 
   const handleToggleOption = (voteId: string, optionId: string) => {
@@ -479,7 +432,7 @@ const PostDetailPage: React.FC = () => {
             onVote={onVote}
             onAddOption={onAddOption}
             canDeleteOption={canManageVotes}
-            onDeleteOption={(optionId) => handleDeleteOption(vote.id, optionId)}
+            onDeleteOption={(optionId) => handleDeleteOption(optionId)}
           />
         );
       if (vote.status === "after") return <DateVoteAfter vote={vote} onRevote={onRevote} />;
@@ -497,7 +450,7 @@ const PostDetailPage: React.FC = () => {
             onVote={onVote}
             onAddOption={onAddOption}
             canDeleteOption={canManageVotes}
-            onDeleteOption={(optionId) => handleDeleteOption(vote.id, optionId)}
+            onDeleteOption={(optionId) => handleDeleteOption(optionId)}
           />
         );
       if (vote.status === "after") return <PlaceVoteAfter vote={vote} onRevote={onRevote} />;
@@ -514,7 +467,7 @@ const PostDetailPage: React.FC = () => {
           onVote={onVote}
           onAddOption={onAddOption}
           canDeleteOption={canManageVotes}
-          onDeleteOption={(optionId) => handleDeleteOption(vote.id, optionId)}
+          onDeleteOption={(optionId) => handleDeleteOption(optionId)}
         />
       );
     if (vote.status === "after") return <TextVoteAfter vote={vote} onRevote={onRevote} />;

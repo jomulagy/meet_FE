@@ -65,7 +65,7 @@ export const TextVoteBefore: React.FC<{
             {canDeleteOption && option.editable && (
               <button
                 type="button"
-                className="text-[11px] font-semibold text-[#FF3B30]"
+                className="text-[11px] font-semibold text-[#FF3B30] bg-transparent"
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
