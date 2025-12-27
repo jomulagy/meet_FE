@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import FooterNav from "../components/FooterNav";
 import VotedMemberList from "../components/popUp/VotedMemberList";
 import { DateVoteAfter, DateVoteBefore, DateVoteComplete } from "../components/vote/DateVote";
@@ -17,7 +17,7 @@ import {
   deleteVote,
   reopenVote,
 } from "../api/postDetail";
-import { PostDetailResponse, VoteListResponse, VoteItemResponse } from "../types/postDetailResponse";
+import { PostDetailResponse, VoteListResponse } from "../types/postDetailResponse";
 import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = PostDetailResponse;
@@ -108,16 +108,9 @@ const PostDetailPage: React.FC = () => {
       if (!postId) throw new Error("postId is required to add an option");
       return addVoteOption({ voteId, optionValue });
     },
-    onSuccess: (updatedVote: VoteItemResponse) => {
-      console.log(updatedVote)
-      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (previous) => {
-        if (!previous) return previous;
-
-        const votes = previous.votes.some((vote) => vote.id === updatedVote.id)
-          ? previous.votes.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote))
-          : [...previous.votes, updatedVote];
-
-        return new VoteListResponse(votes);
+    onSuccess: async () => {
+      await queryClient.refetchQueries({
+        queryKey: ["postVotes", postId],
       });
     },
   });
