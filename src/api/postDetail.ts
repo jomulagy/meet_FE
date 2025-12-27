@@ -5,6 +5,7 @@ import {
   VoteListResponse,
   VoteOptionResponse,
 } from "../types/postDetailResponse";
+import { server } from "@/utils/axios";
 
 const CURRENT_USER = "나";
 
@@ -104,9 +105,37 @@ const ensurePostId = (postId: string) => {
   }
 };
 
+type RawPostDetailResponse = {
+  id?: string | number;
+  title?: string;
+  content?: string;
+  canEdit?: boolean;
+  isAuthor?: boolean | string;
+  isVoteClosed?: boolean;
+  voteClosed?: boolean;
+  isVoteEnd?: boolean;
+};
+
+type PostDetailApiResponse = {
+  data?: RawPostDetailResponse;
+};
+
 export const fetchPostDetail = async (postId: string): Promise<PostDetailResponse> => {
-  ensurePostId(postId);
-  await delay();
+  const response = await server.get<PostDetailApiResponse>(`/post/${postId}`);
+  const data = response.data ?? {};
+
+  const id = data.id != null ? String(data.id) : postId;
+  const canEdit = typeof data.isAuthor === "string" ? data.isAuthor === "true" : Boolean(data.isAuthor ?? data.canEdit);
+  const isVoteClosed = Boolean(data.isVoteClosed ?? data.voteClosed ?? data.isVoteEnd);
+
+  postDetailStore = new PostDetailResponse(
+    id,
+    data.title ?? postDetailStore.title,
+    data.content ?? postDetailStore.content,
+    canEdit,
+    isVoteClosed,
+  );
+
   return new PostDetailResponse(
     postDetailStore.id,
     postDetailStore.title,
