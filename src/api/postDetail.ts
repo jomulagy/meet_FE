@@ -215,15 +215,16 @@ export const createVote = async ({
   }
 
   await server.post(
-    "/vote/item",
+    "/vote",
     {
       data: {
+        postId,
         title,
         voteType: type,
         duplicateYn: allowDuplicate ? "Y" : "N",
         voteDeadline: deadline ?? null,
       },
-      params: { postId },
+      params: {},
     },
   );
 
