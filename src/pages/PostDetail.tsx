@@ -86,6 +86,7 @@ const PostDetailPage: React.FC = () => {
   const hasActiveVotes = useMemo(() => votes.some((vote) => vote.activeYn === "Y"), [votes]);
   const isLoading = isPostLoading || (postDetail?.isVoteClosed === false && (isVoteLoading || isVoteFetching));
   const canManageVotes = postDetail?.isAuthor === true;
+  const showVoteManagementActions = canManageVotes && (hasActiveVotes || postDetail?.isVoteClosed === true);
 
   const addVoteOptionMutation = useMutation({
     mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => addVoteOption({ voteId, optionValue }),
@@ -417,7 +418,7 @@ const PostDetailPage: React.FC = () => {
             })}
           </div>
 
-          {hasActiveVotes && canManageVotes && (
+          {showVoteManagementActions && (
             <>
               <button
                 onClick={() => {
@@ -570,7 +571,7 @@ const PostDetailPage: React.FC = () => {
           </section>
         )}
 
-        {postDetail.isAuthor && (
+        {canManageVotes && (
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => navigate(`/meet/edit/${postDetail.id}`)}
