@@ -27,7 +27,18 @@ export const DateVoteBefore: React.FC<{
   onToggleOption: (optionId: string) => void;
   onVote: () => void;
   onAddOption: (label: string) => void;
-}> = ({ vote, allowDuplicate, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
+  canDeleteOption?: boolean;
+  onDeleteOption?: (optionId: string) => void;
+}> = ({
+  vote,
+  allowDuplicate,
+  selectedOptionIds,
+  onToggleOption,
+  onVote,
+  onAddOption,
+  canDeleteOption,
+  onDeleteOption,
+}) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -125,7 +136,7 @@ export const DateVoteBefore: React.FC<{
       <div
         className="flex h-40 w-16 flex-col items-center justify-center text-center text-xs font-semibold text-[#5856D6]"
         onWheel={(event) => {
-          event.preventDefault();
+          event.stopPropagation();
           moveSelection(event.deltaY > 0 ? 1 : -1);
         }}
         onTouchStart={(event) => {
@@ -175,7 +186,20 @@ export const DateVoteBefore: React.FC<{
               onChange={() => onToggleOption(option.id)}
               className="h-4 w-4 text-[#5856D6]"
             />
-            {option.label}
+            <span className="flex-1">{option.label}</span>
+            {canDeleteOption && option.editable && (
+              <button
+                type="button"
+                className="text-[11px] font-semibold text-[#FF3B30] bg-transparent"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onDeleteOption?.(option.id);
+                }}
+              >
+                삭제
+              </button>
+            )}
           </label>
         ))}
       </div>
@@ -211,8 +235,8 @@ export const DateVoteBefore: React.FC<{
             resetSelections();
             setIsPopupOpen(false);
           }}
-          onWheel={(event) => event.preventDefault()}
-          onTouchMove={(event) => event.preventDefault()}
+          onWheel={(event) => event.stopPropagation()}
+          onTouchMove={(event) => event.stopPropagation()}
         >
           <div
             className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg"

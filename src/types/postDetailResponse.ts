@@ -16,6 +16,7 @@ export class VoteOptionResponse {
     public value: string,
     public isVoted: boolean,
     public voters: string[],
+    public editable = false,
   ) {}
 }
 

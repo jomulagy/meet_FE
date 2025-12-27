@@ -27,7 +27,18 @@ export const TextVoteBefore: React.FC<{
   onToggleOption: (optionId: string) => void;
   onVote: () => void;
   onAddOption: (label: string) => void;
-}> = ({ vote, allowDuplicate, selectedOptionIds, onToggleOption, onVote, onAddOption }) => {
+  canDeleteOption?: boolean;
+  onDeleteOption?: (optionId: string) => void;
+}> = ({
+  vote,
+  allowDuplicate,
+  selectedOptionIds,
+  onToggleOption,
+  onVote,
+  onAddOption,
+  canDeleteOption,
+  onDeleteOption,
+}) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newOption, setNewOption] = useState("");
 
@@ -50,7 +61,20 @@ export const TextVoteBefore: React.FC<{
               onChange={() => onToggleOption(option.id)}
               className="h-4 w-4 text-[#5856D6]"
             />
-            {option.label}
+            <span className="flex-1">{option.label}</span>
+            {canDeleteOption && option.editable && (
+              <button
+                type="button"
+                className="text-[11px] font-semibold text-[#FF3B30] bg-transparent"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onDeleteOption?.(option.id);
+                }}
+              >
+                삭제
+              </button>
+            )}
           </label>
         ))}
       </div>

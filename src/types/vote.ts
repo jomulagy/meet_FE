@@ -3,6 +3,7 @@ export type VoteOption = {
   label: string;
   count: number;
   voted: boolean;
+  editable?: boolean;
   memberList?: { name: string }[];
 };
 
