@@ -1,20 +1,25 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import FooterNav from "../components/FooterNav";
 import VotedMemberList from "../components/popUp/VotedMemberList";
 import { DateVoteAfter, DateVoteBefore, DateVoteComplete } from "../components/vote/DateVote";
 import { PlaceVoteAfter, PlaceVoteBefore, PlaceVoteComplete } from "../components/vote/PlaceVote";
 import { TextVoteAfter, TextVoteBefore, TextVoteComplete } from "../components/vote/TextVote";
+import {
+  addVoteOption,
+  castVote,
+  closeAllVotes,
+  closeVote,
+  createVote,
+  fetchPostDetail,
+  fetchVoteList,
+  reopenVote,
+} from "../api/postDetail";
+import type { PostDetailResponse, VoteListResponse } from "../types/postDetailResponse";
 import type { Vote, VoteType } from "../types/vote";
 
-type PostDetail = {
-  id: string;
-  title: string;
-  content: string;
-  authorName: string;
-  createdAt: string;
-  isAuthor: boolean;
-};
+type PostDetail = PostDetailResponse;
 
 type ParticipationVote = {
   id: string;
@@ -27,123 +32,45 @@ type ParticipationVote = {
   noMembers: { name: string }[];
 };
 
-const fetchPostDetail = async (postId: string): Promise<PostDetail> => {
-  await new Promise((resolve) => setTimeout(resolve, 350));
-  return {
-    id: postId,
-    title: "팀 빌딩 회의 일정 잡기",
-    content: "이번 주 금요일까지 가능한 시간과 장소를 투표해주세요.",
-    authorName: "지민",
-    createdAt: "2024-05-20 14:30",
-    isAuthor: true,
-  };
+const initialParticipationVote: ParticipationVote = {
+  id: "participation-1",
+  activeYn: "Y",
+  hasVoted: false,
+  yesCount: 4,
+  noCount: 1,
+  participantCount: 0,
+  yesMembers: [{ name: "지민" }, { name: "서연" }, { name: "태호" }, { name: "윤아" }],
+  noMembers: [{ name: "현수" }],
 };
 
-const fetchVoteList = async (): Promise<Vote[]> => {
-  await new Promise((resolve) => setTimeout(resolve, 350));
-  return [
-    {
-      id: "vote-1",
-      title: "회의 날짜 투표",
-      type: "date",
-      activeYn: "Y",
-      status: "before",
-      deadline: "2024-05-24 18:00",
-      allowDuplicate: true,
-      options: [
-        {
-          id: "d1",
-          label: "5/25(토)",
-          count: 4,
-          voted: false,
-          memberList: [{ name: "지민" }, { name: "서연" }, { name: "태호" }, { name: "윤아" }],
-        },
-        { id: "d2", label: "5/26(일)", count: 2, voted: false, memberList: [{ name: "도현" }, { name: "현수" }] },
-        {
-          id: "d3",
-          label: "5/27(월)",
-          count: 6,
-          voted: false,
-          memberList: [{ name: "소영" }, { name: "민재" }, { name: "지원" }, { name: "민호" }, { name: "유진" }, { name: "가영" }],
-        },
-      ],
-    },
-    {
-      id: "vote-2",
-      title: "회의 장소 투표",
-      type: "place",
-      activeYn: "Y",
-      status: "after",
-      deadline: "2024-05-24 20:00",
-      allowDuplicate: false,
-      options: [
-        {
-          id: "p1",
-          label: "강남역 스터디룸",
-          count: 5,
-          voted: false,
-          memberList: [{ name: "지민" }, { name: "서연" }, { name: "도현" }, { name: "현수" }, { name: "유진" }],
-        },
-        { id: "p2", label: "홍대 카페", count: 3, voted: true, memberList: [{ name: "태호" }, { name: "지원" }, { name: "윤아" }] },
-        { id: "p3", label: "온라인", count: 4, voted: false, memberList: [{ name: "민재" }, { name: "민호" }, { name: "가영" }, { name: "소영" }] },
-      ],
-    },
-    {
-      id: "vote-3",
-      title: "공지용 메시지 톤 투표",
-      type: "text",
-      activeYn: "N",
-      status: "complete",
-      deadline: "2024-05-18 12:00",
-      allowDuplicate: false,
-      options: [
-        {
-          id: "t1",
-          label: "포멀",
-          count: 8,
-          voted: true,
-          memberList: [
-            { name: "지민" },
-            { name: "서연" },
-            { name: "태호" },
-            { name: "윤아" },
-            { name: "민재" },
-            { name: "현수" },
-            { name: "지원" },
-            { name: "소영" },
-          ],
-        },
-        { id: "t2", label: "캐주얼", count: 5, voted: false, memberList: [{ name: "도현" }, { name: "유진" }, { name: "민호" }, { name: "가영" }, { name: "지아" }] },
-        { id: "t3", label: "친근함", count: 2, voted: false, memberList: [{ name: "다은" }, { name: "세진" }] },
-      ],
-    },
-  ];
-};
-
-const fetchParticipationVote = async (): Promise<ParticipationVote | null> => {
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  return {
-    id: "participation-1",
-    activeYn: "Y",
-    hasVoted: false,
-    yesCount: 4,
-    noCount: 1,
-    participantCount: 0,
-    yesMembers: [{ name: "지민" }, { name: "서연" }, { name: "태호" }, { name: "윤아" }],
-    noMembers: [{ name: "현수" }],
-  };
+const mapVoteResponses = (response?: VoteListResponse): Vote[] => {
+  if (!response) return [];
+  return response.votes.map((vote) => ({
+    id: vote.id,
+    title: vote.title,
+    type: vote.type,
+    activeYn: vote.isClosed ? "N" : "Y",
+    status: vote.status,
+    options: vote.options.map((option) => ({
+      id: option.id,
+      label: option.value,
+      count: option.voters.length,
+      voted: option.isVoted,
+      memberList: option.voters.map((name) => ({ name })),
+    })),
+    deadline: vote.deadline ?? undefined,
+    allowDuplicate: vote.allowDuplicate,
+  }));
 };
 
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [postDetail, setPostDetail] = useState<PostDetail | null>(null);
-  const [votes, setVotes] = useState<Vote[]>([]);
-  const [participationVote, setParticipationVote] = useState<ParticipationVote | null>(null);
+  const [participationVote, setParticipationVote] = useState<ParticipationVote | null>(initialParticipationVote);
   const [participationChoice, setParticipationChoice] = useState<"yes" | "no" | null>(null);
   const [participationVotedChoice, setParticipationVotedChoice] = useState<"yes" | "no" | null>(null);
-  const [loading, setLoading] = useState(true);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
   const [participationPopupMembers, setParticipationPopupMembers] = useState<{ name: string }[] | null>(null);
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -153,67 +80,91 @@ const PostDetailPage: React.FC = () => {
   const [newVoteAllowDuplicate, setNewVoteAllowDuplicate] = useState(false);
   const [newVoteErrors, setNewVoteErrors] = useState<{ title?: string; deadline?: string }>({});
 
+  const { data: postDetail, isPending: isPostLoading } = useQuery<PostDetail>({
+    queryKey: ["postDetail", postId],
+    queryFn: () => fetchPostDetail(postId ?? ""),
+    enabled: !!postId,
+  });
+
+  const { data: voteListResponse, isPending: isVoteLoading, isFetching: isVoteFetching } = useQuery<VoteListResponse>({
+    queryKey: ["postVotes", postId],
+    queryFn: () => fetchVoteList(postId ?? ""),
+    enabled: !!postId && postDetail?.isVoteClosed === false,
+  });
+
+  const votes = useMemo(() => mapVoteResponses(voteListResponse), [voteListResponse]);
   const hasActiveVotes = useMemo(() => votes.some((vote) => vote.activeYn === "Y"), [votes]);
+  const isLoading = isPostLoading || (postDetail?.isVoteClosed === false && (isVoteLoading || isVoteFetching));
 
   useEffect(() => {
-    let isMounted = true;
+    setParticipationVote(initialParticipationVote);
+  }, []);
 
-    const loadDetail = async () => {
-      if (!postId) return;
-      setLoading(true);
+  const addVoteOptionMutation = useMutation({
+    mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => addVoteOption({ voteId, optionValue }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["postVotes", postId] }),
+  });
 
-      const [postResponse, voteResponse, participationResponse] = await Promise.all([
-        fetchPostDetail(postId),
-        fetchVoteList(),
-        fetchParticipationVote(),
-      ]);
+  const createVoteMutation = useMutation({
+    mutationFn: (payload: { title: string; type: VoteType; allowDuplicate: boolean; deadline?: string }) =>
+      createVote(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
+      queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
+      setNewVoteTitle("");
+      setNewVoteType("text");
+      setNewVoteDeadline("");
+      setNewVoteAllowDuplicate(false);
+      setNewVoteErrors({});
+      setIsVoteModalOpen(false);
+    },
+  });
 
-      if (!isMounted) return;
-      setPostDetail(postResponse);
-      setVotes(voteResponse);
-      setParticipationVote(participationResponse);
-      setLoading(false);
-    };
+  const closeVoteMutation = useMutation({
+    mutationFn: (voteId: string) => closeVote(voteId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["postVotes", postId] }),
+  });
 
-    void loadDetail();
+  const closeAllVotesMutation = useMutation({
+    mutationFn: () => closeAllVotes(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
+      queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
+      setParticipationVote((prev) =>
+        prev ?? {
+          ...initialParticipationVote,
+          id: `participation-${Date.now()}`,
+        },
+      );
+    },
+  });
 
-    return () => {
-      isMounted = false;
-    };
-  }, [postId]);
+  const castVoteMutation = useMutation({
+    mutationFn: ({ voteId, optionIds }: { voteId: string; optionIds: string[] }) =>
+      castVote({ voteId, optionIds }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
+      setSelectedOptions((prev) => {
+        const updated = { ...prev };
+        delete updated[variables.voteId];
+        return updated;
+      });
+    },
+  });
+
+  const reopenVoteMutation = useMutation({
+    mutationFn: (voteId: string) => reopenVote(voteId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["postVotes", postId] }),
+  });
 
   const handleEndVote = (voteId: string) => {
-    setVotes((prev) =>
-      prev.map((vote) =>
-        vote.id === voteId
-          ? {
-              ...vote,
-              activeYn: "N",
-            }
-          : vote,
-      ),
-    );
+    closeVoteMutation.mutate(voteId);
   };
 
   const handleVote = (voteId: string) => {
-    setVotes((prev) =>
-      prev.map((vote) =>
-        vote.id === voteId
-          ? {
-              ...vote,
-              options: vote.options.map((option) => {
-                const isSelected = (selectedOptions[voteId] ?? []).includes(option.id);
-                return {
-                  ...option,
-                  voted: isSelected,
-                  count: isSelected ? option.count + 1 : option.count,
-                };
-              }),
-              status: "after",
-            }
-          : vote,
-      ),
-    );
+    const optionIds = selectedOptions[voteId] ?? [];
+    if (optionIds.length === 0) return;
+    castVoteMutation.mutate({ voteId, optionIds });
   };
 
   const handleRevote = (voteId: string) => {
@@ -226,16 +177,7 @@ const PostDetailPage: React.FC = () => {
         [voteId]: previouslySelected,
       };
     });
-    setVotes((prev) =>
-      prev.map((vote) =>
-        vote.id === voteId
-          ? {
-              ...vote,
-              status: "before",
-            }
-          : vote,
-      ),
-    );
+    reopenVoteMutation.mutate(voteId);
   };
 
   const handleToggleOption = (voteId: string, optionId: string) => {
@@ -265,26 +207,7 @@ const PostDetailPage: React.FC = () => {
   const handleAddOption = (voteId: string, label: string) => {
     const trimmedLabel = label.trim();
     if (!trimmedLabel) return;
-
-    setVotes((prev) =>
-      prev.map((vote) =>
-        vote.id === voteId
-          ? {
-              ...vote,
-              options: [
-                ...vote.options,
-                {
-                  id: `${voteId}-option-${vote.options.length + 1}`,
-                  label: trimmedLabel,
-                  count: 0,
-                  voted: false,
-                  memberList: [],
-                },
-              ],
-            }
-          : vote,
-      ),
-    );
+    addVoteOptionMutation.mutate({ voteId, optionValue: trimmedLabel });
   };
 
   const handleAddVote = () => {
@@ -301,41 +224,16 @@ const PostDetailPage: React.FC = () => {
       return;
     }
 
-    setVotes((prev) => [
-      ...prev,
-      {
-        id: `vote-${Date.now()}`,
-        title: newVoteTitle.trim(),
-        type: newVoteType,
-        activeYn: "Y",
-        status: "before",
-        options: [],
-        deadline: newVoteDeadline ? newVoteDeadline.replace("T", " ") : undefined,
-        allowDuplicate: newVoteAllowDuplicate,
-      },
-    ]);
-    setNewVoteTitle("");
-    setNewVoteType("text");
-    setNewVoteDeadline("");
-    setNewVoteAllowDuplicate(false);
-    setNewVoteErrors({});
-    setIsVoteModalOpen(false);
+    createVoteMutation.mutate({
+      title: newVoteTitle.trim(),
+      type: newVoteType,
+      allowDuplicate: newVoteAllowDuplicate,
+      deadline: newVoteDeadline ? newVoteDeadline.replace("T", " ") : undefined,
+    });
   };
 
   const handleEndAllVotes = () => {
-    setVotes((prev) => prev.map((vote) => ({ ...vote, activeYn: "N", status: "complete" })));
-    setParticipationVote((prev) =>
-      prev ?? {
-        id: `participation-${Date.now()}`,
-        activeYn: "Y",
-        hasVoted: false,
-        yesCount: 0,
-        noCount: 0,
-        participantCount: 0,
-        yesMembers: [],
-        noMembers: [],
-      },
-    );
+    closeAllVotesMutation.mutate();
   };
 
   const handleCreateParticipationVote = () => {
@@ -467,7 +365,7 @@ const PostDetailPage: React.FC = () => {
     return <TextVoteComplete vote={vote} />;
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#F2F2F7]">
         <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#E5E5EA] border-t-[#5856D6]" />
@@ -702,7 +600,7 @@ const PostDetailPage: React.FC = () => {
           </section>
         )}
 
-        {postDetail.isAuthor && (
+        {postDetail.canEdit && (
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => navigate(`/meet/edit/${postDetail.id}`)}
