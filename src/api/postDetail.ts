@@ -198,37 +198,37 @@ export const addVoteOption = async ({
 };
 
 export const createVote = async ({
+  postId,
   title,
   type,
   allowDuplicate,
   deadline,
 }: {
+  postId: string;
   title: string;
   type: VoteType;
   allowDuplicate: boolean;
   deadline?: string;
 }): Promise<VoteListResponse> => {
-  await delay();
-  const newVote = new VoteItemResponse(
-    `vote-${Date.now()}`,
-    title,
-    false,
-    deadline ?? null,
-    allowDuplicate,
-    type,
-    null,
-    "before",
-    [],
+  if (!postId) {
+    throw new Error("postId is required to create a vote");
+  }
+
+  await server.post(
+    "/vote",
+    {
+      data: {
+        postId,
+        title,
+        voteType: type,
+        duplicateYn: allowDuplicate ? "Y" : "N",
+        voteDeadline: deadline ?? null,
+      },
+      params: {},
+    },
   );
-  voteStore = [...voteStore, newVote];
-  postDetailStore = new PostDetailResponse(
-    postDetailStore.id,
-    postDetailStore.title,
-    postDetailStore.content,
-    postDetailStore.isAuthor,
-    false,
-  );
-  return cloneVotes(voteStore);
+
+  return fetchVoteList(postId);
 };
 
 export const castVote = async ({
@@ -379,16 +379,17 @@ export const updateVote = async ({
   return cloneVotes(voteStore);
 };
 
-export const deleteVote = async (voteId: string): Promise<VoteListResponse> => {
-  await delay();
-  voteStore = voteStore.filter((vote) => vote.id !== voteId);
-  const hasOpenVotes = voteStore.some((vote) => !vote.isClosed);
-  postDetailStore = new PostDetailResponse(
-    postDetailStore.id,
-    postDetailStore.title,
-    postDetailStore.content,
-    postDetailStore.isAuthor,
-    !hasOpenVotes,
-  );
-  return cloneVotes(voteStore);
+export const deleteVote = async (voteId: string, postId?: string): Promise<VoteListResponse> => {
+  if (!voteId) {
+    throw new Error("voteId is required to delete a vote");
+  }
+
+  await server.delete("/vote/item", { params: { voteId } });
+
+  const targetPostId = postId ?? postDetailStore.id;
+  if (!targetPostId) {
+    return cloneVotes([]);
+  }
+
+  return fetchVoteList(targetPostId);
 };

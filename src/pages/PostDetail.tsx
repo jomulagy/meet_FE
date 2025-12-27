@@ -14,6 +14,7 @@ import {
   createVote,
   fetchPostDetail,
   fetchVoteList,
+  deleteVote,
   reopenVote,
 } from "../api/postDetail";
 import type { PostDetailResponse, VoteListResponse } from "../types/postDetailResponse";
@@ -97,8 +98,13 @@ const PostDetailPage: React.FC = () => {
   });
 
   const createVoteMutation = useMutation({
-    mutationFn: (payload: { title: string; type: VoteType; allowDuplicate: boolean; deadline?: string }) =>
-      createVote(payload),
+    mutationFn: (payload: {
+      postId: string;
+      title: string;
+      type: VoteType;
+      allowDuplicate: boolean;
+      deadline?: string;
+    }) => createVote(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
@@ -114,6 +120,14 @@ const PostDetailPage: React.FC = () => {
   const closeVoteMutation = useMutation({
     mutationFn: (voteId: string) => closeVote(voteId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["postVotes", postId] }),
+  });
+
+  const deleteVoteMutation = useMutation({
+    mutationFn: (voteId: string) => deleteVote(voteId, postId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
+      queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
+    },
   });
 
   const closeAllVotesMutation = useMutation({
@@ -144,6 +158,10 @@ const PostDetailPage: React.FC = () => {
 
   const handleEndVote = (voteId: string) => {
     closeVoteMutation.mutate(voteId);
+  };
+
+  const handleDeleteVote = (voteId: string) => {
+    deleteVoteMutation.mutate(voteId);
   };
 
   const handleVote = (voteId: string) => {
@@ -224,7 +242,10 @@ const PostDetailPage: React.FC = () => {
       return;
     }
 
+    if (!postId) return;
+
     createVoteMutation.mutate({
+      postId,
       title: newVoteTitle.trim(),
       type: newVoteType,
       allowDuplicate: newVoteAllowDuplicate,
@@ -392,7 +413,13 @@ const PostDetailPage: React.FC = () => {
                 return (
                   <div key={vote.id} className="rounded-[20px] bg-white p-5 shadow-sm">
                     {!isClosed && canManageVotes && (
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleDeleteVote(vote.id)}
+                          className="rounded-full border border-[#FF3B30] bg-white px-3 py-1 text-[11px] font-semibold text-[#FF3B30]"
+                        >
+                          투표 삭제
+                        </button>
                         <button
                           onClick={() => handleEndVote(vote.id)}
                           className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
