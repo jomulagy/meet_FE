@@ -29,7 +29,6 @@ export class QueryClient {
     const previous = this.getQueryData<T>(queryKey);
     const next = typeof updater === "function" ? (updater as (old?: T) => T)(previous) : updater;
     this.store.set(serialized, next);
-    this.notify(serialized);
   }
 
   async fetchQuery<TData>({ queryKey, queryFn }: { queryKey: QueryKey; queryFn: () => Promise<TData> }): Promise<TData> {

@@ -32,68 +32,10 @@ const resolveWinner = (vote: VoteItemResponse): string | null => {
   return sorted[0]?.value ?? null;
 };
 
-let postDetailStore = new PostDetailResponse(
-  "post-1",
-  "팀 빌딩 회의 일정 잡기",
-  "이번 주 금요일까지 가능한 시간과 장소를 투표해주세요.",
-  true,
-  false,
-);
+let postDetailStore = new PostDetailResponse("", "", "", false, false);
+let voteStore: VoteItemResponse[] = [];
 
-let voteStore: VoteItemResponse[] = [
-  new VoteItemResponse(
-    "vote-1",
-    "회의 날짜 투표",
-    false,
-    "2024-05-24 18:00",
-    true,
-    "date",
-    null,
-    "before",
-    [
-      new VoteOptionResponse("d1", "5/25(토)", false, ["지민", "서연", "태호", "윤아"]),
-      new VoteOptionResponse("d2", "5/26(일)", false, ["도현", "현수"]),
-      new VoteOptionResponse("d3", "5/27(월)", false, ["소영", "민재", "지원", "민호", "유진", "가영"]),
-    ],
-  ),
-  new VoteItemResponse(
-    "vote-2",
-    "회의 장소 투표",
-    false,
-    "2024-05-24 20:00",
-    false,
-    "place",
-    null,
-    "after",
-    [
-      new VoteOptionResponse("p1", "강남역 스터디룸", false, ["지민", "서연", "도현", "현수", "유진"]),
-      new VoteOptionResponse("p2", "홍대 카페", true, ["태호", "지원", "윤아"]),
-      new VoteOptionResponse("p3", "온라인", false, ["민재", "민호", "가영", "소영"]),
-    ],
-  ),
-  new VoteItemResponse(
-    "vote-3",
-    "공지용 메시지 톤 투표",
-    true,
-    "2024-05-18 12:00",
-    false,
-    "text",
-    "포멀",
-    "complete",
-    [
-      new VoteOptionResponse(
-        "t1",
-        "포멀",
-        true,
-        ["지민", "서연", "태호", "윤아", "민재", "현수", "지원", "소영"],
-      ),
-      new VoteOptionResponse("t2", "캐주얼", false, ["도현", "유진", "민호", "가영", "지아"]),
-      new VoteOptionResponse("t3", "친근함", false, ["다은", "세진"]),
-    ],
-  ),
-];
-
-const ensurePostId = (postId: string) => {
+const ensurePostDetailStore = (postId: string) => {
   if (postId && postDetailStore.id !== postId) {
     postDetailStore = new PostDetailResponse(
       postId,
@@ -109,11 +51,8 @@ type RawPostDetailResponse = {
   id?: string | number;
   title?: string;
   content?: string;
-  canEdit?: boolean;
-  isAuthor?: boolean | string;
-  isVoteClosed?: boolean;
+  author?: boolean | string;
   voteClosed?: boolean;
-  isVoteEnd?: boolean;
 };
 
 type PostDetailApiResponse = {
@@ -121,17 +60,20 @@ type PostDetailApiResponse = {
 };
 
 export const fetchPostDetail = async (postId: string): Promise<PostDetailResponse> => {
-  const response = await server.get<PostDetailApiResponse>(`/post/${postId}`);
-  const data = response.data ?? {};
+  ensurePostDetailStore(postId);
 
-  const id = data.id != null ? String(data.id) : postId;
-  const canEdit = typeof data.isAuthor === "string" ? data.isAuthor === "true" : Boolean(data.isAuthor ?? data.canEdit);
-  const isVoteClosed = Boolean(data.isVoteClosed ?? data.voteClosed ?? data.isVoteEnd);
+  const response = await server.get<PostDetailApiResponse>(`/post/${postId}`);
+  const payload = (response as PostDetailApiResponse)?.data ?? (response as RawPostDetailResponse) ?? {};
+
+  const id = payload.id != null ? String(payload.id) : postId;
+  console.log(typeof payload.author)
+  const canEdit = Boolean(payload.author);
+  const isVoteClosed = Boolean(payload.voteClosed ?? payload.voteClosed);
 
   postDetailStore = new PostDetailResponse(
     id,
-    data.title ?? postDetailStore.title,
-    data.content ?? postDetailStore.content,
+    payload.title ?? postDetailStore.title,
+    payload.content ?? postDetailStore.content,
     canEdit,
     isVoteClosed,
   );
@@ -146,12 +88,82 @@ export const fetchPostDetail = async (postId: string): Promise<PostDetailRespons
 };
 
 export const fetchVoteList = async (postId: string): Promise<VoteListResponse> => {
-  ensurePostId(postId);
-  await delay();
-  if (postDetailStore.isVoteClosed) {
-    return new VoteListResponse([]);
-  }
-  return cloneVotes(voteStore);
+  type VoteOptionApiResponse = {
+    id?: string | number;
+    voteOptionId?: string | number;
+    value?: string;
+    optionValue?: string;
+    optionName?: string;
+    isVoted?: boolean;
+    voted?: boolean;
+    voters?: string[];
+    voterList?: string[];
+  };
+
+  type VoteApiResponse = {
+    id?: string | number;
+    voteId?: string | number;
+    title?: string;
+    voteTitle?: string;
+    deadline?: string | null;
+    voteDeadline?: string | null;
+    allowDuplicate?: boolean;
+    duplicateYn?: boolean | string;
+    isClosed?: boolean;
+    voteClosed?: boolean;
+    activeYn?: "Y" | "N";
+    type?: VoteType;
+    voteType?: VoteType;
+    result?: string | null;
+    resultOption?: string | null;
+    status?: VoteStatus;
+    voteStatus?: VoteStatus;
+    options?: VoteOptionApiResponse[];
+    voteOptions?: VoteOptionApiResponse[];
+  };
+
+  type VoteListApiResponse = { data?: VoteApiResponse[] } | VoteApiResponse[];
+
+  ensurePostDetailStore(postId);
+
+  const response = await server.get<VoteListApiResponse>("/vote/list", {
+    params: { postId },
+  });
+
+  const voteData = (response as { data?: VoteApiResponse[] })?.data ?? (response as VoteApiResponse[]) ?? [];
+
+  const votes = voteData.map((vote) => {
+    const options = (vote.options ?? vote.voteOptions ?? []).map((option) => {
+      const id = option.id ?? option.voteOptionId;
+      const value = option.value ?? option.optionValue ?? option.optionName ?? "";
+      const voters = option.voters ?? option.voterList ?? [];
+      return new VoteOptionResponse(id != null ? String(id) : value, value, Boolean(option.isVoted ?? option.voted), voters);
+    });
+
+    const id = vote.id ?? vote.voteId;
+    const type = (vote.type ?? vote.voteType ?? "text") as VoteType;
+    const status = (vote.status ?? vote.voteStatus ?? (vote.activeYn === "N" ? "complete" : "before")) as VoteStatus;
+
+    return new VoteItemResponse(
+      id != null ? String(id) : "",
+      vote.title ?? vote.voteTitle ?? "",
+      Boolean(vote.isClosed ?? vote.voteClosed ?? vote.activeYn === "N"),
+      vote.deadline ?? vote.voteDeadline ?? null,
+      Boolean(
+        typeof vote.duplicateYn === "string"
+          ? vote.duplicateYn === "Y"
+          : vote.allowDuplicate ?? vote.duplicateYn,
+      ),
+      type,
+      vote.result ?? vote.resultOption ?? null,
+      status,
+      options,
+    );
+  });
+
+  voteStore = votes;
+
+  return cloneVotes(votes);
 };
 
 export const addVoteOption = async ({
