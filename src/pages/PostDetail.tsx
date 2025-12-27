@@ -183,7 +183,10 @@ const PostDetailPage: React.FC = () => {
   });
 
   const closeAllVotesMutation = useMutation({
-    mutationFn: () => closeAllVotes(),
+    mutationFn: () => {
+      if (!postId) throw new Error("postId is required to close all votes");
+      return closeAllVotes({ postId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });

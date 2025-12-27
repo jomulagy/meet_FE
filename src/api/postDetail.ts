@@ -26,12 +26,6 @@ const cloneVote = (vote: VoteItemResponse): VoteItemResponse =>
 
 const cloneVotes = (votes: VoteItemResponse[]) => new VoteListResponse(votes.map(cloneVote));
 
-const resolveWinner = (vote: VoteItemResponse): string | null => {
-  if (vote.options.length === 0) return null;
-  const sorted = [...vote.options].sort((a, b) => b.voters.length - a.voters.length);
-  return sorted[0]?.value ?? null;
-};
-
 let postDetailStore = new PostDetailResponse("", "", "", false, false);
 let voteStore: VoteItemResponse[] = [];
 
@@ -256,29 +250,14 @@ export const closeVote = async (voteId: string): Promise<VoteListResponse> => {
   return fetchVoteList(targetPostId);
 };
 
-export const closeAllVotes = async (): Promise<VoteListResponse> => {
-  await delay();
-  voteStore = voteStore.map((vote) =>
-    new VoteItemResponse(
-      vote.id,
-      vote.title,
-      true,
-      vote.deadline,
-      vote.allowDuplicate,
-      vote.type,
-      resolveWinner(vote),
-      "complete",
-      vote.options,
-    ),
-  );
-  postDetailStore = new PostDetailResponse(
-    postDetailStore.id,
-    postDetailStore.title,
-    postDetailStore.content,
-    postDetailStore.isAuthor,
-    true,
-  );
-  return cloneVotes(voteStore);
+export const closeAllVotes = async ({ postId }: { postId: string }): Promise<VoteListResponse> => {
+  if (!postId) {
+    throw new Error("postId is required to close all votes");
+  }
+
+  await server.post("/vote/terminate/all", { data: { postId } });
+
+  return fetchVoteList(postId);
 };
 
 export const reopenVote = async (voteId: string): Promise<VoteListResponse> => {
