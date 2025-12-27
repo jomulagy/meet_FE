@@ -17,7 +17,7 @@ import {
   deleteVote,
   reopenVote,
 } from "../api/postDetail";
-import { PostDetailResponse, VoteListResponse, VoteItemResponse } from "../types/postDetailResponse";
+import { PostDetailResponse, VoteListResponse } from "../types/postDetailResponse";
 import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = PostDetailResponse;
@@ -108,17 +108,8 @@ const PostDetailPage: React.FC = () => {
       if (!postId) throw new Error("postId is required to add an option");
       return addVoteOption({ voteId, optionValue });
     },
-    onSuccess: (updatedVote: VoteItemResponse) => {
-      console.log(updatedVote)
-      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (previous) => {
-        if (!previous) return previous;
-
-        const votes = previous.votes.some((vote) => vote.id === updatedVote.id)
-          ? previous.votes.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote))
-          : [...previous.votes, updatedVote];
-
-        return new VoteListResponse(votes);
-      });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
     },
   });
 
