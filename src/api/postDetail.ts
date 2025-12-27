@@ -383,7 +383,31 @@ export const deleteVoteItem = async ({
   });
 
   const updatedVoteApi = (response as { data?: VoteApiResponse })?.data ?? (response as VoteApiResponse);
-  const updatedVote = mapVoteApiResponseToVoteItem(updatedVoteApi);
+
+  if (updatedVoteApi && Object.keys(updatedVoteApi).length > 0) {
+    const updatedVote = mapVoteApiResponseToVoteItem(updatedVoteApi);
+    voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
+
+    return updatedVote;
+  }
+
+  const currentVote = voteStore.find((vote) => String(vote.id) === String(voteId));
+  if (!currentVote) {
+    throw new Error("Unable to update vote after deleting option");
+  }
+
+  const filteredOptions = currentVote.options.filter((option) => String(option.id) !== String(voteItemId));
+  const updatedVote = new VoteItemResponse(
+    currentVote.id,
+    currentVote.title,
+    currentVote.isClosed,
+    currentVote.deadline,
+    currentVote.allowDuplicate,
+    currentVote.type,
+    currentVote.result,
+    currentVote.status,
+    filteredOptions,
+  );
   voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
 
   return updatedVote;
