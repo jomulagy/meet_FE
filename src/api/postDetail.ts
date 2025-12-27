@@ -243,33 +243,18 @@ export const castVote = async ({
 };
 
 export const closeVote = async (voteId: string): Promise<VoteListResponse> => {
-  await delay();
-  voteStore = voteStore.map((vote) => {
-    if (vote.id !== voteId) return vote;
-    const winner = resolveWinner(vote);
-    return new VoteItemResponse(
-      vote.id,
-      vote.title,
-      true,
-      vote.deadline,
-      vote.allowDuplicate,
-      vote.type,
-      winner,
-      "complete",
-      vote.options,
-    );
-  });
+  if (!voteId) {
+    throw new Error("voteId is required to close a vote");
+  }
 
-  const allClosed = voteStore.every((vote) => vote.isClosed);
-  postDetailStore = new PostDetailResponse(
-    postDetailStore.id,
-    postDetailStore.title,
-    postDetailStore.content,
-    postDetailStore.isAuthor,
-    allClosed,
-  );
+  await server.post("/vote/terminate", { data: { voteId } });
 
-  return cloneVotes(voteStore);
+  const targetPostId = postDetailStore.id;
+  if (!targetPostId) {
+    return cloneVotes([]);
+  }
+
+  return fetchVoteList(targetPostId);
 };
 
 export const closeAllVotes = async (): Promise<VoteListResponse> => {
