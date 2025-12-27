@@ -348,7 +348,7 @@ export const deleteVote = async (voteId: string, postId?: string): Promise<VoteL
     throw new Error("voteId is required to delete a vote");
   }
 
-  await server.delete("/vote/item", { params: { voteId } });
+  await server.delete("/vote", { params: { voteId } });
 
   const targetPostId = postId ?? postDetailStore.id;
   if (!targetPostId) {
@@ -356,4 +356,22 @@ export const deleteVote = async (voteId: string, postId?: string): Promise<VoteL
   }
 
   return fetchVoteList(targetPostId);
+};
+
+export const deleteVoteItem = async ({
+  voteId,
+  voteItemId,
+}: {
+  voteId: string;
+  voteItemId: string;
+}): Promise<VoteItemResponse> => {
+  const response = await server.delete<{ data?: VoteApiResponse }>("/vote/item", {
+    params: { voteItemId, voteId },
+  });
+
+  const updatedVoteApi = (response as { data?: VoteApiResponse })?.data ?? (response as VoteApiResponse);
+  const updatedVote = mapVoteApiResponseToVoteItem(updatedVoteApi);
+  voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
+
+  return updatedVote;
 };

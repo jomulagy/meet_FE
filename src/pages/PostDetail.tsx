@@ -15,7 +15,7 @@ import {
   fetchPostDetail,
   fetchVoteList,
   deleteVote,
-  reopenVote,
+  deleteVoteItem,
 } from "../api/postDetail";
 import {
   PostDetailResponse,
@@ -230,9 +230,22 @@ const PostDetailPage: React.FC = () => {
     },
   });
 
-  const reopenVoteMutation = useMutation({
-    mutationFn: (voteId: string) => reopenVote(voteId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["postVotes", postId] }),
+  const deleteVoteItemMutation = useMutation({
+    mutationFn: ({ voteId, optionId }: { voteId: string; optionId: string }) =>
+      deleteVoteItem({ voteId, voteItemId: optionId }),
+    onSuccess: (updatedVote) => {
+      const normalizedVote = normalizeVoteItem(updatedVote);
+
+      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
+        if (!prev) return prev;
+
+        const votes = prev.votes.map((vote) =>
+          String(vote.id) === normalizedVote.id ? normalizedVote : vote,
+        );
+
+        return new VoteListResponse(votes);
+      });
+    },
   });
 
   const handleEndVote = (voteId: string) => {
@@ -268,7 +281,36 @@ const PostDetailPage: React.FC = () => {
         [voteId]: previouslySelected,
       };
     });
-    reopenVoteMutation.mutate(voteId);
+
+    queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (previous) => {
+      if (!previous) return previous;
+
+      const updatedVotes = previous.votes.map((vote) => {
+        if (String(vote.id) !== voteId) return vote;
+
+        const resetOptions = vote.options.map(
+          (option) => new VoteOptionResponse(option.id, option.value, false, option.voters),
+        );
+
+        return new VoteItemResponse(
+          vote.id,
+          vote.title,
+          vote.isClosed,
+          vote.deadline,
+          vote.allowDuplicate,
+          vote.type,
+          vote.result,
+          "before",
+          resetOptions,
+        );
+      });
+
+      return new VoteListResponse(updatedVotes);
+    });
+  };
+
+  const handleDeleteOption = (voteId: string, optionId: string) => {
+    deleteVoteItemMutation.mutate({ voteId, optionId });
   };
 
   const handleToggleOption = (voteId: string, optionId: string) => {
@@ -417,6 +459,8 @@ const PostDetailPage: React.FC = () => {
             onToggleOption={onToggleOption}
             onVote={onVote}
             onAddOption={onAddOption}
+            canDeleteOption={canManageVotes}
+            onDeleteOption={(optionId) => handleDeleteOption(vote.id, optionId)}
           />
         );
       if (vote.status === "after") return <DateVoteAfter vote={vote} onRevote={onRevote} />;
@@ -433,6 +477,8 @@ const PostDetailPage: React.FC = () => {
             onToggleOption={onToggleOption}
             onVote={onVote}
             onAddOption={onAddOption}
+            canDeleteOption={canManageVotes}
+            onDeleteOption={(optionId) => handleDeleteOption(vote.id, optionId)}
           />
         );
       if (vote.status === "after") return <PlaceVoteAfter vote={vote} onRevote={onRevote} />;
@@ -448,6 +494,8 @@ const PostDetailPage: React.FC = () => {
           onToggleOption={onToggleOption}
           onVote={onVote}
           onAddOption={onAddOption}
+          canDeleteOption={canManageVotes}
+          onDeleteOption={(optionId) => handleDeleteOption(vote.id, optionId)}
         />
       );
     if (vote.status === "after") return <TextVoteAfter vote={vote} onRevote={onRevote} />;
