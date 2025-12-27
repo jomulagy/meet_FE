@@ -600,7 +600,7 @@ const PostDetailPage: React.FC = () => {
           </section>
         )}
 
-        {postDetail.canEdit && (
+        {postDetail.isAuthor && (
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => navigate(`/meet/edit/${postDetail.id}`)}

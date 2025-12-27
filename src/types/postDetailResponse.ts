@@ -5,7 +5,7 @@ export class PostDetailResponse {
     public id: string,
     public title: string,
     public content: string,
-    public canEdit: boolean,
+    public isAuthor: boolean,
     public isVoteClosed: boolean,
   ) {}
 }

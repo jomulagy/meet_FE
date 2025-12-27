@@ -99,7 +99,7 @@ const ensurePostId = (postId: string) => {
       postId,
       postDetailStore.title,
       postDetailStore.content,
-      postDetailStore.canEdit,
+      postDetailStore.isAuthor,
       postDetailStore.isVoteClosed,
     );
   }
@@ -140,7 +140,7 @@ export const fetchPostDetail = async (postId: string): Promise<PostDetailRespons
     postDetailStore.id,
     postDetailStore.title,
     postDetailStore.content,
-    postDetailStore.canEdit,
+    postDetailStore.isAuthor,
     postDetailStore.isVoteClosed,
   );
 };
@@ -213,7 +213,7 @@ export const createVote = async ({
     postDetailStore.id,
     postDetailStore.title,
     postDetailStore.content,
-    postDetailStore.canEdit,
+    postDetailStore.isAuthor,
     false,
   );
   return cloneVotes(voteStore);
@@ -278,7 +278,7 @@ export const closeVote = async (voteId: string): Promise<VoteListResponse> => {
     postDetailStore.id,
     postDetailStore.title,
     postDetailStore.content,
-    postDetailStore.canEdit,
+    postDetailStore.isAuthor,
     allClosed,
   );
 
@@ -304,7 +304,7 @@ export const closeAllVotes = async (): Promise<VoteListResponse> => {
     postDetailStore.id,
     postDetailStore.title,
     postDetailStore.content,
-    postDetailStore.canEdit,
+    postDetailStore.isAuthor,
     true,
   );
   return cloneVotes(voteStore);
@@ -330,7 +330,7 @@ export const reopenVote = async (voteId: string): Promise<VoteListResponse> => {
     postDetailStore.id,
     postDetailStore.title,
     postDetailStore.content,
-    postDetailStore.canEdit,
+    postDetailStore.isAuthor,
     false,
   );
   return cloneVotes(voteStore);
@@ -375,7 +375,7 @@ export const deleteVote = async (voteId: string): Promise<VoteListResponse> => {
     postDetailStore.id,
     postDetailStore.title,
     postDetailStore.content,
-    postDetailStore.canEdit,
+    postDetailStore.isAuthor,
     !hasOpenVotes,
   );
   return cloneVotes(voteStore);
