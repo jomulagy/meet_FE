@@ -215,20 +215,20 @@ export const castVote = async ({
 }: {
   voteId: string;
   optionIds: string[];
-}): Promise<VoteListResponse> => {
-  await server.post("/vote/confirm", {
+}): Promise<VoteItemResponse> => {
+  const response = await server.post<{ data?: VoteApiResponse }>("/vote/confirm", {
     data: {
       voteId,
       voteItemIdList: optionIds,
     },
   });
 
-  const targetPostId = postDetailStore.id;
-  if (!targetPostId) {
-    return cloneVotes(voteStore);
-  }
+  const updatedVoteApi = (response as { data?: VoteApiResponse })?.data ?? (response as VoteApiResponse);
+  const updatedVote = mapVoteApiResponseToVoteItem(updatedVoteApi);
 
-  return fetchVoteList(targetPostId);
+  voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
+
+  return updatedVote;
 };
 
 export const closeVote = async (voteId: string): Promise<VoteListResponse> => {

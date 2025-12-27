@@ -209,8 +209,19 @@ const PostDetailPage: React.FC = () => {
   const castVoteMutation = useMutation({
     mutationFn: ({ voteId, optionIds }: { voteId: string; optionIds: string[] }) =>
       castVote({ voteId, optionIds }),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
+    onSuccess: (updatedVote, variables) => {
+      const normalizedVote = normalizeVoteItem(updatedVote);
+
+      queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
+        if (!prev) return prev;
+
+        const votes = prev.votes.map((vote) =>
+          String(vote.id) === normalizedVote.id ? normalizedVote : vote,
+        );
+
+        return new VoteListResponse(votes);
+      });
+
       setSelectedOptions((prev) => {
         const updated = { ...prev };
         delete updated[variables.voteId];
