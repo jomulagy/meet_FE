@@ -168,8 +168,7 @@ export const addVoteOption = async ({
     },
   );
 
-  const voteData = (response as { data?: VoteItemResponse })?.data ?? (response as VoteItemResponse);
-  const updatedVote = cloneVote(voteData);
+  const updatedVote = (response as { data?: VoteItemResponse })?.data ?? (response as VoteItemResponse);
   voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
 
   return updatedVote;
