@@ -125,7 +125,7 @@ export const DateVoteBefore: React.FC<{
       <div
         className="flex h-40 w-16 flex-col items-center justify-center text-center text-xs font-semibold text-[#5856D6]"
         onWheel={(event) => {
-          event.preventDefault();
+          event.stopPropagation();
           moveSelection(event.deltaY > 0 ? 1 : -1);
         }}
         onTouchStart={(event) => {
@@ -211,8 +211,8 @@ export const DateVoteBefore: React.FC<{
             resetSelections();
             setIsPopupOpen(false);
           }}
-          onWheel={(event) => event.preventDefault()}
-          onTouchMove={(event) => event.preventDefault()}
+          onWheel={(event) => event.stopPropagation()}
+          onTouchMove={(event) => event.stopPropagation()}
         >
           <div
             className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg"
