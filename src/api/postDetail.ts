@@ -371,6 +371,15 @@ export const deleteVote = async (voteId: string, postId?: string): Promise<VoteL
   return fetchVoteList(targetPostId);
 };
 
+type VoteItemDeleteResponse = { deletedId?: string | number };
+
+const isVoteApiPayload = (payload: unknown): payload is VoteApiResponse =>
+  Boolean(
+    payload &&
+      typeof payload === "object" &&
+      ("itemList" in payload || "duplicate" in payload || "type" in payload || "title" in payload),
+  );
+
 export const deleteVoteItem = async ({
   voteId,
   voteItemId,
@@ -378,25 +387,30 @@ export const deleteVoteItem = async ({
   voteId: string;
   voteItemId: string;
 }): Promise<VoteItemResponse> => {
-  const response = await server.delete<{ data?: VoteApiResponse }>("/vote/item", {
+  const response = await server.delete<{ data?: VoteApiResponse | VoteItemDeleteResponse }>("/vote/item", {
     params: { voteItemId, voteId },
   });
 
-  const updatedVoteApi = (response as { data?: VoteApiResponse })?.data ?? (response as VoteApiResponse);
+  const payload =
+    (response as { data?: VoteApiResponse | VoteItemDeleteResponse })?.data ??
+    (response as VoteApiResponse | VoteItemDeleteResponse);
 
-  if (updatedVoteApi && Object.keys(updatedVoteApi).length > 0) {
-    const updatedVote = mapVoteApiResponseToVoteItem(updatedVoteApi);
+  if (payload && Object.keys(payload).length > 0 && isVoteApiPayload(payload)) {
+    const updatedVote = mapVoteApiResponseToVoteItem(payload);
     voteStore = voteStore.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
 
     return updatedVote;
   }
+
+  const deletedId = payload && "deletedId" in payload ? payload.deletedId : undefined;
+  const targetId = deletedId != null ? String(deletedId) : String(voteItemId);
 
   const currentVote = voteStore.find((vote) => String(vote.id) === String(voteId));
   if (!currentVote) {
     throw new Error("Unable to update vote after deleting option");
   }
 
-  const filteredOptions = currentVote.options.filter((option) => String(option.id) !== String(voteItemId));
+  const filteredOptions = currentVote.options.filter((option) => String(option.id) !== targetId);
   const updatedVote = new VoteItemResponse(
     currentVote.id,
     currentVote.title,
