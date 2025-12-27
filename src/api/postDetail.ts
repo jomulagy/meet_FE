@@ -378,16 +378,17 @@ export const updateVote = async ({
   return cloneVotes(voteStore);
 };
 
-export const deleteVote = async (voteId: string): Promise<VoteListResponse> => {
-  await delay();
-  voteStore = voteStore.filter((vote) => vote.id !== voteId);
-  const hasOpenVotes = voteStore.some((vote) => !vote.isClosed);
-  postDetailStore = new PostDetailResponse(
-    postDetailStore.id,
-    postDetailStore.title,
-    postDetailStore.content,
-    postDetailStore.isAuthor,
-    !hasOpenVotes,
-  );
-  return cloneVotes(voteStore);
+export const deleteVote = async (voteId: string, postId?: string): Promise<VoteListResponse> => {
+  if (!voteId) {
+    throw new Error("voteId is required to delete a vote");
+  }
+
+  await server.delete("/vote/item", { params: { voteId } });
+
+  const targetPostId = postId ?? postDetailStore.id;
+  if (!targetPostId) {
+    return cloneVotes([]);
+  }
+
+  return fetchVoteList(targetPostId);
 };
