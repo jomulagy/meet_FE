@@ -330,6 +330,7 @@ const PostDetailPage: React.FC = () => {
   };
 
   const renderVoteState = (vote: Vote) => {
+    console.log(vote)
     if (vote.activeYn === "N") {
       return renderClosedVote(vote);
     }

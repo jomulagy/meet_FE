@@ -88,38 +88,23 @@ export const fetchPostDetail = async (postId: string): Promise<PostDetailRespons
 };
 
 export const fetchVoteList = async (postId: string): Promise<VoteListResponse> => {
-  type VoteOptionApiResponse = {
+  type VoteItemApiResponse = {
     id?: string | number;
-    voteOptionId?: string | number;
     value?: string;
-    optionValue?: string;
-    optionName?: string;
-    isVoted?: boolean;
     voted?: boolean;
-    voters?: string[];
     voterList?: string[];
   };
 
   type VoteApiResponse = {
-    id?: string | number;
-    voteId?: string | number;
+    id?: number;
     title?: string;
-    voteTitle?: string;
-    deadline?: string | null;
-    voteDeadline?: string | null;
-    allowDuplicate?: boolean;
-    duplicateYn?: boolean | string;
-    isClosed?: boolean;
-    voteClosed?: boolean;
-    activeYn?: "Y" | "N";
+    endDate?: string | null;
+    duplicate?: boolean;
+    active?: boolean;
+    voted?: boolean;
     type?: VoteType;
-    voteType?: VoteType;
     result?: string | null;
-    resultOption?: string | null;
-    status?: VoteStatus;
-    voteStatus?: VoteStatus;
-    options?: VoteOptionApiResponse[];
-    voteOptions?: VoteOptionApiResponse[];
+    itemList?: VoteItemApiResponse[];
   };
 
   type VoteListApiResponse = { data?: VoteApiResponse[] } | VoteApiResponse[];
@@ -133,30 +118,30 @@ export const fetchVoteList = async (postId: string): Promise<VoteListResponse> =
   const voteData = (response as { data?: VoteApiResponse[] })?.data ?? (response as VoteApiResponse[]) ?? [];
 
   const votes = voteData.map((vote) => {
-    const options = (vote.options ?? vote.voteOptions ?? []).map((option) => {
-      const id = option.id ?? option.voteOptionId;
-      const value = option.value ?? option.optionValue ?? option.optionName ?? "";
-      const voters = option.voters ?? option.voterList ?? [];
-      return new VoteOptionResponse(id != null ? String(id) : value, value, Boolean(option.isVoted ?? option.voted), voters);
+    const options = (vote.itemList ?? []).map((option) => {
+      const id = option.id;
+      const value = option.value ?? "";
+      const voters = option.voterList ?? [];
+      return new VoteOptionResponse(id != null ? String(id) : value, value, Boolean(option.voted ?? false), voters);
     });
 
-    const id = vote.id ?? vote.voteId;
-    const type = (vote.type ?? vote.voteType ?? "text") as VoteType;
-    const status = (vote.status ?? vote.voteStatus ?? (vote.activeYn === "N" ? "complete" : "before")) as VoteStatus;
+    const id = vote.id;
+    const type = (vote.type ?? "text") as VoteType;
+    var status = "complete";
+
+    if(vote.active) {
+      status = vote.voted ? "after" : "before"
+    }
 
     return new VoteItemResponse(
       id != null ? String(id) : "",
-      vote.title ?? vote.voteTitle ?? "",
-      Boolean(vote.isClosed ?? vote.voteClosed ?? vote.activeYn === "N"),
-      vote.deadline ?? vote.voteDeadline ?? null,
-      Boolean(
-        typeof vote.duplicateYn === "string"
-          ? vote.duplicateYn === "Y"
-          : vote.allowDuplicate ?? vote.duplicateYn,
-      ),
+      vote.title ?? "",
+      !Boolean(vote.active ?? false),
+      vote.endDate ?? null,
+      Boolean(vote.duplicate ?? false),
       type,
-      vote.result ?? vote.resultOption ?? null,
-      status,
+      vote.result ?? null,
+      status as VoteStatus,
       options,
     );
   });
