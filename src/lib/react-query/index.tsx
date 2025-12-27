@@ -99,6 +99,7 @@ export function useQuery<TData>(options: UseQueryOptions<TData>): UseQueryResult
   const { queryKey, queryFn, enabled = true } = options;
   const serializedKey = useMemo(() => serializeQueryKey(queryKey), [queryKey]);
   const initialData = useMemo(() => client.getQueryData<TData>(queryKey), [client, serializedKey]);
+  const isFetchingRef = useRef(false);
   const [state, setState] = useState<UseQueryResult<TData>>({
     data: initialData,
     isPending: enabled && initialData === undefined,
@@ -110,12 +111,15 @@ export function useQuery<TData>(options: UseQueryOptions<TData>): UseQueryResult
 
   const execute = useCallback(async () => {
     if (!enabled) return;
+    isFetchingRef.current = true;
     setState((prev) => ({ ...prev, isPending: prev.data === undefined, isLoading: prev.data === undefined, isFetching: true }));
     try {
       const data = await client.fetchQuery({ queryKey, queryFn });
       setState((prev) => ({ ...prev, data, isPending: false, isLoading: false, isFetching: false, error: undefined }));
     } catch (error) {
       setState((prev) => ({ ...prev, error, isPending: false, isLoading: false, isFetching: false }));
+    } finally {
+      isFetchingRef.current = false;
     }
   }, [client, enabled, queryFn, queryKey, serializedKey]);
 
@@ -126,6 +130,7 @@ export function useQuery<TData>(options: UseQueryOptions<TData>): UseQueryResult
 
   useEffect(() => {
     const unsubscribe = client.subscribe(serializedKey, () => {
+      if (isFetchingRef.current) return;
       void executeRef.current();
     });
     return unsubscribe;
