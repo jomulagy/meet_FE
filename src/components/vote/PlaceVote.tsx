@@ -76,7 +76,7 @@ export const PlaceVoteBefore: React.FC<{
               className="h-4 w-4 text-[#5856D6]"
             />
             <span className="flex-1">{option.label}</span>
-            {canDeleteOption && (
+            {canDeleteOption && option.editable && (
               <button
                 type="button"
                 className="text-[11px] font-semibold text-[#FF3B30]"

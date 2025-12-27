@@ -19,7 +19,9 @@ const cloneVote = (vote: VoteItemResponse): VoteItemResponse =>
     vote.type,
     vote.result,
     vote.status,
-    vote.options.map((option) => new VoteOptionResponse(option.id, option.value, option.isVoted, [...option.voters])),
+    vote.options.map(
+      (option) => new VoteOptionResponse(option.id, option.value, option.isVoted, [...option.voters], option.editable),
+    ),
   );
 
 const cloneVotes = (votes: VoteItemResponse[]) => new VoteListResponse(votes.map(cloneVote));
@@ -90,6 +92,7 @@ type VoteItemApiResponse = {
   value?: string;
   voted?: boolean;
   voterList?: string[];
+  editable?: boolean | string;
 };
 
 type VoteApiResponse = {
@@ -109,7 +112,15 @@ const mapVoteApiResponseToVoteItem = (vote: VoteApiResponse): VoteItemResponse =
     const id = option.id;
     const value = option.value ?? "";
     const voters = option.voterList ?? [];
-    return new VoteOptionResponse(id != null ? String(id) : value, value, Boolean(option.voted ?? false), voters);
+    const editable = typeof option.editable === "string" ? option.editable === "true" : Boolean(option.editable);
+
+    return new VoteOptionResponse(
+      id != null ? String(id) : value,
+      value,
+      Boolean(option.voted ?? false),
+      voters,
+      editable,
+    );
   });
 
   const id = vote.id;
@@ -299,7 +310,9 @@ export const reopenVote = async (voteId: string): Promise<VoteListResponse> => {
       vote.type,
       vote.result,
       "before",
-      vote.options.map((option) => new VoteOptionResponse(option.id, option.value, option.isVoted, [...option.voters])),
+      vote.options.map(
+        (option) => new VoteOptionResponse(option.id, option.value, option.isVoted, [...option.voters], option.editable),
+      ),
     );
   });
   postDetailStore = new PostDetailResponse(

@@ -51,6 +51,7 @@ const mapVoteResponses = (response?: VoteListResponse): Vote[] => {
       label: option.value,
       count: option.voters.length,
       voted: option.isVoted,
+      editable: option.editable,
       memberList: option.voters.map((name) => ({ name })),
     })),
     deadline: vote.deadline ?? undefined,
@@ -65,7 +66,7 @@ const formatVoteDeadline = (deadline?: string | null) => {
 };
 
 const normalizeVoteOption = (option: VoteItemResponse["options"][number]) =>
-  new VoteOptionResponse(String(option.id), option.value, option.isVoted, option.voters);
+  new VoteOptionResponse(String(option.id), option.value, option.isVoted, option.voters, option.editable);
 
 const normalizeVoteItem = (vote: VoteItemResponse) =>
   new VoteItemResponse(
@@ -289,7 +290,7 @@ const PostDetailPage: React.FC = () => {
         if (String(vote.id) !== voteId) return vote;
 
         const resetOptions = vote.options.map(
-          (option) => new VoteOptionResponse(option.id, option.value, false, option.voters),
+          (option) => new VoteOptionResponse(option.id, option.value, false, option.voters, option.editable),
         );
 
         return new VoteItemResponse(
