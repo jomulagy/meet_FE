@@ -17,7 +17,7 @@ import {
   deleteVote,
   reopenVote,
 } from "../api/postDetail";
-import { PostDetailResponse, VoteListResponse } from "../types/postDetailResponse";
+import { PostDetailResponse, VoteItemResponse, VoteListResponse } from "../types/postDetailResponse";
 import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = PostDetailResponse;
@@ -108,15 +108,36 @@ const PostDetailPage: React.FC = () => {
       if (!postId) throw new Error("postId is required to add an option");
       return addVoteOption({ voteId, optionValue });
     },
-    onSuccess: async (updatedVote) => {
+    onSuccess: (updatedVote) => {
       queryClient.setQueryData<VoteListResponse | undefined>(["postVotes", postId], (prev) => {
         if (!prev) return prev;
-        const votes = prev.votes.map((vote) => (vote.id === updatedVote.id ? updatedVote : vote));
-        return new VoteListResponse(votes);
-      });
 
-      await queryClient.refetchQueries({
-        queryKey: ["postVotes", postId],
+        const votes = prev.votes.map((vote) => {
+          if (vote.id !== updatedVote.id) return vote;
+
+          const existingOptions = new Map(vote.options.map((option) => [option.id, option]));
+          const mergedOptions = [...vote.options];
+
+          updatedVote.options.forEach((option) => {
+            if (!existingOptions.has(option.id)) {
+              mergedOptions.push(option);
+            }
+          });
+
+          return new VoteItemResponse(
+            updatedVote.id,
+            updatedVote.title,
+            updatedVote.isClosed,
+            updatedVote.deadline,
+            updatedVote.allowDuplicate,
+            updatedVote.type,
+            updatedVote.result,
+            updatedVote.status,
+            mergedOptions,
+          );
+        });
+
+        return new VoteListResponse(votes);
       });
     },
   });
