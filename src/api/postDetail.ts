@@ -198,37 +198,36 @@ export const addVoteOption = async ({
 };
 
 export const createVote = async ({
+  postId,
   title,
   type,
   allowDuplicate,
   deadline,
 }: {
+  postId: string;
   title: string;
   type: VoteType;
   allowDuplicate: boolean;
   deadline?: string;
 }): Promise<VoteListResponse> => {
-  await delay();
-  const newVote = new VoteItemResponse(
-    `vote-${Date.now()}`,
-    title,
-    false,
-    deadline ?? null,
-    allowDuplicate,
-    type,
-    null,
-    "before",
-    [],
+  if (!postId) {
+    throw new Error("postId is required to create a vote");
+  }
+
+  await server.post(
+    "/vote/item",
+    {
+      data: {
+        title,
+        voteType: type,
+        duplicateYn: allowDuplicate ? "Y" : "N",
+        voteDeadline: deadline ?? null,
+      },
+      params: { postId },
+    },
   );
-  voteStore = [...voteStore, newVote];
-  postDetailStore = new PostDetailResponse(
-    postDetailStore.id,
-    postDetailStore.title,
-    postDetailStore.content,
-    postDetailStore.isAuthor,
-    false,
-  );
-  return cloneVotes(voteStore);
+
+  return fetchVoteList(postId);
 };
 
 export const castVote = async ({

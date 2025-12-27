@@ -97,8 +97,13 @@ const PostDetailPage: React.FC = () => {
   });
 
   const createVoteMutation = useMutation({
-    mutationFn: (payload: { title: string; type: VoteType; allowDuplicate: boolean; deadline?: string }) =>
-      createVote(payload),
+    mutationFn: (payload: {
+      postId: string;
+      title: string;
+      type: VoteType;
+      allowDuplicate: boolean;
+      deadline?: string;
+    }) => createVote(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
@@ -224,7 +229,10 @@ const PostDetailPage: React.FC = () => {
       return;
     }
 
+    if (!postId) return;
+
     createVoteMutation.mutate({
+      postId,
       title: newVoteTitle.trim(),
       type: newVoteType,
       allowDuplicate: newVoteAllowDuplicate,
