@@ -7,8 +7,6 @@ import {
 } from "../types/postDetailResponse";
 import { server } from "@/utils/axios";
 
-const CURRENT_USER = "나";
-
 const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const cloneVote = (vote: VoteItemResponse): VoteItemResponse =>
@@ -218,33 +216,19 @@ export const castVote = async ({
   voteId: string;
   optionIds: string[];
 }): Promise<VoteListResponse> => {
-  await delay();
-  voteStore = voteStore.map((vote) => {
-    if (vote.id !== voteId) return vote;
-    const updatedOptions = vote.options.map((option) => {
-      const isSelected = optionIds.includes(option.id);
-      const voters = new Set(option.voters);
-      if (isSelected) {
-        voters.add(CURRENT_USER);
-      } else {
-        voters.delete(CURRENT_USER);
-      }
-      return new VoteOptionResponse(option.id, option.value, isSelected, Array.from(voters));
-    });
-    const updatedVote = new VoteItemResponse(
-      vote.id,
-      vote.title,
-      vote.isClosed,
-      vote.deadline,
-      vote.allowDuplicate,
-      vote.type,
-      resolveWinner({ ...vote, options: updatedOptions } as VoteItemResponse),
-      "after",
-      updatedOptions,
-    );
-    return updatedVote;
+  await server.post("/vote/confirm", {
+    data: {
+      voteId,
+      voteItemIdList: optionIds,
+    },
   });
-  return cloneVotes(voteStore);
+
+  const targetPostId = postDetailStore.id;
+  if (!targetPostId) {
+    return cloneVotes(voteStore);
+  }
+
+  return fetchVoteList(targetPostId);
 };
 
 export const closeVote = async (voteId: string): Promise<VoteListResponse> => {
