@@ -83,10 +83,13 @@ const PostDetailPage: React.FC = () => {
   });
 
   const votes = useMemo(() => mapVoteResponses(voteListResponse), [voteListResponse]);
+  const hasVotes = votes.length > 0;
   const hasActiveVotes = useMemo(() => votes.some((vote) => vote.activeYn === "Y"), [votes]);
   const isLoading = isPostLoading || (postDetail?.isVoteClosed === false && (isVoteLoading || isVoteFetching));
   const canManageVotes = postDetail?.isAuthor === true;
-  const showVoteManagementActions = canManageVotes && (hasActiveVotes || postDetail?.isVoteClosed === true);
+  const showVoteSection = postDetail?.isVoteClosed === false;
+  const showVoteAddButton = canManageVotes && postDetail?.isVoteClosed === false;
+  const showVoteCloseButton = canManageVotes && postDetail?.isVoteClosed === false && hasVotes;
 
   const addVoteOptionMutation = useMutation({
     mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => addVoteOption({ voteId, optionValue }),
@@ -380,66 +383,68 @@ const PostDetailPage: React.FC = () => {
           <p className="mt-4 text-sm text-[#1C1C1E]">{postDetail.content}</p>
         </header>
 
-        <section className="space-y-4">
-          <div className="flex flex-col gap-5">
-            {votes.map((vote) => {
-              const isClosed = vote.activeYn === "N";
+        {showVoteSection && (
+          <section className="space-y-4">
+            <div className="flex flex-col gap-5">
+              {votes.map((vote) => {
+                const isClosed = vote.activeYn === "N";
 
-              return (
-                <div key={vote.id} className="rounded-[20px] bg-white p-5 shadow-sm">
-                  {!isClosed && canManageVotes && (
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => handleEndVote(vote.id)}
-                        className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
-                      >
-                        투표 종료
-                      </button>
-                    </div>
-                  )}
-                  <div className="mt-2 flex items-start justify-between">
-                    <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
-                    {!isClosed && (
-                      <div className="flex flex-col items-end gap-1 text-[11px] font-semibold text-[#8E8E93]">
-                        {vote.deadline && (
-                          <span>마감일 : {vote.deadline.split(" ")[0].replace(/-/g, ".")}</span>
-                        )}
-                        {vote.allowDuplicate && <span>중복 가능</span>}
+                return (
+                  <div key={vote.id} className="rounded-[20px] bg-white p-5 shadow-sm">
+                    {!isClosed && canManageVotes && (
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => handleEndVote(vote.id)}
+                          className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
+                        >
+                          투표 종료
+                        </button>
                       </div>
                     )}
+                    <div className="mt-2 flex items-start justify-between">
+                      <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
+                      {!isClosed && (
+                        <div className="flex flex-col items-end gap-1 text-[11px] font-semibold text-[#8E8E93]">
+                          {vote.deadline && (
+                            <span>마감일 : {vote.deadline.split(" ")[0].replace(/-/g, ".")}</span>
+                          )}
+                          {vote.allowDuplicate && <span>중복 가능</span>}
+                        </div>
+                      )}
+                    </div>
+
+                    {renderVoteState(vote)}
+                    {voteErrors[vote.id] && (
+                      <p className="mt-2 text-[11px] font-semibold text-[#FF3B30]">{voteErrors[vote.id]}</p>
+                    )}
                   </div>
+                );
+              })}
+            </div>
 
-                  {renderVoteState(vote)}
-                  {voteErrors[vote.id] && (
-                    <p className="mt-2 text-[11px] font-semibold text-[#FF3B30]">{voteErrors[vote.id]}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {showVoteManagementActions && (
-            <>
-              <button
-                onClick={() => {
-                  setNewVoteErrors({});
-                  setIsVoteModalOpen(true);
-                }}
-                className="w-full rounded-[16px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
-              >
-                투표 추가
-              </button>
-              {canManageVotes && (
+            {showVoteAddButton && (
+              <>
                 <button
-                  onClick={handleEndAllVotes}
-                  className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-4 py-3 text-xs font-semibold text-[#5856D6] shadow-sm transition hover:border-[#C7C7CC]"
+                  onClick={() => {
+                    setNewVoteErrors({});
+                    setIsVoteModalOpen(true);
+                  }}
+                  className="w-full rounded-[16px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
                 >
-                  투표 종료
+                  투표 추가
                 </button>
-              )}
-            </>
-          )}
-        </section>
+                {showVoteCloseButton && (
+                  <button
+                    onClick={handleEndAllVotes}
+                    className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-4 py-3 text-xs font-semibold text-[#5856D6] shadow-sm transition hover:border-[#C7C7CC]"
+                  >
+                    투표 종료
+                  </button>
+                )}
+              </>
+            )}
+          </section>
+        )}
 
         {!hasActiveVotes && participationVote && (
           <section className="space-y-4">
