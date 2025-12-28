@@ -28,6 +28,10 @@ const router: RouteObject[] = [
     element: <Pages.NotificationCreate />,
   },
   {
+    path: "/admin/vote/create",
+    element: <Pages.VoteCreate />,
+  },
+  {
     path: "/auth/login",
     element: <Pages.Login />,
   },

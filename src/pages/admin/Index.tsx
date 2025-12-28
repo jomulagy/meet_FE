@@ -76,6 +76,11 @@ const Admin = () => {
           label: "공지사항 생성",
           action: () => navigate("/admin/notification"),
         },
+        {
+          id: "vote-create",
+          label: "투표 생성",
+          action: () => navigate("/admin/vote/create"),
+        },
       ],
     },
   ];

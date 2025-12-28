@@ -91,3 +91,4 @@ export { default as TravelVote } from "./admin/TravelVote";
 export { default as AdminPermission } from "./admin/Permission";
 export { default as MeetVote } from "./admin/MeetVote";
 export { default as NotificationCreate } from "./admin/Notification";
+export { default as VoteCreate } from "./admin/VoteCreate";
