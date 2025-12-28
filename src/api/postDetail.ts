@@ -30,12 +30,17 @@ const cloneVotes = (votes: VoteItemResponse[]) => new VoteListResponse(votes.map
 let postDetailStore = new PostDetailResponse("", "", "", false, false);
 let voteStore: VoteItemResponse[] = [];
 
+type ParticipationVoteItemPayload = {
+  id?: string | number;
+  name?: string;
+  memberList?: unknown[];
+  vote?: boolean;
+};
+
 type ParticipationVotePayload = {
   id?: string | number;
-  title?: string;
   endDate?: string;
-  type?: string;
-  itemList?: unknown[];
+  itemList?: ParticipationVoteItemPayload[];
   active?: boolean;
   voted?: boolean;
 };
@@ -195,18 +200,32 @@ export const fetchParticipationVote = async (postId: string): Promise<Participat
     return null;
   }
 
-  const votedChoice: ParticipationChoice = null;
+  const options = Array.isArray(payload.itemList) ? payload.itemList : [];
+
+  const yesItem = options.find((item) => item.name === "참여");
+  const noItem = options.find((item) => item.name === "불참");
+
+  const yesMembers = Array.isArray(yesItem?.memberList)
+    ? yesItem?.memberList.map((member) => ({ name: String(member) }))
+    : [];
+  const noMembers = Array.isArray(noItem?.memberList)
+    ? noItem?.memberList.map((member) => ({ name: String(member) }))
+    : [];
+
+  let votedChoice: ParticipationChoice = null;
+  if (yesItem?.vote) votedChoice = "yes";
+  else if (noItem?.vote) votedChoice = "no";
 
   return {
     vote: {
       id: payload.id != null ? String(payload.id) : postId,
       activeYn: payload.active ? "Y" : "N",
       hasVoted: Boolean(payload.voted ?? false),
-      yesCount: 0,
-      noCount: 0,
-      participantCount: 0,
-      yesMembers: [],
-      noMembers: [],
+      yesCount: yesMembers.length,
+      noCount: noMembers.length,
+      participantCount: yesMembers.length,
+      yesMembers,
+      noMembers,
     },
     votedChoice,
   };
