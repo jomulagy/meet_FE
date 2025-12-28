@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import FooterNav from "../components/FooterNav";
@@ -13,6 +13,7 @@ import {
   closeVote,
   createVote,
   fetchPostDetail,
+  fetchParticipationVote,
   fetchVoteList,
   deleteVote,
   deleteVoteItem,
@@ -26,6 +27,7 @@ import {
 import type { Vote, VoteType } from "../types/vote";
 
 type PostDetail = PostDetailResponse;
+type ParticipationChoice = "yes" | "no" | null;
 
 type ParticipationVote = {
   id: string;
@@ -72,8 +74,8 @@ const PostDetailPage: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [participationVote, setParticipationVote] = useState<ParticipationVote | null>(null);
-  const [participationChoice, setParticipationChoice] = useState<"yes" | "no" | null>(null);
-  const [participationVotedChoice, setParticipationVotedChoice] = useState<"yes" | "no" | null>(null);
+  const [participationChoice, setParticipationChoice] = useState<ParticipationChoice>(null);
+  const [participationVotedChoice, setParticipationVotedChoice] = useState<ParticipationChoice>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
   const [voteErrors, setVoteErrors] = useState<Record<string, string>>({});
   const [participationPopupMembers, setParticipationPopupMembers] = useState<{ name: string }[] | null>(null);
@@ -101,13 +103,33 @@ const PostDetailPage: React.FC = () => {
     enabled: !!postId,
   });
 
+  const { data: participationVoteResponse, isPending: isParticipationVoteLoading } = useQuery<
+    | Awaited<ReturnType<typeof fetchParticipationVote>>
+    | null
+  >({
+    queryKey: ["participationVote", postId],
+    queryFn: () => fetchParticipationVote(postId ?? ""),
+    enabled: !!postId,
+  });
+
   const votes = useMemo(() => mapVoteResponses(voteListResponse), [voteListResponse]);
   const hasVotes = votes.length > 0;
   const hasActiveVotes = useMemo(() => votes.some((vote) => vote.activeYn === "Y"), [votes]);
-  const isLoading = isPostLoading || (postDetail?.isVoteClosed === false && (isVoteLoading || isVoteFetching));
+  const isLoading =
+    isPostLoading ||
+    (postDetail?.isVoteClosed === false && (isVoteLoading || isVoteFetching)) ||
+    isParticipationVoteLoading;
   const canManageVotes = postDetail?.isAuthor === true;
   const showVoteAddButton = canManageVotes && postDetail?.isVoteClosed === false;
   const showVoteCloseButton = canManageVotes && postDetail?.isVoteClosed === false && hasVotes;
+
+  useEffect(() => {
+    if (!participationVoteResponse) return;
+
+    setParticipationVote(participationVoteResponse.vote);
+    setParticipationChoice(participationVoteResponse.votedChoice);
+    setParticipationVotedChoice(participationVoteResponse.votedChoice);
+  }, [participationVoteResponse]);
 
   const addVoteOptionMutation = useMutation({
     mutationFn: ({ voteId, optionValue }: { voteId: string; optionValue: string }) => {

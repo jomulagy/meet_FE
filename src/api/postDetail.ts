@@ -6,6 +6,7 @@ import {
   VoteOptionResponse,
 } from "../types/postDetailResponse";
 import { server } from "@/utils/axios";
+type ParticipationChoice = "yes" | "no" | null;
 
 const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,6 +29,37 @@ const cloneVotes = (votes: VoteItemResponse[]) => new VoteListResponse(votes.map
 
 let postDetailStore = new PostDetailResponse("", "", "", false, false);
 let voteStore: VoteItemResponse[] = [];
+
+type ParticipationVoteItemPayload = {
+  id?: string | number;
+  name?: string;
+  memberList?: unknown[];
+  vote?: boolean;
+};
+
+type ParticipationVotePayload = {
+  id?: string | number;
+  endDate?: string;
+  itemList?: ParticipationVoteItemPayload[];
+  active?: boolean;
+  voted?: boolean;
+};
+
+type ParticipationVoteApiResponse = { data?: ParticipationVotePayload } | ParticipationVotePayload;
+
+export type ParticipationVoteResponse = {
+  vote: {
+    id: string;
+    activeYn: "Y" | "N";
+    hasVoted: boolean;
+    yesCount: number;
+    noCount: number;
+    participantCount: number;
+    yesMembers: { name: string }[];
+    noMembers: { name: string }[];
+  };
+  votedChoice: ParticipationChoice;
+};
 
 const ensurePostDetailStore = (postId: string) => {
   if (postId && postDetailStore.id !== postId) {
@@ -124,13 +156,13 @@ const mapVoteApiResponseToVoteItem = (vote: VoteApiResponse): VoteItemResponse =
     status = vote.voted ? "after" : "before";
   }
 
-  return new VoteItemResponse(
-    id != null ? String(id) : "",
-    vote.title ?? "",
-    !Boolean(vote.active ?? false),
-    vote.endDate ?? null,
-    Boolean(vote.duplicate ?? false),
-    type,
+    return new VoteItemResponse(
+      id != null ? String(id) : "",
+      vote.title ?? "",
+      !(vote.active ?? false),
+      vote.endDate ?? null,
+      Boolean(vote.duplicate ?? false),
+      type,
     vote.result ?? null,
     status,
     options,
@@ -153,6 +185,50 @@ export const fetchVoteList = async (postId: string): Promise<VoteListResponse> =
   voteStore = votes;
 
   return cloneVotes(votes);
+};
+
+export const fetchParticipationVote = async (postId: string): Promise<ParticipationVoteResponse | null> => {
+  if (!postId) {
+    return null;
+  }
+
+  const response = await server.get<ParticipationVoteApiResponse>("/participate", { params: { postId } });
+  const payloadCandidate = response as ParticipationVoteApiResponse;
+  const payload = ("data" in payloadCandidate ? payloadCandidate.data : payloadCandidate) as ParticipationVotePayload;
+
+  if (!payload) {
+    return null;
+  }
+
+  const options = Array.isArray(payload.itemList) ? payload.itemList : [];
+
+  const yesItem = options.find((item) => item.name === "참여");
+  const noItem = options.find((item) => item.name === "불참");
+
+  const yesMembers = Array.isArray(yesItem?.memberList)
+    ? yesItem?.memberList.map((member) => ({ name: String(member) }))
+    : [];
+  const noMembers = Array.isArray(noItem?.memberList)
+    ? noItem?.memberList.map((member) => ({ name: String(member) }))
+    : [];
+
+  let votedChoice: ParticipationChoice = null;
+  if (yesItem?.vote) votedChoice = "yes";
+  else if (noItem?.vote) votedChoice = "no";
+
+  return {
+    vote: {
+      id: payload.id != null ? String(payload.id) : postId,
+      activeYn: payload.active ? "Y" : "N",
+      hasVoted: Boolean(payload.voted ?? false),
+      yesCount: yesMembers.length,
+      noCount: noMembers.length,
+      participantCount: yesMembers.length,
+      yesMembers,
+      noMembers,
+    },
+    votedChoice,
+  };
 };
 
 export const addVoteOption = async ({
