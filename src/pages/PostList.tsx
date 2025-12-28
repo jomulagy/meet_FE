@@ -53,13 +53,6 @@ const PostList: React.FC = () => {
                     className="group flex w-full items-center justify-between gap-4 rounded-[22px] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(26,26,26,0.08)] transition-all duration-200 hover:shadow-[0_12px_30px_rgba(26,26,26,0.12)]"
                   >
                     <div className="flex items-start gap-4">
-                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F2F2F7] text-[#5856D6]">
-                        <img
-                          src={calender}
-                          alt="달력"
-                          className="h-6 w-6"
-                        />
-                      </span>
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                             <span
@@ -69,7 +62,7 @@ const PostList: React.FC = () => {
                                   : "bg-[#E1F0FF] text-[#1E3A8A]"
                               }`}
                             >
-                              {post.type === "travel" ? "여행" : "회식"}
+                              {post.type}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
