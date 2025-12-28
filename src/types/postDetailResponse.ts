@@ -37,3 +37,15 @@ export class VoteItemResponse {
 export class VoteListResponse {
   constructor(public votes: VoteItemResponse[]) {}
 }
+
+export type ParticipationVoteResult = {
+  id: string;
+  isActive: boolean;
+  hasVoted: boolean;
+  yesCount: number;
+  noCount: number;
+  participantCount: number;
+  yesMembers: { name: string }[];
+  noMembers: { name: string }[];
+  choice: "yes" | "no" | null;
+};

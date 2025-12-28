@@ -1,5 +1,6 @@
 import type { VoteStatus, VoteType } from "../types/vote";
 import {
+  ParticipationVoteResult,
   PostDetailResponse,
   VoteItemResponse,
   VoteListResponse,
@@ -124,17 +125,81 @@ const mapVoteApiResponseToVoteItem = (vote: VoteApiResponse): VoteItemResponse =
     status = vote.voted ? "after" : "before";
   }
 
-  return new VoteItemResponse(
-    id != null ? String(id) : "",
-    vote.title ?? "",
-    !Boolean(vote.active ?? false),
-    vote.endDate ?? null,
-    Boolean(vote.duplicate ?? false),
-    type,
-    vote.result ?? null,
-    status,
-    options,
-  );
+    return new VoteItemResponse(
+      id != null ? String(id) : "",
+      vote.title ?? "",
+      !(vote.active ?? false),
+      vote.endDate ?? null,
+      Boolean(vote.duplicate ?? false),
+      type,
+      vote.result ?? null,
+      status,
+      options,
+    );
+  };
+
+type ParticipationVoteApiResponse = {
+  participateId?: string | number;
+  id?: string | number;
+  isActive?: boolean | string;
+  activeYn?: "Y" | "N";
+  isVote?: boolean | string;
+  voted?: boolean | string;
+  yesCount?: number;
+  participateMemberCount?: number;
+  participateYesCount?: number;
+  participateNoCount?: number;
+  participantCount?: number;
+  participateMemberList?: string[];
+  nonParticipateMemberList?: string[];
+  participateYn?: "Y" | "N" | null;
+  voteResult?: "Y" | "N" | null;
+};
+
+const toBoolean = (value?: boolean | string) => {
+  if (value === undefined) return undefined;
+  if (typeof value === "string") return value === "true" || value === "Y";
+  return Boolean(value);
+};
+
+const toParticipationChoice = (value?: string | null): ParticipationVoteResult["choice"] => {
+  if (value === "Y") return "yes";
+  if (value === "N") return "no";
+  return null;
+};
+
+const mapParticipationVoteResponse = (
+  payload: ParticipationVoteApiResponse,
+  fallbackPostId: string,
+): ParticipationVoteResult => {
+  const yesMembers = payload.participateMemberList ?? [];
+  const noMembers = payload.nonParticipateMemberList ?? [];
+  const yesCount = payload.participateYesCount ?? payload.yesCount ?? (Array.isArray(yesMembers) ? yesMembers.length : 0);
+  const noCount = payload.participateNoCount ?? (Array.isArray(noMembers) ? noMembers.length : 0);
+  const isActiveFromYn = payload.activeYn ? payload.activeYn === "Y" : undefined;
+  const participantCount =
+    payload.participateMemberCount ??
+    payload.participantCount ??
+    yesCount;
+  const choice = toParticipationChoice(payload.participateYn ?? payload.voteResult);
+  const hasVotedFromPayload = toBoolean(payload.isVote) ?? toBoolean(payload.voted);
+
+  return {
+    id:
+      payload.participateId != null
+        ? String(payload.participateId)
+        : payload.id != null
+          ? String(payload.id)
+          : fallbackPostId,
+    isActive: isActiveFromYn ?? toBoolean(payload.isActive) ?? true,
+    hasVoted: hasVotedFromPayload ?? choice !== null,
+    yesCount,
+    noCount,
+    participantCount,
+    yesMembers: Array.isArray(yesMembers) ? yesMembers.map((name) => ({ name })) : [],
+    noMembers: Array.isArray(noMembers) ? noMembers.map((name) => ({ name })) : [],
+    choice,
+  };
 };
 
 export const fetchVoteList = async (postId: string): Promise<VoteListResponse> => {
@@ -153,6 +218,18 @@ export const fetchVoteList = async (postId: string): Promise<VoteListResponse> =
   voteStore = votes;
 
   return cloneVotes(votes);
+};
+
+export const fetchParticipationVote = async (
+  postId: string,
+): Promise<ParticipationVoteResult> => {
+  const response = await server.get<{ data?: ParticipationVoteApiResponse }>("/participate", {
+    params: { postId },
+  });
+
+  const payload = (response as { data?: ParticipationVoteApiResponse })?.data ?? (response as ParticipationVoteApiResponse);
+
+  return mapParticipationVoteResponse(payload, postId);
 };
 
 export const addVoteOption = async ({
@@ -235,6 +312,22 @@ export const castVote = async ({
   return updatedVote;
 };
 
+export const voteParticipation = async ({
+  postId,
+  participateYn,
+}: {
+  postId: string;
+  participateYn: "Y" | "N";
+}): Promise<ParticipationVoteResult> => {
+  const response = await server.post<{ data?: ParticipationVoteApiResponse }>("/participate/vote", {
+    data: { postId, participateYn },
+  });
+
+  const payload = (response as { data?: ParticipationVoteApiResponse })?.data ?? (response as ParticipationVoteApiResponse);
+
+  return mapParticipationVoteResponse(payload, postId);
+};
+
 export const closeVote = async (voteId: string): Promise<VoteListResponse> => {
   if (!voteId) {
     throw new Error("voteId is required to close a vote");
@@ -248,6 +341,16 @@ export const closeVote = async (voteId: string): Promise<VoteListResponse> => {
   }
 
   return fetchVoteList(targetPostId);
+};
+
+export const terminateParticipationVote = async ({ postId }: { postId: string }): Promise<ParticipationVoteResult> => {
+  const response = await server.post<{ data?: ParticipationVoteApiResponse }>("/participate/terminate", {
+    data: { postId },
+  });
+
+  const payload = (response as { data?: ParticipationVoteApiResponse })?.data ?? (response as ParticipationVoteApiResponse);
+
+  return mapParticipationVoteResponse(payload, postId);
 };
 
 export const closeAllVotes = async ({ postId }: { postId: string }): Promise<VoteListResponse> => {
@@ -332,6 +435,10 @@ export const deleteVote = async (voteId: string, postId?: string): Promise<VoteL
   }
 
   return fetchVoteList(targetPostId);
+};
+
+export const deleteParticipationVote = async ({ postId }: { postId: string }) => {
+  await server.delete("/participate", { params: { postId } });
 };
 
 type VoteItemDeleteResponse = { deletedId?: string | number };
