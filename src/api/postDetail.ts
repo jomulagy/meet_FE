@@ -6,6 +6,7 @@ import {
   VoteOptionResponse,
 } from "../types/postDetailResponse";
 import { server } from "@/utils/axios";
+type ParticipationChoice = "yes" | "no" | null;
 
 const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,6 +29,35 @@ const cloneVotes = (votes: VoteItemResponse[]) => new VoteListResponse(votes.map
 
 let postDetailStore = new PostDetailResponse("", "", "", false, false);
 let voteStore: VoteItemResponse[] = [];
+
+type ParticipationVoteApiResponse = {
+  data?: {
+    voteId?: string | number;
+    participateYn?: "Y" | "N" | null;
+    activeYn?: "Y" | "N";
+    yesCount?: number;
+    noCount?: number;
+    participantCount?: number;
+    yesMemberList?: string[];
+    noMemberList?: string[];
+    yesMembers?: string[];
+    noMembers?: string[];
+  };
+};
+
+export type ParticipationVoteResponse = {
+  vote: {
+    id: string;
+    activeYn: "Y" | "N";
+    hasVoted: boolean;
+    yesCount: number;
+    noCount: number;
+    participantCount: number;
+    yesMembers: { name: string }[];
+    noMembers: { name: string }[];
+  };
+  votedChoice: ParticipationChoice;
+};
 
 const ensurePostDetailStore = (postId: string) => {
   if (postId && postDetailStore.id !== postId) {
@@ -124,13 +154,13 @@ const mapVoteApiResponseToVoteItem = (vote: VoteApiResponse): VoteItemResponse =
     status = vote.voted ? "after" : "before";
   }
 
-  return new VoteItemResponse(
-    id != null ? String(id) : "",
-    vote.title ?? "",
-    !Boolean(vote.active ?? false),
-    vote.endDate ?? null,
-    Boolean(vote.duplicate ?? false),
-    type,
+    return new VoteItemResponse(
+      id != null ? String(id) : "",
+      vote.title ?? "",
+      !(vote.active ?? false),
+      vote.endDate ?? null,
+      Boolean(vote.duplicate ?? false),
+      type,
     vote.result ?? null,
     status,
     options,
@@ -153,6 +183,39 @@ export const fetchVoteList = async (postId: string): Promise<VoteListResponse> =
   voteStore = votes;
 
   return cloneVotes(votes);
+};
+
+const mapMemberNames = (names?: string[]) => (names ?? []).map((name) => ({ name }));
+
+export const fetchParticipationVote = async (postId: string): Promise<ParticipationVoteResponse | null> => {
+  if (!postId) {
+    return null;
+  }
+
+  const response = await server.get<ParticipationVoteApiResponse>("/vote/participate", { params: { postId } });
+  const payload = (response as ParticipationVoteApiResponse)?.data ?? (response as ParticipationVoteApiResponse);
+
+  if (!payload) {
+    return null;
+  }
+
+  const yesCount = payload.yesCount ?? 0;
+  const noCount = payload.noCount ?? 0;
+  const votedChoice: ParticipationChoice = payload.participateYn === "Y" ? "yes" : payload.participateYn === "N" ? "no" : null;
+
+  return {
+    vote: {
+      id: payload.voteId != null ? String(payload.voteId) : postId,
+      activeYn: payload.activeYn === "N" ? "N" : "Y",
+      hasVoted: votedChoice !== null,
+      yesCount,
+      noCount,
+      participantCount: payload.participantCount ?? yesCount + noCount,
+      yesMembers: mapMemberNames(payload.yesMemberList ?? payload.yesMembers),
+      noMembers: mapMemberNames(payload.noMemberList ?? payload.noMembers),
+    },
+    votedChoice,
+  };
 };
 
 export const addVoteOption = async ({
