@@ -470,15 +470,6 @@ const PostDetailPage: React.FC = () => {
   const handleEndParticipationVote = () => {
     if (!participationVote || participationVote.activeYn === "N") return;
     terminateParticipationVoteMutation.mutate();
-    setParticipationVote((prev) =>
-      prev
-        ? {
-            ...prev,
-            activeYn: "N",
-            participantCount: prev.yesCount,
-          }
-        : prev,
-    );
   };
 
   const handleDeleteParticipationVote = () => {
@@ -492,31 +483,6 @@ const PostDetailPage: React.FC = () => {
       participationChoice === "yes" ? participationVote.yesOptionId : participationVote.noOptionId;
 
     if (!participationVoteId) return;
-    setParticipationVote((prev) =>
-      prev
-        ? {
-            ...prev,
-            hasVoted: true,
-            yesCount:
-              participationChoice === "yes"
-                ? prev.yesCount + 1 - (participationVotedChoice === "yes" ? 1 : 0)
-                : prev.yesCount - (participationVotedChoice === "yes" ? 1 : 0),
-            noCount:
-              participationChoice === "no"
-                ? prev.noCount + 1 - (participationVotedChoice === "no" ? 1 : 0)
-                : prev.noCount - (participationVotedChoice === "no" ? 1 : 0),
-            yesMembers:
-              participationChoice === "yes"
-                ? [{ name: "나" }, ...prev.yesMembers.filter((member) => member.name !== "나")]
-                : prev.yesMembers.filter((member) => member.name !== "나"),
-            noMembers:
-              participationChoice === "no"
-                ? [{ name: "나" }, ...prev.noMembers.filter((member) => member.name !== "나")]
-                : prev.noMembers.filter((member) => member.name !== "나"),
-          }
-        : prev,
-    );
-    setParticipationVotedChoice(participationChoice);
     participationVoteMutation.mutate(participationChoice);
   };
 
