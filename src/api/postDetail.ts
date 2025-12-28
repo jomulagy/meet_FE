@@ -30,17 +30,7 @@ const cloneVotes = (votes: VoteItemResponse[]) => new VoteListResponse(votes.map
 let postDetailStore = new PostDetailResponse("", "", "", false, false);
 let voteStore: VoteItemResponse[] = [];
 
-type ParticipationVoteApiResponse = {
-  data?: {
-    id?: string | number;
-    title?: string;
-    endDate?: string;
-    type?: string;
-    itemList?: unknown[];
-    active?: boolean;
-    voted?: boolean;
-  };
-} | {
+type ParticipationVotePayload = {
   id?: string | number;
   title?: string;
   endDate?: string;
@@ -49,6 +39,8 @@ type ParticipationVoteApiResponse = {
   active?: boolean;
   voted?: boolean;
 };
+
+type ParticipationVoteApiResponse = { data?: ParticipationVotePayload } | ParticipationVotePayload;
 
 export type ParticipationVoteResponse = {
   vote: {
@@ -196,7 +188,8 @@ export const fetchParticipationVote = async (postId: string): Promise<Participat
   }
 
   const response = await server.get<ParticipationVoteApiResponse>("/participate", { params: { postId } });
-  const payload = (response as ParticipationVoteApiResponse)?.data ?? (response as ParticipationVoteApiResponse);
+  const payloadCandidate = response as ParticipationVoteApiResponse;
+  const payload = ("data" in payloadCandidate ? payloadCandidate.data : payloadCandidate) ?? null;
 
   if (!payload) {
     return null;
