@@ -77,18 +77,6 @@ const PostList: React.FC = () => {
                             {post.title}
                           </h3>
                         </div>
-                        <div className="flex flex-col items-start text-[12px] text-[#8E8E93]">
-                          <span>
-                            {post.date && post.date.value && post.date.value.trim().length > 0
-                              ? post.date.value
-                              : "날짜 미정"}
-                          </span>
-                          <span>
-                            {post.place && post.place.value && post.place.value.trim().length > 0
-                              ? post.place.value
-                              : "장소 미정"}
-                          </span>
-                        </div>
                       </div>
                     </div>
                     <i className="fa-solid fa-chevron-right text-[18px] text-[#AEAEB2] transition-colors group-hover:text-[#5856D6]"></i>
