@@ -57,6 +57,8 @@ export type ParticipationVoteResponse = {
     participantCount: number;
     yesMembers: { name: string }[];
     noMembers: { name: string }[];
+    yesOptionId?: string;
+    noOptionId?: string;
   };
   votedChoice: ParticipationChoice;
 };
@@ -226,10 +228,36 @@ export const fetchParticipationVote = async (postId: string): Promise<Participat
       participantCount: yesMembers.length,
       yesMembers,
       noMembers,
+      yesOptionId: yesItem?.id != null ? String(yesItem.id) : undefined,
+      noOptionId: noItem?.id != null ? String(noItem.id) : undefined,
     },
     votedChoice,
   };
 };
+
+export const submitParticipationVote = async ({
+  postId,
+  participateVoteItemId,
+}: {
+  postId: string;
+  participateVoteItemId: string;
+}) =>
+  server.post("/participate/vote", {
+    data: {
+      postId,
+      participateVoteItemId,
+    },
+  });
+
+export const terminateParticipationVote = async ({ postId }: { postId: string }) =>
+  server.post("/participate/terminate", {
+    data: { postId },
+  });
+
+export const deleteParticipationVote = async ({ postId }: { postId: string }) =>
+  server.delete("/participate", {
+    params: { postId },
+  });
 
 export const addVoteOption = async ({
   voteId,
