@@ -20,4 +20,5 @@ export type Vote = {
   options: VoteOption[];
   deadline?: string;
   allowDuplicate?: boolean;
+  result: string;
 };
