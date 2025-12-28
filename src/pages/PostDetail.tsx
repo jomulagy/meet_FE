@@ -46,6 +46,7 @@ const mapVoteResponses = (response?: VoteListResponse): Vote[] => {
     type: vote.type,
     activeYn: vote.isClosed ? "N" : "Y",
     status: vote.status,
+    result: vote.result ?? "",
     options: vote.options.map((option) => ({
       id: option.id,
       label: option.value,
@@ -97,7 +98,7 @@ const PostDetailPage: React.FC = () => {
   } = useQuery<VoteListResponse>({
     queryKey: ["postVotes", postId],
     queryFn: () => fetchVoteList(postId ?? ""),
-    enabled: !!postId && postDetail?.isVoteClosed === false,
+    enabled: !!postId,
   });
 
   const votes = useMemo(() => mapVoteResponses(voteListResponse), [voteListResponse]);
@@ -105,7 +106,6 @@ const PostDetailPage: React.FC = () => {
   const hasActiveVotes = useMemo(() => votes.some((vote) => vote.activeYn === "Y"), [votes]);
   const isLoading = isPostLoading || (postDetail?.isVoteClosed === false && (isVoteLoading || isVoteFetching));
   const canManageVotes = postDetail?.isAuthor === true;
-  const showVoteSection = postDetail?.isVoteClosed === false;
   const showVoteAddButton = canManageVotes && postDetail?.isVoteClosed === false;
   const showVoteCloseButton = canManageVotes && postDetail?.isVoteClosed === false && hasVotes;
 
@@ -442,14 +442,9 @@ const PostDetailPage: React.FC = () => {
   }, [participationVote]);
 
   const renderClosedVote = (vote: Vote) => {
-    const decidedOption = vote.options.reduce<Vote["options"][number] | null>((winner, option) => {
-      if (!winner || option.count > winner.count) return option;
-      return winner;
-    }, null);
-
     return (
       <div className="mt-3 rounded-[16px] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#5856D6]">
-        {decidedOption ? decidedOption.label : "선택된 항목이 없습니다."}
+        {vote.result ? vote.result : "선택된 항목이 없습니다."}
       </div>
     );
   };
@@ -548,72 +543,72 @@ const PostDetailPage: React.FC = () => {
           <p className="mt-4 text-sm text-[#1C1C1E]">{postDetail.content}</p>
         </header>
 
-        {showVoteSection && (
-          <section className="space-y-4">
-            <div className="flex flex-col gap-5">
-              {votes.map((vote) => {
-                const isClosed = vote.activeYn === "N";
+        
+        <section className="space-y-4">
+          <div className="flex flex-col gap-5">
+            {votes.map((vote) => {
+              const isClosed = vote.activeYn === "N";
 
-                return (
-                  <div key={vote.id} className="rounded-[20px] bg-white p-5 shadow-sm">
-                    {!isClosed && canManageVotes && (
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleDeleteVote(vote.id)}
-                          className="rounded-full border border-[#FF3B30] bg-white px-3 py-1 text-[11px] font-semibold text-[#FF3B30]"
-                        >
-                          투표 삭제
-                        </button>
-                        <button
-                          onClick={() => handleEndVote(vote.id)}
-                          className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
-                        >
-                          투표 종료
-                        </button>
+              return (
+                <div key={vote.id} className="rounded-[20px] bg-white p-5 shadow-sm">
+                  {!isClosed && canManageVotes && (
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleDeleteVote(vote.id)}
+                        className="rounded-full border border-[#FF3B30] bg-white px-3 py-1 text-[11px] font-semibold text-[#FF3B30]"
+                      >
+                        투표 삭제
+                      </button>
+                      <button
+                        onClick={() => handleEndVote(vote.id)}
+                        className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
+                      >
+                        투표 종료
+                      </button>
+                    </div>
+                  )}
+                  <div className="mt-2 flex items-start justify-between">
+                    <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
+                    {!isClosed && (
+                      <div className="flex flex-col items-end gap-1 text-[11px] font-semibold text-[#8E8E93]">
+                        {vote.deadline && <span>마감일 : {formatVoteDeadline(vote.deadline)}</span>}
+                        {vote.allowDuplicate && <span>중복 가능</span>}
                       </div>
                     )}
-                    <div className="mt-2 flex items-start justify-between">
-                      <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
-                      {!isClosed && (
-                        <div className="flex flex-col items-end gap-1 text-[11px] font-semibold text-[#8E8E93]">
-                          {vote.deadline && <span>마감일 : {formatVoteDeadline(vote.deadline)}</span>}
-                          {vote.allowDuplicate && <span>중복 가능</span>}
-                        </div>
-                      )}
-                    </div>
-
-                    {renderVoteState(vote)}
-                    {voteErrors[vote.id] && (
-                      <p className="mt-2 text-[11px] font-semibold text-[#FF3B30]">{voteErrors[vote.id]}</p>
-                    )}
                   </div>
-                );
-              })}
-            </div>
 
-            {showVoteAddButton && (
-              <>
+                  {renderVoteState(vote)}
+                  {voteErrors[vote.id] && (
+                    <p className="mt-2 text-[11px] font-semibold text-[#FF3B30]">{voteErrors[vote.id]}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {showVoteAddButton && (
+            <>
+              <button
+                onClick={() => {
+                  setNewVoteErrors({});
+                  setIsVoteModalOpen(true);
+                }}
+                className="w-full rounded-[16px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
+              >
+                투표 추가
+              </button>
+              {showVoteCloseButton && (
                 <button
-                  onClick={() => {
-                    setNewVoteErrors({});
-                    setIsVoteModalOpen(true);
-                  }}
-                  className="w-full rounded-[16px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB]"
+                  onClick={handleEndAllVotes}
+                  className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-4 py-3 text-xs font-semibold text-[#5856D6] shadow-sm transition hover:border-[#C7C7CC]"
                 >
-                  투표 추가
+                  투표 종료
                 </button>
-                {showVoteCloseButton && (
-                  <button
-                    onClick={handleEndAllVotes}
-                    className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-4 py-3 text-xs font-semibold text-[#5856D6] shadow-sm transition hover:border-[#C7C7CC]"
-                  >
-                    투표 종료
-                  </button>
-                )}
-              </>
-            )}
-          </section>
-        )}
+              )}
+            </>
+          )}
+        </section>
+        
 
         {!hasActiveVotes && participationVote && (
           <section className="space-y-4">
