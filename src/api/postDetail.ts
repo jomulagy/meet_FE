@@ -194,7 +194,7 @@ export const fetchParticipationVote = async (postId: string): Promise<Participat
 
   const response = await server.get<ParticipationVoteApiResponse>("/participate", { params: { postId } });
   const payloadCandidate = response as ParticipationVoteApiResponse;
-  const payload = ("data" in payloadCandidate ? payloadCandidate.data : payloadCandidate) ?? null;
+  const payload = ("data" in payloadCandidate ? payloadCandidate.data : payloadCandidate) as ParticipationVotePayload;
 
   if (!payload) {
     return null;
