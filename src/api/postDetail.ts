@@ -41,6 +41,7 @@ type ParticipationVotePayload = {
   id?: string | number;
   endDate?: string;
   itemList?: ParticipationVoteItemPayload[];
+  participants?: (string | number)[];
   active?: boolean;
   voted?: boolean;
 };
@@ -207,12 +208,20 @@ export const fetchParticipationVote = async (postId: string): Promise<Participat
   const yesItem = options.find((item) => item.name === "참여");
   const noItem = options.find((item) => item.name === "불참");
 
+  const participants = Array.isArray(payload.participants)
+    ? payload.participants.map((member) => ({ name: String(member) }))
+    : [];
+
   const yesMembers = Array.isArray(yesItem?.memberList)
     ? yesItem?.memberList.map((member) => ({ name: String(member) }))
-    : [];
+    : participants;
   const noMembers = Array.isArray(noItem?.memberList)
     ? noItem?.memberList.map((member) => ({ name: String(member) }))
     : [];
+
+  const participantCount = participants.length
+    ? participants.length
+    : yesMembers.length + noMembers.length;
 
   let votedChoice: ParticipationChoice = null;
   if (yesItem?.vote) votedChoice = "yes";
@@ -225,7 +234,7 @@ export const fetchParticipationVote = async (postId: string): Promise<Participat
       hasVoted: Boolean(payload.voted ?? false),
       yesCount: yesMembers.length,
       noCount: noMembers.length,
-      participantCount: yesMembers.length,
+      participantCount,
       yesMembers,
       noMembers,
       yesOptionId: yesItem?.id != null ? String(yesItem.id) : undefined,
