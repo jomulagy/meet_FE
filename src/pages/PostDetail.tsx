@@ -17,6 +17,9 @@ import {
   fetchVoteList,
   deleteVote,
   deleteVoteItem,
+  deleteParticipationVote,
+  submitParticipationVote,
+  terminateParticipationVote,
 } from "../api/postDetail";
 import {
   PostDetailResponse,
@@ -38,6 +41,8 @@ type ParticipationVote = {
   participantCount: number;
   yesMembers: { name: string }[];
   noMembers: { name: string }[];
+  yesOptionId?: string;
+  noOptionId?: string;
 };
 
 const mapVoteResponses = (response?: VoteListResponse): Vote[] => {
@@ -168,6 +173,51 @@ const PostDetailPage: React.FC = () => {
 
         return new VoteListResponse(votes);
       });
+    },
+  });
+
+  const terminateParticipationVoteMutation = useMutation({
+    mutationFn: () => {
+      if (!postId) throw new Error("postId is required to terminate participation vote");
+      return terminateParticipationVote({ postId });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
+      setParticipationChoice(null);
+    },
+  });
+
+  const deleteParticipationVoteMutation = useMutation({
+    mutationFn: () => {
+      if (!postId) throw new Error("postId is required to delete participation vote");
+      return deleteParticipationVote({ postId });
+    },
+    onSuccess: async () => {
+      setParticipationVote(null);
+      setParticipationChoice(null);
+      setParticipationVotedChoice(null);
+      await queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
+    },
+  });
+
+  const participationVoteMutation = useMutation({
+    mutationFn: (choice: ParticipationChoice) => {
+      if (!postId) throw new Error("postId is required to vote");
+      if (!choice) throw new Error("vote choice is required");
+
+      const participationVoteId =
+        choice === "yes" ? participationVote?.yesOptionId : participationVote?.noOptionId;
+
+      if (!participationVoteId) throw new Error("participation vote option id is required");
+
+      return submitParticipationVote({
+        postId,
+        participateVoteItemId: participationVoteId,
+      });
+    },
+    onSuccess: async (_, choice) => {
+      setParticipationVotedChoice(choice);
+      await queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
     },
   });
 
@@ -418,49 +468,27 @@ const PostDetailPage: React.FC = () => {
   };
 
   const handleEndParticipationVote = () => {
-    setParticipationVote((prev) =>
-      prev
-        ? {
-            ...prev,
-            activeYn: "N",
-            participantCount: prev.yesCount,
-          }
-        : prev,
-    );
+    if (!participationVote || participationVote.activeYn === "N") return;
+    terminateParticipationVoteMutation.mutate();
+  };
+
+  const handleDeleteParticipationVote = () => {
+    deleteParticipationVoteMutation.mutate();
   };
 
   const handleParticipationVote = () => {
     if (!participationVote || !participationChoice) return;
-    setParticipationVote((prev) =>
-      prev
-        ? {
-            ...prev,
-            hasVoted: true,
-            yesCount:
-              participationChoice === "yes"
-                ? prev.yesCount + 1 - (participationVotedChoice === "yes" ? 1 : 0)
-                : prev.yesCount - (participationVotedChoice === "yes" ? 1 : 0),
-            noCount:
-              participationChoice === "no"
-                ? prev.noCount + 1 - (participationVotedChoice === "no" ? 1 : 0)
-                : prev.noCount - (participationVotedChoice === "no" ? 1 : 0),
-            yesMembers:
-              participationChoice === "yes"
-                ? [{ name: "나" }, ...prev.yesMembers.filter((member) => member.name !== "나")]
-                : prev.yesMembers.filter((member) => member.name !== "나"),
-            noMembers:
-              participationChoice === "no"
-                ? [{ name: "나" }, ...prev.noMembers.filter((member) => member.name !== "나")]
-                : prev.noMembers.filter((member) => member.name !== "나"),
-          }
-        : prev,
-    );
-    setParticipationVotedChoice(participationChoice);
+
+    const participationVoteId =
+      participationChoice === "yes" ? participationVote.yesOptionId : participationVote.noOptionId;
+
+    if (!participationVoteId) return;
+    participationVoteMutation.mutate(participationChoice);
   };
 
   const participantCountText = useMemo(() => {
     if (!participationVote || participationVote.activeYn !== "N") return null;
-    return `참여 인원: ${participationVote.participantCount}명`;
+    return `참여자 : ${participationVote.participantCount}명`;
   }, [participationVote]);
 
   const renderClosedVote = (vote: Vote) => {
@@ -666,12 +694,22 @@ const PostDetailPage: React.FC = () => {
                       <h3 className="text-base font-semibold text-[#1C1C1E]">참여 여부</h3>
                     </div>
                     {canManageVotes && (
-                      <button
-                        onClick={handleEndParticipationVote}
-                        className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
-                      >
-                        투표 종료
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {participationVote.activeYn === "Y" && (
+                          <button
+                            onClick={handleEndParticipationVote}
+                            className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
+                          >
+                            투표 종료
+                          </button>
+                        )}
+                        <button
+                          onClick={handleDeleteParticipationVote}
+                          className="rounded-full border border-[#FF3B30] bg-white px-3 py-1 text-[11px] font-semibold text-[#FF3B30]"
+                        >
+                          투표 삭제
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -758,7 +796,6 @@ const PostDetailPage: React.FC = () => {
               )}
             </div>
 
-            {participantCountText && <p className="text-sm font-semibold text-[#4C4ACB]">{participantCountText}</p>}
           </section>
         )}
 
