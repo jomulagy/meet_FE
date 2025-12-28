@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
-import calender from "../assets/img/calender.png";
 import { Post } from "@/types/Post";
 
 const PostList: React.FC = () => {
@@ -56,11 +55,7 @@ const PostList: React.FC = () => {
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                             <span
-                              className={`rounded-full px-2 py-[2px] text-[11px] font-semibold ${
-                                post.type === "travel"
-                                  ? "bg-[#FEF3C7] text-[#92400E]"
-                                  : "bg-[#E1F0FF] text-[#1E3A8A]"
-                              }`}
+                              className={`rounded-full py-[2px] text-[11px] font-semibold "bg-[#E1F0FF] text-[#1E3A8A]"`}
                             >
                               {post.type}
                             </span>
