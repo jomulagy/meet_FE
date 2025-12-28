@@ -32,17 +32,22 @@ let voteStore: VoteItemResponse[] = [];
 
 type ParticipationVoteApiResponse = {
   data?: {
-    voteId?: string | number;
-    participateYn?: "Y" | "N" | null;
-    activeYn?: "Y" | "N";
-    yesCount?: number;
-    noCount?: number;
-    participantCount?: number;
-    yesMemberList?: string[];
-    noMemberList?: string[];
-    yesMembers?: string[];
-    noMembers?: string[];
+    id?: string | number;
+    title?: string;
+    endDate?: string;
+    type?: string;
+    itemList?: unknown[];
+    active?: boolean;
+    voted?: boolean;
   };
+} | {
+  id?: string | number;
+  title?: string;
+  endDate?: string;
+  type?: string;
+  itemList?: unknown[];
+  active?: boolean;
+  voted?: boolean;
 };
 
 export type ParticipationVoteResponse = {
@@ -185,34 +190,30 @@ export const fetchVoteList = async (postId: string): Promise<VoteListResponse> =
   return cloneVotes(votes);
 };
 
-const mapMemberNames = (names?: string[]) => (names ?? []).map((name) => ({ name }));
-
 export const fetchParticipationVote = async (postId: string): Promise<ParticipationVoteResponse | null> => {
   if (!postId) {
     return null;
   }
 
-  const response = await server.get<ParticipationVoteApiResponse>("/vote/participate", { params: { postId } });
+  const response = await server.get<ParticipationVoteApiResponse>("/participate", { params: { postId } });
   const payload = (response as ParticipationVoteApiResponse)?.data ?? (response as ParticipationVoteApiResponse);
 
   if (!payload) {
     return null;
   }
 
-  const yesCount = payload.yesCount ?? 0;
-  const noCount = payload.noCount ?? 0;
-  const votedChoice: ParticipationChoice = payload.participateYn === "Y" ? "yes" : payload.participateYn === "N" ? "no" : null;
+  const votedChoice: ParticipationChoice = null;
 
   return {
     vote: {
-      id: payload.voteId != null ? String(payload.voteId) : postId,
-      activeYn: payload.activeYn === "N" ? "N" : "Y",
-      hasVoted: votedChoice !== null,
-      yesCount,
-      noCount,
-      participantCount: payload.participantCount ?? yesCount + noCount,
-      yesMembers: mapMemberNames(payload.yesMemberList ?? payload.yesMembers),
-      noMembers: mapMemberNames(payload.noMemberList ?? payload.noMembers),
+      id: payload.id != null ? String(payload.id) : postId,
+      activeYn: payload.active ? "Y" : "N",
+      hasVoted: Boolean(payload.voted ?? false),
+      yesCount: 0,
+      noCount: 0,
+      participantCount: 0,
+      yesMembers: [],
+      noMembers: [],
     },
     votedChoice,
   };
