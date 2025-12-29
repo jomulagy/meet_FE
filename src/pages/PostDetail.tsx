@@ -590,7 +590,7 @@ const PostDetailPage: React.FC = () => {
       <div className="mx-auto flex w-full max-w-screen-sm flex-col gap-5 px-4 pb-24 pt-6">
         <header className="rounded-[20px] bg-white p-5 shadow-sm">
           <h1 className="text-left text-xl font-bold text-[#1C1C1E]">{postDetail.title}</h1>
-          <p className="mt-4 text-sm text-[#1C1C1E] whitespace-pre-line">{postDetail.content}</p>
+          <p className="mt-4 text-sm text-[#1C1C1E] whitespace-pre-line text-left">{postDetail.content}</p>
         </header>
 
         
