@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
@@ -10,15 +10,14 @@ const PostList: React.FC = () => {
   const [postList, setPostList] = useState<Post[]>([]);
   const [selectedType, setSelectedType] = useState<string>(TYPE_ORDER[0]);
   const navigate = useNavigate();
-  const filteredPosts = useMemo(
-    () => postList.filter((post) => post.type === selectedType),
-    [postList, selectedType]
-  );
+  const filteredPosts = postList;
 
   useEffect(() => {
     const fetchMeetList = async () => {
       server
-        .get(`/post/list`)
+        .get(`/post/list`, {
+          params: { type: selectedType },
+        })
         .then((response) => {
           setPostList(response.data);
         })
@@ -29,26 +28,7 @@ const PostList: React.FC = () => {
     };
 
     fetchMeetList();
-  }, [navigate]);
-
-  useEffect(() => {
-    if (postList.length === 0) {
-      setSelectedType(TYPE_ORDER[0]);
-      return;
-    }
-
-    const firstAvailableType = TYPE_ORDER.find((type) =>
-      postList.some((post) => post.type === type)
-    );
-
-    const hasPostsForSelectedType = postList.some(
-      (post) => post.type === selectedType
-    );
-
-    if (!hasPostsForSelectedType && firstAvailableType) {
-      setSelectedType(firstAvailableType);
-    }
-  }, [postList, selectedType]);
+  }, [navigate, selectedType]);
 
   return (
     <div
