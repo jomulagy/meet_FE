@@ -79,7 +79,7 @@ const PostList: React.FC = () => {
                     <div className="flex items-start gap-4">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-[#E1F0FF] py-[2px] text-[11px] font-semibold text-[#1E3A8A]">
+                          <span className="rounded-full bg-[#E1F0FF] px-[8px] py-[2px] text-[11px] font-semibold text-[#1E3A8A]">
                             {post.type}
                           </span>
                         </div>
