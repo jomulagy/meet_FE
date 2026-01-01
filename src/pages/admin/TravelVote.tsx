@@ -25,7 +25,7 @@ const TravelVote = () => {
     setIsSubmitting(true);
 
     server
-      .post("/post/create/vote", { data: { title: title.trim(), content: content.trim() } })
+      .post("/post/create/travel", { data: { title: title.trim(), content: content.trim() } })
       .then(() => {
         alert("여행 투표가 생성되었습니다.");
         navigate("/post/list");
