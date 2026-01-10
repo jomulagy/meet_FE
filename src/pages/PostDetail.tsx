@@ -251,6 +251,7 @@ const PostDetailPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
+      queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
     },
   });
 
@@ -262,6 +263,7 @@ const PostDetailPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
+      queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
     },
   });
 
@@ -453,6 +455,14 @@ const PostDetailPage: React.FC = () => {
     if (!postId) return;
 
     const deadlineDateOnly = newVoteDeadline.split("T")[0] || newVoteDeadline;
+    const deadlineDate = new Date(deadlineDateOnly);
+    if (Number.isNaN(deadlineDate.getTime()) || deadlineDate.getTime() <= Date.now()) {
+      setNewVoteErrors((prev) => ({
+        ...prev,
+        deadline: "투표 마감일은 현재 시각 이후로 선택해주세요.",
+      }));
+      return;
+    }
 
     createVoteMutation.mutate({
       postId,

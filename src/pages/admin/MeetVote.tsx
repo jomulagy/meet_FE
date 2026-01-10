@@ -5,12 +5,10 @@ import FooterNav from "../../components/FooterNav";
 import SearchPopup from "../../components/popUp/PlaceSearch";
 
 type VotePlace = { name: string; xPos: string; yPos: string };
-type VoteStep = "vote" | "deadline";
 
 const MeetVote = () => {
   const navigate = useNavigate();
   const [hasPrivilege, setHasPrivilege] = useState<boolean | undefined>(undefined);
-  const [activeStep, setActiveStep] = useState<VoteStep>("vote");
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [voteTitle, setVoteTitle] = useState<string>("");
@@ -23,7 +21,6 @@ const MeetVote = () => {
   });
   const [voteContent, setVoteContent] = useState<string>("");
   const [voteDeadline, setVoteDeadline] = useState<string>("");
-  const [participationDeadline, setParticipationDeadline] = useState<string>("");
 
   const isLoading = useMemo(() => hasPrivilege === undefined, [hasPrivilege]);
 
@@ -63,14 +60,10 @@ const MeetVote = () => {
     setVoteTime("");
     setVotePlace({ name: "", xPos: "", yPos: "" });
     setVoteContent("");
-  };
-
-  const resetDeadlineForm = () => {
     setVoteDeadline("");
-    setParticipationDeadline("");
   };
 
-  const handleNextStep = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleVoteSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!voteTitle.trim()) {
@@ -83,18 +76,8 @@ const MeetVote = () => {
       return;
     }
 
-    setActiveStep("deadline");
-  };
-
-  const handlePreviousStep = () => {
-    setActiveStep("vote");
-  };
-
-  const handleVoteSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!voteDeadline || !participationDeadline) {
-      alert("투표 마감일과 참여 여부 마감일을 모두 선택해 주세요");
+    if (!voteDeadline) {
+      alert("투표 마감일을 선택해 주세요");
       return;
     }
 
@@ -107,19 +90,16 @@ const MeetVote = () => {
       place: votePlace.name ? votePlace.name : null,
       content: voteContent,
       voteDeadline,
-      participationDeadline,
     };
 
     server
-      .post("/post", {
+      .post("/post/create/meet", {
         data: payload,
       })
       .then((response) => {
         const createdMeetId = response.data?.meetId ?? response.data?.id;
 
         resetVoteForm();
-        resetDeadlineForm();
-        setActiveStep("vote");
 
         if (createdMeetId) {
           navigate(`/post/${createdMeetId}`);
@@ -152,8 +132,8 @@ const MeetVote = () => {
     setIsPopupOpen(false);
   };
 
-  const renderVoteStep = () => (
-    <form className="space-y-6" onSubmit={handleNextStep}>
+  const renderVoteForm = () => (
+    <form className="space-y-6" onSubmit={handleVoteSubmit}>
       <div className="space-y-2 text-left">
         <label className="text-xs text-[#8E8E93] sm:text-sm">투표 제목<span className="ml-1 text-[#FF3B30]">*</span></label>
         <input
@@ -205,7 +185,7 @@ const MeetVote = () => {
             <button
               type="button"
               onClick={() => setVotePlace({ name: "", xPos: "", yPos: "" })}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#514BC7] hover:text-[#1C1C1E] sm:text-sm"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-[#E5E5EA] bg-white px-2.5 py-1 text-[10px] font-semibold text-[#5856D6] shadow-sm transition hover:border-[#C7C7CC]"
             >
               초기화
             </button>
@@ -224,6 +204,16 @@ const MeetVote = () => {
         />
       </div>
 
+      <div className="space-y-2 text-left">
+        <label className="text-xs text-[#8E8E93] sm:text-sm">투표 마감일<span className="ml-1 text-[#FF3B30]">*</span></label>
+        <input
+          type="date"
+          value={voteDeadline}
+          onChange={(e) => setVoteDeadline(e.target.value)}
+          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-3 pt-4">
         <button
           type="button"
@@ -235,52 +225,6 @@ const MeetVote = () => {
         <button
           type="button"
           onClick={resetVoteForm}
-          className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-3 text-xs font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:text-sm"
-        >
-          초기화
-        </button>
-        <button
-          type="submit"
-          className="col-span-2 w-full rounded-[16px] bg-[#5856D6] px-5 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB] disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-1 sm:text-sm"
-        >
-          다음
-        </button>
-      </div>
-    </form>
-  );
-
-  const renderDeadlineStep = () => (
-    <form className="space-y-6" onSubmit={handleVoteSubmit}>
-      <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">투표 마감일<span className="ml-1 text-[#FF3B30]">*</span></label>
-        <input
-          type="date"
-          value={voteDeadline}
-          onChange={(e) => setVoteDeadline(e.target.value)}
-          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-        />
-      </div>
-      <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">참여 여부 마감일<span className="ml-1 text-[#FF3B30]">*</span></label>
-        <input
-          type="date"
-          value={participationDeadline}
-          onChange={(e) => setParticipationDeadline(e.target.value)}
-          className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 pt-4">
-        <button
-          type="button"
-          onClick={handlePreviousStep}
-          className="w-full rounded-[16px] bg-[#EAE9FF] px-5 py-3 text-xs font-semibold text-[#4C4ACB] transition hover:bg-[#dcdaf9] sm:text-sm"
-        >
-          이전
-        </button>
-        <button
-          type="button"
-          onClick={resetDeadlineForm}
           className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-3 text-xs font-semibold text-[#1C1C1E] transition hover:border-[#C7C7CC] sm:text-sm"
         >
           초기화
@@ -310,23 +254,13 @@ const MeetVote = () => {
         {!isLoading && hasPrivilege && (
           <section className="space-y-4">
             <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
-              <div className="flex items-center justify-between text-xs text-[#8E8E93] sm:text-sm">
-                <span>STEP {activeStep === "vote" ? "1" : "2"} / 2</span>
-                <span>{activeStep === "vote" ? "투표 생성" : "투표 마감 관리"}</span>
-              </div>
-              <h2 className="mt-3 text-left text-lg font-semibold text-[#1C1C1E] sm:text-xl">
-                {activeStep === "vote" ? "투표 생성" : "투표 마감 관리"}
-              </h2>
-            </div>
-
-            <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
-              {activeStep === "vote" ? renderVoteStep() : renderDeadlineStep()}
+              {renderVoteForm()}
             </div>
           </section>
         )}
       </div>
 
-      <SearchPopup isOpen={isPopupOpen && activeStep === "vote"} onClose={() => setIsPopupOpen(false)} onSelect={handlePopupSelect} />
+      <SearchPopup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} onSelect={handlePopupSelect} />
 
       <FooterNav />
     </div>
