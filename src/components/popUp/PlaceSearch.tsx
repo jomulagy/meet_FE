@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, CSSProperties } from "react";
+import React, { useState, useCallback, useMemo, CSSProperties, useEffect } from "react";
 import axios from "axios";
 
 interface Location {
@@ -30,6 +30,13 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, onSelect }) 
   const [query, setQuery] = useState<string>("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) return;
+    setQuery("");
+    setResults([]);
+    setError(null);
+  }, [isOpen]);
 
   const handleInputChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
