@@ -251,6 +251,7 @@ const PostDetailPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
+      queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
     },
   });
 
@@ -262,6 +263,7 @@ const PostDetailPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
+      queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
     },
   });
 
