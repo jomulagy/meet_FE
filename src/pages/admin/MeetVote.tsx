@@ -93,7 +93,7 @@ const MeetVote = () => {
     };
 
     server
-      .post("/post", {
+      .post("/post/create/meet", {
         data: payload,
       })
       .then((response) => {
