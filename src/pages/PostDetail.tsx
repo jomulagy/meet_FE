@@ -36,6 +36,7 @@ type ParticipationVote = {
   id: string;
   activeYn: "Y" | "N";
   hasVoted: boolean;
+  endDate?: string | null;
   yesCount: number;
   noCount: number;
   participantCount: number;
@@ -673,7 +674,14 @@ const PostDetailPage: React.FC = () => {
         {!hasActiveVotes && participationVote && (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[#1C1C1E]">참여 여부 투표</h2>
+              <div className="flex flex-col gap-1">
+                <h2 className="text-base font-semibold text-[#1C1C1E]">참여 여부 투표</h2>
+                {participationVote.endDate && (
+                  <span className="text-[11px] font-semibold text-[#8E8E93]">
+                    마감일 : {formatVoteDeadline(participationVote.endDate)}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div>
