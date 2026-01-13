@@ -53,6 +53,7 @@ export type ParticipationVoteResponse = {
     id: string;
     activeYn: "Y" | "N";
     hasVoted: boolean;
+    endDate?: string | null;
     yesCount: number;
     noCount: number;
     participantCount: number;
@@ -232,6 +233,7 @@ export const fetchParticipationVote = async (postId: string): Promise<Participat
       id: payload.id != null ? String(payload.id) : postId,
       activeYn: payload.active ? "Y" : "N",
       hasVoted: Boolean(payload.voted ?? false),
+      endDate: payload.endDate ?? null,
       yesCount: yesMembers.length,
       noCount: noMembers.length,
       participantCount,
