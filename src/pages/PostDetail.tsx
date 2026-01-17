@@ -710,21 +710,21 @@ const PostDetailPage: React.FC = () => {
                           {participationVote.activeYn === "Y" && (
                             <button
                               onClick={handleEndParticipationVote}
-                              className="rounded-full bg-[#EAE9FF] px-3 py-1 text-[11px] font-semibold text-[#5856D6]"
+                              className="rounded-full bg-[#EAE9FF] px-2 py-1 text-[11px] font-semibold text-[#5856D6]"
                             >
                               투표 종료
                             </button>
                           )}
                           <button
                             onClick={handleDeleteParticipationVote}
-                            className="rounded-full border border-[#FF3B30] bg-white px-3 py-1 text-[11px] font-semibold text-[#FF3B30]"
+                            className="rounded-full border border-[#FF3B30] bg-white px-2 py-1 text-[11px] font-semibold text-[#FF3B30]"
                           >
                             투표 삭제
                           </button>
                         </div>
                       )}
                       {participationVote.endDate && (
-                        <span className="text-[11px] font-semibold text-[#8E8E93]">
+                        <span className="mt-1 text-[11px] font-semibold text-[#8E8E93]">
                           마감일 : {formatVoteDeadline(participationVote.endDate)}
                         </span>
                       )}
@@ -732,7 +732,7 @@ const PostDetailPage: React.FC = () => {
                   </div>
 
                   {participationVote.hasVoted ? (
-                    <div className="mt-4 rounded-[16px] border border-[#E5E5EA] bg-white p-4">
+                    <div className="mt-3 rounded-[16px] border border-[#E5E5EA] bg-white p-4">
                       <div className="flex flex-col gap-2 text-xs text-[#1C1C1E]">
                         <div
                           className={`flex items-center justify-between rounded-xl border px-4 py-2 ${
