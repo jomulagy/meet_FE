@@ -2,24 +2,6 @@ import React, { useEffect, useState } from "react";
 import type { Vote } from "../../types/vote";
 import VotedMemberList from "../popUp/VotedMemberList";
 
-const OptionResults: React.FC<{ options: Vote["options"]; highlightVoted?: boolean }> = ({ options, highlightVoted }) => (
-  <div className="mt-3 flex flex-col gap-2">
-    {options.map((option) => (
-      <div
-        key={option.id}
-        className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs font-medium ${
-          highlightVoted && option.voted
-            ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]"
-            : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
-        }`}
-      >
-        <span>{option.label}</span>
-        <span className="text-[11px] font-semibold text-[#8E8E93]">{option.count}표</span>
-      </div>
-    ))}
-  </div>
-);
-
 export const DateVoteBefore: React.FC<{
   vote: Vote;
   allowDuplicate: boolean;
@@ -328,8 +310,40 @@ export const DateVoteAfter: React.FC<{ vote: Vote; onRevote: () => void }> = ({ 
   );
 };
 
-export const DateVoteComplete: React.FC<{ vote: Vote }> = ({ vote }) => (
-  <div className="mt-4 rounded-[20px] border border-[#E5E5EA] bg-[#F9F9FB] p-4">
-    <OptionResults options={vote.options} highlightVoted />
-  </div>
-);
+export const DateVoteComplete: React.FC<{ vote: Vote }> = ({ vote }) => {
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const selectedOption = vote.options.find((option) => option.id === selectedOptionId);
+  const maxCount = vote.options.reduce((max, option) => Math.max(max, option.count), 0);
+
+  return (
+    <div className="mt-4 rounded-[20px] border border-[#E5E5EA] bg-white p-4">
+      <div className="mt-2 flex flex-col gap-2">
+        {vote.options.map((option) => (
+          <div
+            key={option.id}
+            className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs font-medium ${
+              option.count === maxCount && maxCount > 0
+                ? "border-[#5856D6] bg-[#EAE9FF] text-[#1C1C1E]"
+                : "border-[#E5E5EA] bg-white text-[#1C1C1E]"
+            }`}
+          >
+            <span>{option.label}</span>
+            <button
+              type="button"
+              className="bg-transparent text-[11px] font-semibold text-[#5856D6]"
+              onClick={() => setSelectedOptionId(option.id)}
+            >
+              {option.count}명
+            </button>
+          </div>
+        ))}
+      </div>
+      {selectedOption && (
+        <VotedMemberList
+          selectedItem={{ memberList: selectedOption.memberList ?? [] }}
+          closePopup={() => setSelectedOptionId(null)}
+        />
+      )}
+    </div>
+  );
+};
