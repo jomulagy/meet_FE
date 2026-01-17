@@ -315,12 +315,15 @@ export const DateVoteComplete: React.FC<{ vote: Vote }> = ({ vote }) => (
 );
 
 const DateVoteResult: React.FC<{ vote: Vote }> = ({ vote }) => {
+  if(vote.options.length === 0) {
+      return "항목이 없습니다.";
+  }
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const selectedOption = vote.options.find((option) => option.id === selectedOptionId);
 
   return (
-    <div className="mt-4 rounded-[20px] border border-[#E5E5EA] bg-[#F9F9FB] p-4">
-      <div className="mt-2 flex flex-col gap-2">
+    <div className="rounded-[20px]">
+      <div className="flex flex-col gap-2">
         {vote.options.map((option) => (
           <div
             key={option.id}

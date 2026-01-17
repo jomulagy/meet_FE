@@ -503,11 +503,29 @@ const PostDetailPage: React.FC = () => {
   }, [participationVote]);
 
   const renderClosedVote = (vote: Vote) => {
-    return (
-      <div className="mt-3 rounded-[16px] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#5856D6]">
-        {vote.result ? vote.result : "선택된 항목이 없습니다."}
-      </div>
-    );
+      if (vote.type === "date") {
+        return (
+          <div className="rounded-[16px] px-4 py-3 text-sm font-semibold text-[#5856D6]">
+            <DateVoteComplete vote={vote} />
+          </div>
+        );
+      }
+
+      if (vote.type === "place") {
+        return (
+          <div className="rounded-[16px] px-4 py-3 text-sm font-semibold text-[#5856D6]">
+            <PlaceVoteComplete vote={vote} />
+          </div>
+        );
+      }
+
+      if (vote.type === "text") {
+        return (
+          <div className="rounded-[16px] px-4 py-3 text-sm font-semibold text-[#5856D6]">
+            <TextVoteComplete vote={vote} />
+          </div>
+        );
+      }
   };
 
   const renderVoteState = (vote: Vote) => {
