@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../../components/FooterNav";
 import SearchPopup from "../../components/popUp/PlaceSearch";
+import { createTimeWheelHandler } from "@/utils/timeInput";
 
 type VotePlace = { name: string; xPos: string; yPos: string };
 
@@ -161,6 +162,8 @@ const MeetVote = () => {
             type="time"
             value={voteTime}
             onChange={(e) => setVoteTime(e.target.value)}
+            onWheel={createTimeWheelHandler(setVoteTime)}
+            step="60"
             className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
           />
         </div>

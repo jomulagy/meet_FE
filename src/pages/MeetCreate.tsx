@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import FooterNav from "../components/FooterNav";
 import { server } from "@/utils/axios";
 import SearchPopup from "../components/popUp/PlaceSearch"; // 팝업 컴포넌트
+import { createTimeWheelHandler } from "@/utils/timeInput";
 
 const MeetCreate: React.FC = () => {
     const [title, setTitle] = useState("");
@@ -126,6 +127,8 @@ const MeetCreate: React.FC = () => {
                                 type="time"
                                 value={time}
                                 onChange={(e) => setTime(e.target.value)}
+                                onWheel={createTimeWheelHandler(setTime)}
+                                step="60"
                                 className={`mt-2 block w-full text-[18px] font-bold 
                                 ${isDateTimeDisabled ? "bg-gray-300 text-gray-400" : time ? "text-black" : "text-gray-400 bg-transparent"}`}
                                 disabled={isDateTimeDisabled}
