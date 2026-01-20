@@ -22,9 +22,7 @@ export const DateVoteBefore: React.FC<{
   onDeleteOption,
 }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedYear, setSelectedYear] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState<"오전" | "오후">("오전");
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedMinute, setSelectedMinute] = useState("");
@@ -42,9 +40,7 @@ export const DateVoteBefore: React.FC<{
   }, [isPopupOpen]);
 
   const resetSelections = () => {
-    setSelectedYear("");
-    setSelectedMonth("");
-    setSelectedDay("");
+    setSelectedDate("");
     setSelectedPeriod("오전");
     setSelectedHour("");
     setSelectedMinute("");
@@ -52,41 +48,26 @@ export const DateVoteBefore: React.FC<{
   };
 
   const handleConfirm = () => {
-    if (!selectedYear || !selectedMonth || !selectedDay || !selectedHour || !selectedMinute) {
+    if (!selectedDate || !selectedHour || !selectedMinute) {
       setErrorMessage("날짜와 시간을 모두 선택해주세요.");
       return;
     }
 
-    const yearNum = Number(selectedYear);
-    const monthNum = Number(selectedMonth);
-    const dayNum = Number(selectedDay);
-    const maxDay = new Date(yearNum, monthNum, 0).getDate();
-
-    if (dayNum > maxDay) {
-      setErrorMessage("해당 월에 없는 날짜입니다. 다시 선택해주세요.");
-      return;
-    }
-
-    const month = selectedMonth.padStart(2, "0");
-    const day = selectedDay.padStart(2, "0");
     const hourNumber = Number(selectedHour);
     const hour24 = selectedPeriod === "오후" ? ((hourNumber % 12) + 12).toString().padStart(2, "0") : (hourNumber % 12).toString().padStart(2, "0");
-    onAddOption(`${selectedYear}-${month}-${day} ${hour24}:${selectedMinute}`);
+    onAddOption(`${selectedDate} ${hour24}:${selectedMinute}`);
     resetSelections();
     setIsPopupOpen(false);
   };
 
-  const today = new Date();
-  const yearOptions = [String(today.getFullYear()), String(today.getFullYear() + 1)];
-  const monthOptions = Array.from({ length: 12 }, (_, index) => String(index + 1));
-  const dayOptions = Array.from({ length: 31 }, (_, index) => String(index + 1));
+  const todayDate = new Date().toISOString().split("T")[0];
   const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
   const minuteOptions = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, "0"));
   const renderPickerColumn = <T extends string>(
     items: T[],
     selected: T,
     onSelect: (value: T) => void,
-    { allowWrap = true }: { allowWrap?: boolean } = {},
+    { allowWrap = true, scrollStep = 1 }: { allowWrap?: boolean; scrollStep?: number } = {},
   ) => {
     const selectedIndex = Math.max(0, items.indexOf(selected === "" ? items[0] : selected));
     const getNeighbor = (direction: 1 | -1) => {
@@ -102,8 +83,8 @@ export const DateVoteBefore: React.FC<{
     const prev = getNeighbor(-1);
     const next = getNeighbor(1);
 
-    const moveSelection = (direction: 1 | -1) => {
-      let newIndex = selectedIndex + direction;
+    const moveSelection = (direction: 1 | -1, step = 1) => {
+      let newIndex = selectedIndex + direction * step;
       if (allowWrap) {
         newIndex = (newIndex + items.length) % items.length;
       } else {
@@ -119,7 +100,7 @@ export const DateVoteBefore: React.FC<{
         className="flex h-40 w-16 flex-col items-center justify-center text-center text-xs font-semibold text-[#5856D6]"
         onWheel={(event) => {
           event.stopPropagation();
-          moveSelection(event.deltaY > 0 ? 1 : -1);
+          moveSelection(event.deltaY > 0 ? 1 : -1, scrollStep);
         }}
         onTouchStart={(event) => {
           touchStartY = event.touches[0].clientY;
@@ -128,7 +109,7 @@ export const DateVoteBefore: React.FC<{
           if (touchStartY === null) return;
           const deltaY = event.changedTouches[0].clientY - touchStartY;
           if (Math.abs(deltaY) > 10) {
-            moveSelection(deltaY > 0 ? -1 : 1);
+            moveSelection(deltaY > 0 ? -1 : 1, scrollStep);
           }
           touchStartY = null;
         }}
@@ -189,9 +170,7 @@ export const DateVoteBefore: React.FC<{
         <button
           type="button"
           onClick={() => {
-            setSelectedYear(yearOptions[0]);
-            setSelectedMonth(monthOptions[0]);
-            setSelectedDay(dayOptions[0]);
+            setSelectedDate(todayDate);
             setSelectedPeriod("오전");
             setSelectedHour(hourOptions[0]);
             setSelectedMinute(minuteOptions[0]);
@@ -227,18 +206,19 @@ export const DateVoteBefore: React.FC<{
             <div className="space-y-4">
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-[#8E8E93]">날짜</span>
-                <div className="flex items-center justify-center gap-3">
-                  {renderPickerColumn(yearOptions, selectedYear || yearOptions[0], setSelectedYear, { allowWrap: false })}
-                  {renderPickerColumn(monthOptions, selectedMonth || monthOptions[0], setSelectedMonth)}
-                  {renderPickerColumn(dayOptions, selectedDay || dayOptions[0], setSelectedDay)}
-                </div>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(event) => setSelectedDate(event.target.value)}
+                  className="w-full rounded-[12px] border border-[#E5E5EA] px-3 py-2 text-xs font-semibold text-[#1C1C1E]"
+                />
               </div>
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
                 <div className="flex items-center justify-center gap-3">
-                  {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod, { allowWrap: false })}
-                  {renderPickerColumn(hourOptions, selectedHour || hourOptions[0], setSelectedHour)}
-                  {renderPickerColumn(minuteOptions, selectedMinute || minuteOptions[0], setSelectedMinute)}
+                  {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod, { allowWrap: false, scrollStep: 2 })}
+                  {renderPickerColumn(hourOptions, selectedHour || hourOptions[0], setSelectedHour, { scrollStep: 2 })}
+                  {renderPickerColumn(minuteOptions, selectedMinute || minuteOptions[0], setSelectedMinute, { scrollStep: 2 })}
                 </div>
               </div>
             </div>

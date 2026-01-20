@@ -647,7 +647,7 @@ const PostDetailPage: React.FC = () => {
                     </div>
                   )}
                   <div className="mt-2 flex items-start justify-between">
-                    <h3 className="text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
+                    <h3 className="pl-2 text-base font-semibold text-[#1C1C1E]">{vote.title}</h3>
                     {!isClosed && (
                       <div className="flex flex-col items-end gap-1 text-[11px] font-semibold text-[#8E8E93]">
                         {vote.deadline && <span>마감일 : {formatVoteDeadline(vote.deadline)}</span>}
