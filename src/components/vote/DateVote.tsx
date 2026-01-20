@@ -159,6 +159,79 @@ export const DateVoteBefore: React.FC<{
   const todayDate = new Date().toISOString().split("T")[0];
   const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
   const minuteOptions = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, "0"));
+  const renderPickerColumn = <T extends string>(
+    items: T[],
+    selected: T,
+    onSelect: (value: T) => void,
+    { allowWrap = true, scrollStep = 1 }: { allowWrap?: boolean; scrollStep?: number } = {},
+  ) => {
+    const selectedIndex = Math.max(0, items.indexOf(selected === "" ? items[0] : selected));
+    const getNeighbor = (direction: 1 | -1) => {
+      if (allowWrap) {
+        return items[(selectedIndex + direction + items.length) % items.length];
+      }
+      const nextIndex = selectedIndex + direction;
+      if (nextIndex < 0 || nextIndex >= items.length) return "" as T;
+      return items[nextIndex];
+    };
+
+    const current = items[selectedIndex];
+    const prev = getNeighbor(-1);
+    const next = getNeighbor(1);
+
+    const moveSelection = (direction: 1 | -1, step = 1) => {
+      let newIndex = selectedIndex + direction * step;
+      if (allowWrap) {
+        newIndex = (newIndex + items.length) % items.length;
+      } else {
+        newIndex = Math.min(items.length - 1, Math.max(0, newIndex));
+      }
+      onSelect(items[newIndex]);
+    };
+
+    let touchStartY: number | null = null;
+
+    return (
+      <div
+        className="flex h-40 w-16 flex-col items-center justify-center text-center text-xs font-semibold text-[#5856D6]"
+        onWheel={(event) => {
+          event.stopPropagation();
+          moveSelection(event.deltaY > 0 ? 1 : -1, scrollStep);
+        }}
+        onTouchStart={(event) => {
+          touchStartY = event.touches[0].clientY;
+        }}
+        onTouchEnd={(event) => {
+          if (touchStartY === null) return;
+          const deltaY = event.changedTouches[0].clientY - touchStartY;
+          if (Math.abs(deltaY) > 10) {
+            moveSelection(deltaY > 0 ? -1 : 1, scrollStep);
+          }
+          touchStartY = null;
+        }}
+      >
+        <button
+          type="button"
+          className="w-full bg-transparent py-2 text-[#5856D6]"
+          onClick={() => moveSelection(-1)}
+        >
+          <span className="block h-5 leading-5">{prev || ""}</span>
+        </button>
+        <div className="h-px w-full bg-[#5856D6]" />
+        <div className="w-full py-2 text-sm font-bold text-[#5856D6]">
+          <span className="block h-6 leading-6">{current}</span>
+        </div>
+        <div className="h-px w-full bg-[#5856D6]" />
+        <button
+          type="button"
+          className="w-full bg-transparent py-2 text-[#5856D6]"
+          onClick={() => moveSelection(1)}
+        >
+          <span className="block h-5 leading-5">{next || ""}</span>
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="mt-4 rounded-[20px] border border-dashed border-[#C7C7CC] bg-[#F9F9FB] p-4">
@@ -239,25 +312,9 @@ export const DateVoteBefore: React.FC<{
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
                 <div className="flex items-center justify-center gap-3">
-                  <PickerColumn
-                    items={["오전", "오후"] as const}
-                    selected={selectedPeriod}
-                    onSelect={setSelectedPeriod}
-                    allowWrap={false}
-                    scrollStep={2}
-                  />
-                  <PickerColumn
-                    items={hourOptions}
-                    selected={selectedHour || hourOptions[0]}
-                    onSelect={setSelectedHour}
-                    scrollStep={2}
-                  />
-                  <PickerColumn
-                    items={minuteOptions}
-                    selected={selectedMinute || minuteOptions[0]}
-                    onSelect={setSelectedMinute}
-                    scrollStep={2}
-                  />
+                  {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod, { allowWrap: false, scrollStep: 2 })}
+                  {renderPickerColumn(hourOptions, selectedHour || hourOptions[0], setSelectedHour, { scrollStep: 2 })}
+                  {renderPickerColumn(minuteOptions, selectedMinute || minuteOptions[0], setSelectedMinute, { scrollStep: 2 })}
                 </div>
               </div>
             </div>
