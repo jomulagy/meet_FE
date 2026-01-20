@@ -48,6 +48,10 @@ const router: RouteObject[] = [
     element: <Pages.PostList />,
   },
   {
+    path: "/post/create/question",
+    element: <Pages.QnaCreate />,
+  },
+  {
     path: "/not-found",
     element: <Pages.NotFound />,
   },
@@ -62,6 +66,10 @@ const router: RouteObject[] = [
   {
     path: "/post/:postId",
     element: <Pages.PostDetail />,
+  },
+  {
+    path: "/post/question/:postId",
+    element: <Pages.QnaDetail />,
   },
   {
     path: "/meet/join/:meetId",

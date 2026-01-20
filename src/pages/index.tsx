@@ -92,3 +92,5 @@ export { default as AdminPermission } from "./admin/Permission";
 export { default as MeetVote } from "./admin/MeetVote";
 export { default as NotificationCreate } from "./admin/Notification";
 export { default as VoteCreate } from "./admin/VoteCreate";
+export { default as QnaCreate } from "./QnaCreate";
+export { default as QnaDetail } from "./QnaDetail";

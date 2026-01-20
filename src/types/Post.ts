@@ -8,6 +8,9 @@ export type Post = {
   isAuthor: string | null;     
   participantsNum: string | null; 
   participants: string[] | null; 
+  answerStatus?: string | null;
+  answered?: boolean | null;
+  answerYn?: string | null;
 };
 
 export type Place = {

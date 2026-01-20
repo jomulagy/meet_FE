@@ -4,13 +4,30 @@ import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import { Post } from "@/types/Post";
 
-const TYPE_ORDER = ["회식", "여행", "투표", "공지"];
+const TYPE_ORDER = ["회식", "여행", "투표", "공지", "Q&A"];
 
 const PostList: React.FC = () => {
   const [postList, setPostList] = useState<Post[]>([]);
   const [selectedType, setSelectedType] = useState<string>(TYPE_ORDER[0]);
   const navigate = useNavigate();
   const filteredPosts = postList;
+  const isQnaTab = selectedType === "Q&A";
+
+  const getAnswerStatus = (post: Post) => {
+    if (post.answerStatus) {
+      return post.answerStatus;
+    }
+
+    if (post.answered !== undefined && post.answered !== null) {
+      return post.answered ? "답변 완료" : "답변 없음";
+    }
+
+    if (post.answerYn) {
+      return post.answerYn === "Y" ? "답변 완료" : "답변 없음";
+    }
+
+    return "답변 없음";
+  };
 
   useEffect(() => {
     const fetchMeetList = async () => {
@@ -70,19 +87,33 @@ const PostList: React.FC = () => {
 
           {filteredPosts.length > 0 ? (
             <ul className="flex flex-col gap-4">
-              {filteredPosts.map((post) => (
-                <li key={post.id}>
-                  <Link
-                    to={`/post/${post.id}`}
-                    className="group flex w-full items-center justify-between gap-4 rounded-[22px] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(26,26,26,0.08)] transition-all duration-200 hover:shadow-[0_12px_30px_rgba(26,26,26,0.12)]"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-[#E1F0FF] px-[8px] py-[2px] text-[11px] font-semibold text-[#1E3A8A]">
-                            {post.type}
-                          </span>
-                        </div>
+              {filteredPosts.map((post) => {
+                const answerStatus = getAnswerStatus(post);
+
+                return (
+                  <li key={post.id}>
+                    <Link
+                      to={isQnaTab ? `/post/question/${post.id}` : `/post/${post.id}`}
+                      className="group flex w-full items-center justify-between gap-4 rounded-[22px] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(26,26,26,0.08)] transition-all duration-200 hover:shadow-[0_12px_30px_rgba(26,26,26,0.12)]"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-[#E1F0FF] px-[8px] py-[2px] text-[11px] font-semibold text-[#1E3A8A]">
+                              {isQnaTab ? post.type ?? "Q&A" : post.type}
+                            </span>
+                            {isQnaTab && (
+                              <span
+                                className={`rounded-full px-[8px] py-[2px] text-[11px] font-semibold ${
+                                  answerStatus === "답변 완료"
+                                    ? "bg-[#E8F5E9] text-[#2E7D32]"
+                                    : "bg-[#FFF8E1] text-[#FF8F00]"
+                                }`}
+                              >
+                                {answerStatus}
+                              </span>
+                            )}
+                          </div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-[15px] font-semibold text-[#1C1C1E] group-hover:text-[#5856D6]">
                             {post.title}
@@ -91,9 +122,10 @@ const PostList: React.FC = () => {
                       </div>
                     </div>
                     <i className="fa-solid fa-chevron-right text-[18px] text-[#AEAEB2] transition-colors group-hover:text-[#5856D6]"></i>
-                  </Link>
-                </li>
-              ))}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-[22px] bg-white px-6 py-10 text-center text-[#8E8E93] shadow-inner">
@@ -106,6 +138,18 @@ const PostList: React.FC = () => {
           )}
         </section>
       </main>
+
+      {isQnaTab && (
+        <div className="fixed bottom-20 left-0 right-0 z-20 flex justify-center px-6">
+          <button
+            type="button"
+            onClick={() => navigate("/post/create/question")}
+            className="w-full max-w-md rounded-full bg-[#5856D6] px-6 py-4 text-[15px] font-semibold text-white shadow-[0_12px_30px_rgba(88,86,214,0.35)] transition hover:bg-[#4B49C6]"
+          >
+            글 작성하기
+          </button>
+        </div>
+      )}
 
       <FooterNav />
     </div>
