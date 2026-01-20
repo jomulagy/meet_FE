@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import SearchPopup from "../components/popUp/PlaceSearch"; // 팝업 컴포넌트
+import { createTimeWheelHandler } from "@/utils/timeInput";
 
 const MeetEdit: React.FC = () => {
   const navigate = useNavigate();
@@ -144,6 +145,8 @@ const MeetEdit: React.FC = () => {
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
+              onWheel={createTimeWheelHandler(setTime)}
+              step="60"
               className="mt-2 block w-full text-[18px] font-bold bg-transparent"
             />
           </div>

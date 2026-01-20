@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import { Schedule } from "@/types/ScheduleVote";
+import { createTimeWheelHandler } from "@/utils/timeInput";
 
 type ScheduleVoteBeforeProps = {
   meetId: string;
@@ -149,6 +150,8 @@ const ScheduleVoteBefore = ({
             type="time"
             value={newTime}
             onChange={handleTimeChange}
+            onWheel={createTimeWheelHandler(setNewTime)}
+            step="60"
             className="border border-[#F2F2F7] rounded-lg px-2 py-1 w-full"
             />
             <div className="flex space-x-2">
