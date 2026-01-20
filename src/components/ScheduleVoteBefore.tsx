@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import { Schedule } from "@/types/ScheduleVote";
+import { createTimeTouchHandlers, createTimeWheelHandler } from "@/utils/timeInput";
 
 type ScheduleVoteBeforeProps = {
   meetId: string;
@@ -22,6 +23,7 @@ const ScheduleVoteBefore = ({
   const [newDate, setNewDate] = useState<string>("");
   const [newTime, setNewTime] = useState<string>("");
   const [isAdding, setIsAdding] = useState<boolean>(false); 
+  const timeTouchHandlers = createTimeTouchHandlers(setNewTime);
   const navigate = useNavigate();
 
   // 컴포넌트 마운트 시 초기 일정 목록 설정
@@ -149,6 +151,9 @@ const ScheduleVoteBefore = ({
             type="time"
             value={newTime}
             onChange={handleTimeChange}
+            onWheel={createTimeWheelHandler(setNewTime)}
+            {...timeTouchHandlers}
+            step="300"
             className="border border-[#F2F2F7] rounded-lg px-2 py-1 w-full"
             />
             <div className="flex space-x-2">

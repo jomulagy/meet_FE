@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../../components/FooterNav";
 import SearchPopup from "../../components/popUp/PlaceSearch";
+import { createTimeTouchHandlers, createTimeWheelHandler } from "@/utils/timeInput";
 
 type VotePlace = { name: string; xPos: string; yPos: string };
 
@@ -21,6 +22,7 @@ const MeetVote = () => {
   });
   const [voteContent, setVoteContent] = useState<string>("");
   const [voteDeadline, setVoteDeadline] = useState<string>("");
+  const timeTouchHandlers = createTimeTouchHandlers(setVoteTime);
 
   const isLoading = useMemo(() => hasPrivilege === undefined, [hasPrivilege]);
 
@@ -161,6 +163,9 @@ const MeetVote = () => {
             type="time"
             value={voteTime}
             onChange={(e) => setVoteTime(e.target.value)}
+            onWheel={createTimeWheelHandler(setVoteTime)}
+            {...timeTouchHandlers}
+            step="300"
             className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
           />
         </div>
