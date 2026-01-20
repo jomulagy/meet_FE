@@ -1,6 +1,102 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { Vote } from "../../types/vote";
 import VotedMemberList from "../popUp/VotedMemberList";
+
+type PickerColumnProps<T extends string> = {
+  items: T[];
+  selected: T;
+  onSelect: (value: T) => void;
+  allowWrap?: boolean;
+  scrollStep?: number;
+};
+
+const PickerColumn = <T extends string>({
+  items,
+  selected,
+  onSelect,
+  allowWrap = true,
+  scrollStep = 1,
+}: PickerColumnProps<T>) => {
+  const selectedIndex = Math.max(0, items.indexOf(selected === "" ? items[0] : selected));
+  const getNeighbor = (direction: 1 | -1) => {
+    if (allowWrap) {
+      return items[(selectedIndex + direction + items.length) % items.length];
+    }
+    const nextIndex = selectedIndex + direction;
+    if (nextIndex < 0 || nextIndex >= items.length) return "" as T;
+    return items[nextIndex];
+  };
+
+  const current = items[selectedIndex];
+  const prev = getNeighbor(-1);
+  const next = getNeighbor(1);
+
+  const moveSelection = (direction: 1 | -1, step = 1) => {
+    let newIndex = selectedIndex + direction * step;
+    if (allowWrap) {
+      newIndex = (newIndex + items.length) % items.length;
+    } else {
+      newIndex = Math.min(items.length - 1, Math.max(0, newIndex));
+    }
+    onSelect(items[newIndex]);
+  };
+
+  const touchStartY = useRef<number | null>(null);
+  const wheelDeltaRef = useRef(0);
+  const wheelFrameRef = useRef<number | null>(null);
+  const baseWheelStep = 24;
+
+  return (
+    <div
+      className="flex h-40 w-16 flex-col items-center justify-center text-center text-xs font-semibold text-[#5856D6]"
+      onWheel={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        wheelDeltaRef.current += event.deltaY;
+        if (wheelFrameRef.current !== null) return;
+        wheelFrameRef.current = window.requestAnimationFrame(() => {
+          const delta = wheelDeltaRef.current;
+          const direction = delta > 0 ? 1 : -1;
+          const steps = Math.max(1, Math.round(Math.abs(delta) / baseWheelStep));
+          moveSelection(direction, steps * scrollStep);
+          wheelDeltaRef.current = 0;
+          wheelFrameRef.current = null;
+        });
+      }}
+      onTouchStart={(event) => {
+        touchStartY.current = event.touches[0].clientY;
+      }}
+      onTouchEnd={(event) => {
+        if (touchStartY.current === null) return;
+        const deltaY = event.changedTouches[0].clientY - touchStartY.current;
+        if (Math.abs(deltaY) > 10) {
+          moveSelection(deltaY > 0 ? -1 : 1, scrollStep);
+        }
+        touchStartY.current = null;
+      }}
+    >
+      <button
+        type="button"
+        className="w-full bg-transparent py-2 text-[#5856D6]"
+        onClick={() => moveSelection(-1)}
+      >
+        <span className="block h-5 leading-5">{prev || ""}</span>
+      </button>
+      <div className="h-px w-full bg-[#5856D6]" />
+      <div className="w-full py-2 text-sm font-bold text-[#5856D6]">
+        <span className="block h-6 leading-6">{current}</span>
+      </div>
+      <div className="h-px w-full bg-[#5856D6]" />
+      <button
+        type="button"
+        className="w-full bg-transparent py-2 text-[#5856D6]"
+        onClick={() => moveSelection(1)}
+      >
+        <span className="block h-5 leading-5">{next || ""}</span>
+      </button>
+    </div>
+  );
+};
 
 export const DateVoteBefore: React.FC<{
   vote: Vote;
