@@ -151,7 +151,7 @@ const ScheduleVoteBefore = ({
             value={newTime}
             onChange={handleTimeChange}
             onWheel={createTimeWheelHandler(setNewTime)}
-            step="60"
+            step="300"
             className="border border-[#F2F2F7] rounded-lg px-2 py-1 w-full"
             />
             <div className="flex space-x-2">

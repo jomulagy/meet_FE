@@ -146,7 +146,7 @@ const MeetEdit: React.FC = () => {
               value={time}
               onChange={(e) => setTime(e.target.value)}
               onWheel={createTimeWheelHandler(setTime)}
-              step="60"
+              step="300"
               className="mt-2 block w-full text-[18px] font-bold bg-transparent"
             />
           </div>

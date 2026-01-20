@@ -163,7 +163,7 @@ const MeetVote = () => {
             value={voteTime}
             onChange={(e) => setVoteTime(e.target.value)}
             onWheel={createTimeWheelHandler(setVoteTime)}
-            step="60"
+            step="300"
             className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
           />
         </div>
