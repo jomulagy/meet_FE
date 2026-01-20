@@ -1,4 +1,4 @@
-import type { WheelEvent } from "react";
+import type { TouchEvent, WheelEvent } from "react";
 
 const MINUTES_IN_DAY = 24 * 60;
 
@@ -83,3 +83,58 @@ export const createTimeWheelHandler =
 
     onChange(formatTimeValue(nextMinutes));
   };
+
+export const createTimeTouchHandlers = (onChange: (value: string) => void) => {
+  let startY: number | null = null;
+  let accumulatedDelta = 0;
+
+  const getBaseMinutes = (value: string) => {
+    const parsed = parseTimeValue(value);
+    return parsed ?? 0;
+  };
+
+  const applyDeltaMinutes = (
+    event: TouchEvent<HTMLInputElement>,
+    deltaMinutes: number,
+  ) => {
+    if (deltaMinutes === 0) {
+      return;
+    }
+
+    const currentValue = event.currentTarget.value || "00:00";
+    const baseMinutes = getBaseMinutes(currentValue);
+    onChange(formatTimeValue(baseMinutes + deltaMinutes));
+  };
+
+  return {
+    onTouchStart: (event: TouchEvent<HTMLInputElement>) => {
+      startY = event.touches[0]?.clientY ?? null;
+      accumulatedDelta = 0;
+    },
+    onTouchMove: (event: TouchEvent<HTMLInputElement>) => {
+      if (startY === null) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const currentY = event.touches[0]?.clientY ?? startY;
+      const deltaY = startY - currentY;
+      startY = currentY;
+      accumulatedDelta += deltaY;
+
+      const stepPixels = 30;
+      const stepMinutes = 5;
+      const steps = Math.trunc(accumulatedDelta / stepPixels);
+
+      if (steps !== 0) {
+        accumulatedDelta -= steps * stepPixels;
+        applyDeltaMinutes(event, steps * stepMinutes);
+      }
+    },
+    onTouchEnd: () => {
+      startY = null;
+      accumulatedDelta = 0;
+    },
+  };
+};
