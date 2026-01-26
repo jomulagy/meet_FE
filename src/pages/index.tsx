@@ -36,7 +36,7 @@ export const Home: React.FC = () => {
               원하는 주제의 모임을 골라 함께하는 즐거움을 경험해보세요.
             </p>
             <Link
-              to="/meet/list"
+              to="/post/list"
               className="mt-2 inline-flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-[12px] font-semibold text-[#1E3A8A] shadow-md transition hover:shadow-lg"
             >
               모임 둘러보기
