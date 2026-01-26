@@ -219,8 +219,8 @@ export const DateVoteBefore: React.FC<{
                 <span className="text-[11px] font-semibold text-[#8E8E93]">시간</span>
                 <div className="flex items-center justify-center gap-3">
                   {renderPickerColumn(["오전", "오후"] as const, selectedPeriod, setSelectedPeriod, { allowWrap: false, wheelStep: 1, touchStep: 1 })}
-                  {renderPickerColumn(hourOptions, selectedHour || hourOptions[0], setSelectedHour, { wheelStep: 1, touchStep: 2 })}
-                  {renderPickerColumn(minuteOptions, selectedMinute || minuteOptions[0], setSelectedMinute, { wheelStep: 1, touchStep: 2 })}
+                  {renderPickerColumn(hourOptions, selectedHour || hourOptions[0], setSelectedHour, { wheelStep: 1, touchStep: 1 })}
+                  {renderPickerColumn(minuteOptions, selectedMinute || minuteOptions[0], setSelectedMinute, { wheelStep: 1, touchStep: 1 })}
                 </div>
               </div>
             </div>
