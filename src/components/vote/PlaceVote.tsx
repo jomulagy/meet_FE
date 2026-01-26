@@ -10,7 +10,6 @@ export const PlaceVoteBefore: React.FC<{
   onToggleOption: (optionId: string) => void;
   onVote: () => void;
   onAddOption: (label: string) => void;
-  canDeleteOption?: boolean;
   onDeleteOption?: (optionId: string) => void;
 }> = ({
   vote,
@@ -19,7 +18,6 @@ export const PlaceVoteBefore: React.FC<{
   onToggleOption,
   onVote,
   onAddOption,
-  canDeleteOption,
   onDeleteOption,
 }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -58,7 +56,7 @@ export const PlaceVoteBefore: React.FC<{
               className="h-4 w-4 text-[#5856D6]"
             />
             <span className="flex-1">{option.label}</span>
-            {canDeleteOption && option.editable && (
+            {option.editable && (
               <button
                 type="button"
                 className="text-[11px] font-semibold text-[#FF3B30] bg-transparent"

@@ -548,7 +548,6 @@ const PostDetailPage: React.FC = () => {
             onToggleOption={onToggleOption}
             onVote={onVote}
             onAddOption={onAddOption}
-            canDeleteOption={canManageVotes}
             onDeleteOption={(optionId) => handleDeleteOption(optionId)}
           />
         );
@@ -566,7 +565,6 @@ const PostDetailPage: React.FC = () => {
             onToggleOption={onToggleOption}
             onVote={onVote}
             onAddOption={onAddOption}
-            canDeleteOption={canManageVotes}
             onDeleteOption={(optionId) => handleDeleteOption(optionId)}
           />
         );
@@ -583,7 +581,6 @@ const PostDetailPage: React.FC = () => {
           onToggleOption={onToggleOption}
           onVote={onVote}
           onAddOption={onAddOption}
-          canDeleteOption={canManageVotes}
           onDeleteOption={(optionId) => handleDeleteOption(optionId)}
         />
       );
