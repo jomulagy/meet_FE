@@ -70,7 +70,19 @@ const router: RouteObject[] = [
   {
     path: "/meet/create",
     element: <Pages.MeetCreate />
-  }
+  },
+  {
+    path: "/attendance",
+    element: <Pages.AttendancePage />,
+  },
+  {
+    path: "/admin/fine",
+    element: <Pages.FineManagement />,
+  },
+  {
+    path: "/attendance/:postId",
+    element: <Pages.AttendanceVotePage />,
+  },
 ];
 
 export default router;

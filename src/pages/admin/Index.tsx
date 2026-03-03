@@ -58,6 +58,22 @@ const Admin = () => {
       ],
     },
     {
+      id: "attendance",
+      label: "참여 관리",
+      items: [
+        {
+          id: "attendance-list",
+          label: "참여 여부 입력",
+          action: () => navigate("/attendance"),
+        },
+        {
+          id: "fine-management",
+          label: "벌금 관리",
+          action: () => navigate("/admin/fine"),
+        },
+      ],
+    },
+    {
       id: "vote",
       label: "투표 생성",
       items: [

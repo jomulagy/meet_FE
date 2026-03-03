@@ -1,18 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FooterNav from "../components/FooterNav";
+import { fetchDefectionStatus, type DefectionMember } from "../api/home";
 
 type Tab = "rules" | "status";
 
 export const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>("rules");
-  // TODO: API 연동 시 교체
-  const members = [
-    { name: "김민수", consecutive: 0 },
-    { name: "이수진", consecutive: 1 },
-    { name: "박지훈", consecutive: 3 },
-    { name: "최유리", consecutive: 2 },
-    { name: "정태영", consecutive: 5 },
-  ];
+  const [members, setMembers] = useState<DefectionMember[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+
+  useEffect(() => {
+    if (activeTab !== "status") return;
+    fetchDefectionStatus().then((res) => {
+      setMembers(res.members);
+      setTotalCount(res.totalCount);
+    });
+  }, [activeTab]);
 
   const rules = [
     {
@@ -105,16 +108,14 @@ export const Home: React.FC = () => {
         {activeTab === "status" && (
           <section>
             <div className="mb-4 flex items-center justify-between text-[#8E8E93]">
-              <span className="text-[12px] font-medium">총 {members.filter((m) => m.consecutive > 0).length}명</span>
+              <span className="text-[12px] font-medium">총 {totalCount}명</span>
             </div>
             <div className="flex flex-col gap-3">
-              {members.filter((m) => m.consecutive > 0).map((member) => {
-                const isPenalty = member.consecutive >= 3;
-                return (
+              {members.map((member) => (
                   <div
-                    key={member.name}
+                    key={member.memberId}
                     className={`flex items-center justify-between rounded-[22px] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(26,26,26,0.08)] ${
-                      isPenalty ? "border border-[#FF3B30]" : ""
+                      member.isPenalty ? "border border-[#FF3B30]" : ""
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -128,22 +129,21 @@ export const Home: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span
                         className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                          isPenalty
+                          member.isPenalty
                             ? "bg-[#FF3B30]/10 text-[#FF3B30]"
                             : "bg-[#FF9500]/10 text-[#FF9500]"
                         }`}
                       >
-                        연속 {member.consecutive}회 불참
+                        연속 {member.consecutiveAbsences}회 불참
                       </span>
-                      {isPenalty && (
+                      {member.isPenalty && (
                         <span className="rounded-full bg-[#FF3B30] px-2 py-1 text-[10px] font-bold text-white">
                           패널티
                         </span>
                       )}
                     </div>
                   </div>
-                );
-              })}
+              ))}
             </div>
           </section>
         )}
@@ -172,3 +172,6 @@ export { default as AdminPermission } from "./admin/Permission";
 export { default as MeetVote } from "./admin/MeetVote";
 export { default as NotificationCreate } from "./admin/Notification";
 export { default as VoteCreate } from "./admin/VoteCreate";
+export { default as AttendancePage } from "./AttendancePage";
+export { default as AttendanceVotePage } from "./AttendanceVotePage";
+export { default as FineManagement } from "./admin/FineManagement";

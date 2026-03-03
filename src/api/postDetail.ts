@@ -6,7 +6,6 @@ import {
   VoteOptionResponse,
 } from "../types/postDetailResponse";
 import { server } from "@/utils/axios";
-type ParticipationChoice = "yes" | "no" | null;
 
 const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -29,41 +28,6 @@ const cloneVotes = (votes: VoteItemResponse[]) => new VoteListResponse(votes.map
 
 let postDetailStore = new PostDetailResponse("", "", "", false, false);
 let voteStore: VoteItemResponse[] = [];
-
-type ParticipationVoteItemPayload = {
-  id?: string | number;
-  name?: string;
-  memberList?: unknown[];
-  vote?: boolean;
-};
-
-type ParticipationVotePayload = {
-  id?: string | number;
-  endDate?: string;
-  itemList?: ParticipationVoteItemPayload[];
-  participants?: (string | number)[];
-  active?: boolean;
-  voted?: boolean;
-};
-
-type ParticipationVoteApiResponse = { data?: ParticipationVotePayload } | ParticipationVotePayload;
-
-export type ParticipationVoteResponse = {
-  vote: {
-    id: string;
-    activeYn: "Y" | "N";
-    hasVoted: boolean;
-    endDate?: string | null;
-    yesCount: number;
-    noCount: number;
-    participantCount: number;
-    yesMembers: { name: string }[];
-    noMembers: { name: string }[];
-    yesOptionId?: string;
-    noOptionId?: string;
-  };
-  votedChoice: ParticipationChoice;
-};
 
 const ensurePostDetailStore = (postId: string) => {
   if (postId && postDetailStore.id !== postId) {
@@ -191,6 +155,45 @@ export const fetchVoteList = async (postId: string): Promise<VoteListResponse> =
   return cloneVotes(votes);
 };
 
+// ============== 참여 여부 투표 API (PostDetail용) ==============
+
+type ParticipationChoice = "yes" | "no" | null;
+
+type ParticipationVoteItemPayload = {
+  id?: string | number;
+  name?: string;
+  memberList?: unknown[];
+  vote?: boolean;
+};
+
+type ParticipationVotePayload = {
+  id?: string | number;
+  endDate?: string;
+  itemList?: ParticipationVoteItemPayload[];
+  participants?: (string | number)[];
+  active?: boolean;
+  voted?: boolean;
+};
+
+type ParticipationVoteApiResponse = { data?: ParticipationVotePayload } | ParticipationVotePayload;
+
+export type ParticipationVoteResponse = {
+  vote: {
+    id: string;
+    activeYn: "Y" | "N";
+    hasVoted: boolean;
+    endDate?: string | null;
+    yesCount: number;
+    noCount: number;
+    participantCount: number;
+    yesMembers: { name: string }[];
+    noMembers: { name: string }[];
+    yesOptionId?: string;
+    noOptionId?: string;
+  };
+  votedChoice: ParticipationChoice;
+};
+
 export const fetchParticipationVote = async (postId: string): Promise<ParticipationVoteResponse | null> => {
   if (!postId) {
     return null;
@@ -268,6 +271,83 @@ export const terminateParticipationVote = async ({ postId }: { postId: string })
 export const deleteParticipationVote = async ({ postId }: { postId: string }) =>
   server.delete("/participate", {
     params: { postId },
+  });
+
+// ============== 출석 관리 API (AttendancePage용) ==============
+
+export type AttendanceRecord = {
+  attendanceId?: number;
+  memberId: string;
+  memberName: string;
+  attended: boolean | null; // true: 참여, false: 불참, null: 미정
+  consecutiveAbsences?: number;
+  penaltyPaid?: boolean;
+  attendanceDate?: string;
+};
+
+export type AttendanceResponse = {
+  postId: string;
+  postTitle?: string;
+  totalAttended?: number;
+  totalAbsent?: number;
+  records: AttendanceRecord[];
+};
+
+type AttendanceApiResponse = {
+  postId: number;
+  postTitle: string;
+  totalAttended: number;
+  totalAbsent: number;
+  attendanceRecords: {
+    attendanceId: number;
+    memberId: number;
+    memberName: string;
+    isAttended: boolean;
+    consecutiveAbsences: number;
+    penaltyPaid: boolean;
+    attendanceDate: string;
+  }[];
+};
+
+// 출석 현황 조회
+export const fetchAttendance = async (postId: string): Promise<AttendanceResponse> => {
+  const response = await server.get(`/attendance/${postId}`);
+  // axios interceptor가 response.data를 반환하므로, response.data로 실제 데이터 접근
+  const data = response.data as AttendanceApiResponse;
+
+  return {
+    postId: String(data.postId ?? postId),
+    postTitle: data.postTitle,
+    totalAttended: data.totalAttended,
+    totalAbsent: data.totalAbsent,
+    records: (data.attendanceRecords ?? []).map((record) => ({
+      attendanceId: record.attendanceId,
+      memberId: String(record.memberId),
+      memberName: record.memberName,
+      attended: record.isAttended,
+      consecutiveAbsences: record.consecutiveAbsences,
+      penaltyPaid: record.penaltyPaid,
+      attendanceDate: record.attendanceDate,
+    })),
+  };
+};
+
+// 출석 현황 저장 (관리자만)
+export const saveAttendance = async ({
+  postId,
+  attendedMembers,
+  absentMembers,
+}: {
+  postId: string;
+  attendedMembers: string[];
+  absentMembers: string[];
+}) =>
+  server.post("/attendance", {
+    data: {
+      postId,
+      attendedMembers,
+      absentMembers,
+    },
   });
 
 export const addVoteOption = async ({
@@ -375,6 +455,13 @@ export const closeAllVotes = async ({ postId }: { postId: string }): Promise<Vot
   return fetchVoteList(postId);
 };
 
+export const updateMeetDate = async ({ postId, meetDate }: { postId: string; meetDate: string }) =>
+  server.put(`/post/${postId}/meetDate`, {
+    data: {
+      meetDate,
+    },
+  });
+
 export const reopenVote = async (voteId: string): Promise<VoteListResponse> => {
   await delay();
   voteStore = voteStore.map((vote) => {
@@ -469,3 +556,25 @@ export const deleteVoteItem = async ({
 
   return targetId;
 };
+
+// 전체 회원 목록 조회
+export const fetchMemberList = async (): Promise<{ id: string; name: string }[]> => {
+  const response = await server.get<{ data?: { id: string | number; name: string }[] }>("/member/list");
+  const members = (response as { data?: { id: string | number; name: string }[] })?.data ?? (response as { id: string | number; name: string }[]) ?? [];
+  return members.map((member) => ({
+    id: String(member.id),
+    name: member.name,
+  }));
+};
+
+// 관리자 권한 확인
+export const fetchUserPrivilege = async (): Promise<{ isAdmin: boolean }> => {
+  try {
+    const response = await server.get<{ data?: { previllege: string } }>("/member/previllege");
+    const privilege = (response as { data?: { previllege: string } })?.data?.previllege ?? (response as { previllege: string })?.previllege;
+    return { isAdmin: privilege === "admin" };
+  } catch {
+    return { isAdmin: false };
+  }
+};
+

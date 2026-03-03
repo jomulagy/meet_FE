@@ -20,6 +20,7 @@ import {
   deleteParticipationVote,
   submitParticipationVote,
   terminateParticipationVote,
+  updateMeetDate,
 } from "../api/postDetail";
 import {
   PostDetailResponse,
@@ -91,6 +92,9 @@ const PostDetailPage: React.FC = () => {
   const [newVoteDeadline, setNewVoteDeadline] = useState("");
   const [newVoteAllowDuplicate, setNewVoteAllowDuplicate] = useState(false);
   const [newVoteErrors, setNewVoteErrors] = useState<{ title?: string; deadline?: string }>({});
+  const [isMeetDateModalOpen, setIsMeetDateModalOpen] = useState(false);
+  const [meetDate, setMeetDate] = useState("");
+  const [meetDateError, setMeetDateError] = useState("");
 
   const { data: postDetail, isPending: isPostLoading } = useQuery<PostDetail>({
     queryKey: ["postDetail", postId],
@@ -265,6 +269,21 @@ const PostDetailPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["postVotes", postId] });
       queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
       queryClient.invalidateQueries({ queryKey: ["participationVote", postId] });
+      // 투표 종료 성공 시 날짜 입력 팝업 열기
+      setIsMeetDateModalOpen(true);
+    },
+  });
+
+  const updateMeetDateMutation = useMutation({
+    mutationFn: (date: string) => {
+      if (!postId) throw new Error("postId is required");
+      return updateMeetDate({ postId, meetDate: date });
+    },
+    onSuccess: () => {
+      setIsMeetDateModalOpen(false);
+      setMeetDate("");
+      setMeetDateError("");
+      queryClient.invalidateQueries({ queryKey: ["postDetail", postId] });
     },
   });
 
@@ -476,6 +495,15 @@ const PostDetailPage: React.FC = () => {
 
   const handleEndAllVotes = () => {
     closeAllVotesMutation.mutate();
+  };
+
+  const handleSubmitMeetDate = () => {
+    if (!meetDate) {
+      setMeetDateError("모임 날짜를 선택해주세요.");
+      return;
+    }
+    setMeetDateError("");
+    updateMeetDateMutation.mutate(meetDate);
   };
 
   const handleEndParticipationVote = () => {
@@ -959,6 +987,52 @@ const PostDetailPage: React.FC = () => {
           selectedItem={{ memberList: participationPopupMembers }}
           closePopup={() => setParticipationPopupMembers(null)}
         />
+      )}
+
+      {isMeetDateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5856D6]/20 px-4">
+          <div className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-lg">
+            <h3 className="text-base font-semibold text-[#1C1C1E]">모임 날짜 입력</h3>
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#8E8E93]">모임 날짜</label>
+                <input
+                  type="date"
+                  value={meetDate}
+                  onChange={(e) => {
+                    setMeetDate(e.target.value);
+                    setMeetDateError("");
+                  }}
+                  className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-sm font-semibold text-[#4C4ACB] focus:border-[#FFE607] focus:outline-none"
+                />
+                {meetDateError && (
+                  <p className="text-[11px] font-semibold text-[#FF3B30]">{meetDateError}</p>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMeetDateModalOpen(false);
+                  setMeetDate("");
+                  setMeetDateError("");
+                }}
+                className="flex-1 rounded-[14px] border border-[#E5E5EA] bg-white px-4 py-3 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmitMeetDate}
+                disabled={updateMeetDateMutation.isPending}
+                className="flex-1 rounded-[14px] bg-[#5856D6] px-4 py-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#4C4ACB] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {updateMeetDateMutation.isPending ? "저장 중..." : "확인"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <FooterNav />
