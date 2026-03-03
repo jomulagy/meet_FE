@@ -289,13 +289,15 @@ const AttendanceVotePage: React.FC = () => {
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleEdit}
-                  className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
-                >
-                  수정하기
-                </button>
+                {privilegeData?.isAdmin && (
+                  <button
+                    type="button"
+                    onClick={handleEdit}
+                    className="w-full rounded-[16px] border border-[#E5E5EA] bg-white px-5 py-2 text-xs font-semibold text-[#5856D6] transition hover:border-[#C7C7CC]"
+                  >
+                    수정하기
+                  </button>
+                )}
               </div>
             )}
           </div>
