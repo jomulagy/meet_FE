@@ -8,10 +8,12 @@ import FooterNav from "../components/FooterNav";
 import { server } from "@/utils/axios";
 import { voteItem } from "@/types/JoinVote";
 import { ParticipationInfo } from "@/types/participationInfo";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 const JoinVotePage = () => {
   const navigate = useNavigate();
   const { meetId } = useParams();
+  const { showError } = useErrorPopup();
 
   const [meet, setMeet] = useState<ParticipationInfo | null>(null);
   const [itemList, setItemList] = useState<voteItem[]>([]);
@@ -21,7 +23,7 @@ const JoinVotePage = () => {
 
   useEffect(() => {
     if (!meetId) {
-      navigate("/not-found");
+      navigate("/post/list");
       return;
     }
 
@@ -65,11 +67,12 @@ const JoinVotePage = () => {
         });
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -92,11 +95,12 @@ const JoinVotePage = () => {
         });
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -107,11 +111,12 @@ const JoinVotePage = () => {
         setItemList(response.data);
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -149,11 +154,12 @@ const JoinVotePage = () => {
         navigate("/");
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 

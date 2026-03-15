@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import { Place } from "@/types/PlaceVote";
 import SearchPopup from "./popUp/PlaceSearch"; // 팝업 컴포넌트
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 type PlaceVoteBeforeProps = {
   meetId: string;//모임 Id
@@ -24,6 +25,7 @@ const PlaceVoteBefore = ({
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false); // 팝업 상태
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
 
   useEffect(() => {
     setPlaces(placeList);
@@ -55,11 +57,12 @@ const PlaceVoteBefore = ({
         setIsAdding(false);
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -70,11 +73,12 @@ const PlaceVoteBefore = ({
         setPlaces((prevList) => prevList.filter((place) => place.id !== id));
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -113,15 +117,13 @@ const PlaceVoteBefore = ({
         setIsPopupOpen(false);
       })
       .catch((error) => {
-        if (error.response) {
-          if (error.response.status === 403) {
-            navigate("/Unauthorized");
-          } else if (error.response.status === 404) {
-            navigate("/not-found");
-          }
-        } else {
-          console.error("Network error or timeout", error);
-        }
+        const code = error.code ?? String(error.response?.status);
+        const onClose = code === "403"
+          ? () => navigate("/auth/login")
+          : code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
   

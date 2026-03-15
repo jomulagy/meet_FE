@@ -2,6 +2,7 @@ import { voteItem } from "@/types/JoinVote";
 import React, { useState } from "react";
 import { server } from "@/utils/axios";
 import { useNavigate } from "react-router-dom";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 // 투표 전 컴포넌트
 const JoinVoteBefore = ({
@@ -17,6 +18,7 @@ const JoinVoteBefore = ({
 }) => {
   const [participateId, setParticipateId] = useState<string>("");
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
   const handleVote = () => {
     if (participateId) {
       server.put("/meet/participate", {
@@ -30,11 +32,12 @@ const JoinVoteBefore = ({
         setVotedItem(participateId);
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
       
     }

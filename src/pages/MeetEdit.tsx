@@ -4,10 +4,12 @@ import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import SearchPopup from "../components/popUp/PlaceSearch"; // 팝업 컴포넌트
 import { createTimeTouchHandlers, createTimeWheelHandler } from "@/utils/timeInput";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 const MeetEdit: React.FC = () => {
   const navigate = useNavigate();
   const { meetId } = useParams(); //meetId 가져오기
+  const { showError } = useErrorPopup();
 
   // 초기 상태를 빈 문자열이나 빈 객체로 설정
   const [title, setTitle] = useState<string>("");
@@ -40,14 +42,13 @@ const MeetEdit: React.FC = () => {
           setContent(response.data.content || "");
         })
         .catch((error) => {
-          if (error.code === "403") {
-            navigate("/Unauthorized");
-          } else if (error.code === "404") {
-            navigate("/not-found");
-          }
+          const onClose = error.code === "403"
+            ? () => navigate("/auth/login")
+            : () => navigate("/post/list");
+          showError(error.message || "데이터를 불러오는 중 오류가 발생했습니다.", onClose);
         });
     } else {
-      navigate("/not-found"); //meetId가 없으면 
+      navigate("/post/list"); //meetId가 없으면
     }
   }, [meetId]);
 
@@ -82,12 +83,7 @@ const MeetEdit: React.FC = () => {
         navigate(`/meet/${meetId}`); //저장 성공 하면 모임 상세로 가는 navigate
       })
       .catch((error) => {
-        console.error(error);
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        showError(error.message || "저장 중 오류가 발생했습니다.");
       });
   };
 

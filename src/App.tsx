@@ -5,6 +5,7 @@ import router from "./utils/router";
 import React, { useEffect } from "react";
 import AuthInterceptor from "./utils/authInterceptor";
 import { NotFound } from "./pages/Exceptions/notFound";
+import { ErrorPopupProvider } from "./context/ErrorPopupContext";
 
 function App() {
   useEffect(() => {
@@ -34,16 +35,18 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AuthInterceptor />}>
-          {router.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-        </Route>
-        <Route path="*" element={<NotFound />} /> // 404 경로 추가
-      </Routes>
-    </BrowserRouter>
+    <ErrorPopupProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AuthInterceptor />}>
+            {router.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+          </Route>
+          <Route path="*" element={<NotFound />} /> // 404 경로 추가
+        </Routes>
+      </BrowserRouter>
+    </ErrorPopupProvider>
   );
 }
 

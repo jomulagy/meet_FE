@@ -4,6 +4,7 @@ import FooterNav from "../components/FooterNav";
 import { server } from "@/utils/axios";
 import SearchPopup from "../components/popUp/PlaceSearch"; // 팝업 컴포넌트
 import { createTimeTouchHandlers, createTimeWheelHandler } from "@/utils/timeInput";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 const MeetCreate: React.FC = () => {
     const [title, setTitle] = useState("");
@@ -20,6 +21,7 @@ const MeetCreate: React.FC = () => {
     const [isPlaceDisabled, setIsPlaceDisabled] = useState<boolean>(false);
     const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false); // 팝업 상태
     const navigate = useNavigate();
+    const { showError } = useErrorPopup();
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);  // 오늘 날짜의 시간 부분을 00:00:00으로 설정
@@ -60,14 +62,7 @@ const MeetCreate: React.FC = () => {
                 navigate("/");
             })
             .catch((error) => {
-                console.error(error);
-                if (error.code === "403") {
-                    navigate("/Unauthorized");
-                } else if (error.code === "404") {
-                    navigate("/not-found");
-                } else {
-                    alert("만남 생성에 실패했습니다.");
-                }
+                showError(error.message || "만남 생성에 실패했습니다.");
             });
     };
 

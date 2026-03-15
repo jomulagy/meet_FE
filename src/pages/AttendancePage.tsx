@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import { Post } from "@/types/Post";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 const AttendancePage: React.FC = () => {
   const [postList, setPostList] = useState<Post[]>([]);
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
 
   useEffect(() => {
     const fetchList = async () => {
@@ -16,9 +18,8 @@ const AttendancePage: React.FC = () => {
           server.get(`/post/list`, { params: { type: "여행" } }),
         ]);
         setPostList([...partyRes.data, ...travelRes.data]);
-      } catch (error) {
-        console.error(error);
-        navigate("/not-found");
+      } catch (error: any) {
+        showError(error?.message || "데이터를 불러오는 중 오류가 발생했습니다.");
       }
     };
 

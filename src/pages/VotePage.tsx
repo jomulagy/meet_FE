@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 import ScheduleVoteBefore from "@/components/ScheduleVoteBefore";
 import ScheduleVoteAfter from "@/components/ScheduleVoteAfter";
 import PlaceVoteBefore from "@/components/PlaceVoteBefore";
@@ -17,6 +18,7 @@ type MeetInfo = {
 const VotePage = () => {
   const navigate = useNavigate();
   const { meetId } = useParams();
+  const { showError } = useErrorPopup();
   const [meet, setMeet] = useState<MeetInfo>({ meetTitle: "", endDate: "", isAuthor: false });
   const [scheduleList, setScheduleList] = useState<Schedule[]>([]);
   const [placeList, setPlaceList] = useState<Place[]>([]);
@@ -60,12 +62,12 @@ const VotePage = () => {
         });
       })
       .catch((error) => {
-        console.error('API 호출 오류:', error);
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
   
@@ -83,11 +85,12 @@ const VotePage = () => {
         setSelectedScheduleIds(votedScheduleIds);
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -104,11 +107,12 @@ const VotePage = () => {
         setSelectedPlaceIds(votedPlaceIds);
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -129,11 +133,12 @@ const VotePage = () => {
         setIsPlaceVoted(placeVoted);
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 
@@ -161,11 +166,12 @@ const VotePage = () => {
         return Promise.all([fetchScheduleVoteItems(), fetchPlaceVoteItems()]);
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };  
 
@@ -198,11 +204,12 @@ const VotePage = () => {
           navigate('/');
         })
         .catch((error) => {
-          if (error.code === "403") {
-            navigate("/Unauthorized");
-          } else if (error.code === "404") {
-            navigate("/not-found");
-          }
+          const onClose = error.code === "403"
+            ? () => navigate("/auth/login")
+            : error.code === "404"
+            ? () => navigate("/post/list")
+            : undefined;
+          showError(error.message || "오류가 발생했습니다.", onClose);
         });
     }
   };

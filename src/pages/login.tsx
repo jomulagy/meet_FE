@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { server } from "@/utils/axios";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 const rest_api_key = import.meta.env.VITE_REST_API_KEY; //REST API KEY
 const redirect_uri = import.meta.env.VITE_BASE_URL + "/auth/kakao/redirect"; //Redirect URI
@@ -47,6 +48,7 @@ export const KakaoCode = () => {
   const [kakaoTokens, setKakaoTokens] = useState<KakaoTokens | null>(null);
   const [isRequestingToken, setIsRequestingToken] = useState(false);
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
 
   useEffect(() => {
     if (code && !isRequestingToken && !kakaoTokens) {
@@ -116,9 +118,7 @@ export const KakaoCode = () => {
           }
         })
         .catch((error) => {
-          if (error.code === "403") {
-            navigate("/Unauthorized");
-          }
+          showError(error.message || "로그인 중 오류가 발생했습니다.", () => navigate("/auth/login"));
         });
     }
   }, [kakaoTokens, navigate]);

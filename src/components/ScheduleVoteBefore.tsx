@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import { Schedule } from "@/types/ScheduleVote";
 import { createTimeTouchHandlers, createTimeWheelHandler } from "@/utils/timeInput";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 type ScheduleVoteBeforeProps = {
   meetId: string;
@@ -25,6 +26,7 @@ const ScheduleVoteBefore = ({
   const [isAdding, setIsAdding] = useState<boolean>(false); 
   const timeTouchHandlers = createTimeTouchHandlers(setNewTime);
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
 
   // 컴포넌트 마운트 시 초기 일정 목록 설정
   useEffect(() => {
@@ -69,11 +71,12 @@ const ScheduleVoteBefore = ({
       setIsAdding(false);
     })
     .catch((error) => {
-      if (error.code === "403") {
-        navigate("/Unauthorized");
-      } else if (error.code === "404") {
-        navigate("/not-found");
-      }
+      const onClose = error.code === "403"
+        ? () => navigate("/auth/login")
+        : error.code === "404"
+        ? () => navigate("/post/list")
+        : undefined;
+      showError(error.message || "오류가 발생했습니다.", onClose);
     });
   };
 
@@ -87,11 +90,12 @@ const ScheduleVoteBefore = ({
         );
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        }
+        const onClose = error.code === "403"
+          ? () => navigate("/auth/login")
+          : error.code === "404"
+          ? () => navigate("/post/list")
+          : undefined;
+        showError(error.message || "오류가 발생했습니다.", onClose);
       });
   };
 

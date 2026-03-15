@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 import FooterNav from "../../components/FooterNav";
 import SearchPopup from "../../components/popUp/PlaceSearch";
 import { createTimeTouchHandlers, createTimeWheelHandler } from "@/utils/timeInput";
@@ -9,6 +10,7 @@ type VotePlace = { name: string; xPos: string; yPos: string };
 
 const MeetVote = () => {
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
   const [hasPrivilege, setHasPrivilege] = useState<boolean | undefined>(undefined);
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -112,13 +114,7 @@ const MeetVote = () => {
         navigate("/");
       })
       .catch((error) => {
-        if (error.code === "403") {
-          navigate("/Unauthorized");
-        } else if (error.code === "404") {
-          navigate("/not-found");
-        } else {
-          alert("투표 생성에 실패했습니다.");
-        }
+        showError(error.message || "투표 생성에 실패했습니다.");
       })
       .finally(() => {
         setIsSubmitting(false);

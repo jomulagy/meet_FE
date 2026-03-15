@@ -2,18 +2,25 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FooterNav from "../../components/FooterNav";
 import { fetchFineList, updateFinePayment, type FineRecord } from "../../api/attendance";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 const FINE_AMOUNT = 30000;
 
 const FineManagement: React.FC = () => {
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
   const [fines, setFines] = useState<FineRecord[]>([]);
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchFineList()
       .then(setFines)
-      .catch(() => navigate("/not-found"));
+      .catch((error: any) => {
+        const onClose = error?.code === "403"
+          ? () => navigate("/auth/login")
+          : () => navigate("/post/list");
+        showError(error?.message || "데이터를 불러오는 중 오류가 발생했습니다.", onClose);
+      });
   }, [navigate]);
 
   const handleToggle = async (fine: FineRecord) => {

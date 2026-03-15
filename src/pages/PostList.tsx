@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { server } from "@/utils/axios";
 import FooterNav from "../components/FooterNav";
 import { Post } from "@/types/Post";
+import { useErrorPopup } from "@/context/ErrorPopupContext";
 
 const TYPE_ORDER = ["회식", "여행", "투표", "공지"];
 
@@ -10,6 +11,7 @@ const PostList: React.FC = () => {
   const [postList, setPostList] = useState<Post[]>([]);
   const [selectedType, setSelectedType] = useState<string>(TYPE_ORDER[0]);
   const navigate = useNavigate();
+  const { showError } = useErrorPopup();
   const filteredPosts = postList;
 
   useEffect(() => {
@@ -22,8 +24,7 @@ const PostList: React.FC = () => {
           setPostList(response.data);
         })
         .catch((error) => {
-          console.error(error);
-          navigate("/not-found");
+          showError(error?.message || "데이터를 불러오는 중 오류가 발생했습니다.");
         });
     };
 
