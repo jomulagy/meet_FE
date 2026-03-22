@@ -15,7 +15,9 @@ const MeetVote = () => {
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [voteTitle, setVoteTitle] = useState<string>("");
-  const [voteDate, setVoteDate] = useState<string>("");
+  const [voteYear, setVoteYear] = useState<string>("");
+  const [voteMonth, setVoteMonth] = useState<string>("");
+  const [voteDay, setVoteDay] = useState<string>("");
   const [voteTime, setVoteTime] = useState<string>("");
   const [votePlace, setVotePlace] = useState<VotePlace>({
     name: "",
@@ -33,13 +35,9 @@ const MeetVote = () => {
   }, []);
 
   useEffect(() => {
-    if (hasPrivilege === undefined) {
-      return;
-    }
-
+    if (hasPrivilege === undefined) return;
     if (!hasPrivilege) {
       window.location.href = "/Unauthorized";
-      return;
     }
   }, [hasPrivilege]);
 
@@ -54,13 +52,26 @@ const MeetVote = () => {
       });
   };
 
-  const isSchedulePairIncomplete = useMemo(() => {
-    return (voteDate && !voteTime) || (!voteDate && voteTime);
-  }, [voteDate, voteTime]);
+  // "empty" | "yearMonth" | "full" | "invalid"
+  const dateInputState = useMemo(() => {
+    const hasYear = voteYear !== "";
+    const hasMonth = voteMonth !== "";
+    const hasDay = voteDay !== "";
+    const hasTime = voteTime !== "";
+
+    if (!hasYear && !hasMonth && !hasDay && !hasTime) return "empty";
+    if (hasYear && hasMonth && !hasDay && !hasTime) return "yearMonth";
+    if (hasYear && hasMonth && hasDay && hasTime) return "full";
+    return "invalid";
+  }, [voteYear, voteMonth, voteDay, voteTime]);
+
+  const isDateInvalid = dateInputState === "invalid";
 
   const resetVoteForm = () => {
     setVoteTitle("");
-    setVoteDate("");
+    setVoteYear("");
+    setVoteMonth("");
+    setVoteDay("");
     setVoteTime("");
     setVotePlace({ name: "", xPos: "", yPos: "" });
     setVoteContent("");
@@ -71,25 +82,32 @@ const MeetVote = () => {
     event.preventDefault();
 
     if (!voteTitle.trim()) {
-      alert("투표 제목을 입력해 주세요");
+      showError("투표 제목을 입력해 주세요");
       return;
     }
 
-    if (isSchedulePairIncomplete) {
-      alert("날짜와 시간은 함께 입력하거나 비워 주세요");
+    if (isDateInvalid) {
+      showError("날짜는 연/월 또는 연/월/일/시간을 함께 입력해 주세요");
       return;
     }
 
     if (!voteDeadline) {
-      alert("투표 마감일을 선택해 주세요");
+      showError("투표 마감일을 선택해 주세요");
       return;
     }
 
     setIsSubmitting(true);
 
+    let voteDateValue: string | null = null;
+    if (dateInputState === "yearMonth") {
+      voteDateValue = `${voteYear}-${String(voteMonth).padStart(2, "0")}`;
+    } else if (dateInputState === "full") {
+      voteDateValue = `${voteYear}-${String(voteMonth).padStart(2, "0")}-${String(voteDay).padStart(2, "0")}`;
+    }
+
     const payload = {
       title: voteTitle.trim(),
-      date: voteDate || null,
+      date: voteDateValue,
       time: voteTime || null,
       place: votePlace.name ? votePlace.name : null,
       content: voteContent,
@@ -97,20 +115,14 @@ const MeetVote = () => {
     };
 
     server
-      .post("/post/create/meet", {
-        data: payload,
-      })
+      .post("/post/create/meet", { data: payload })
       .then((response) => {
         const createdMeetId = response.data?.meetId ?? response.data?.id;
-
         resetVoteForm();
-
         if (createdMeetId) {
           navigate(`/post/${createdMeetId}`);
           return;
         }
-
-        alert("투표가 생성되었습니다.");
         navigate("/");
       })
       .catch((error) => {
@@ -122,18 +134,20 @@ const MeetVote = () => {
   };
 
   const handlePopupSelect = (location: { x: string; y: string; address: string }) => {
-    setVotePlace({
-      name: location.address,
-      xPos: location.x,
-      yPos: location.y,
-    });
+    setVotePlace({ name: location.address, xPos: location.x, yPos: location.y });
     setIsPopupOpen(false);
   };
 
+  const selectClass =
+    "rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-3 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none";
+
   const renderVoteForm = () => (
     <form className="space-y-6" onSubmit={handleVoteSubmit}>
+      {/* 제목 */}
       <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">투표 제목<span className="ml-1 text-[#FF3B30]">*</span></label>
+        <label className="text-xs text-[#8E8E93] sm:text-sm">
+          투표 제목<span className="ml-1 text-[#FF3B30]">*</span>
+        </label>
         <input
           type="text"
           value={voteTitle}
@@ -143,16 +157,60 @@ const MeetVote = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
+      {/* 날짜 */}
+      <div className="space-y-4 text-left">
         <div className="space-y-2">
           <label className="text-xs text-[#8E8E93] sm:text-sm">날짜</label>
-          <input
-            type="date"
-            value={voteDate}
-            onChange={(e) => setVoteDate(e.target.value)}
-            className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
-          />
+          <div className="flex items-center gap-1.5">
+            {/* 년 — 직접 입력 */}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="년"
+              value={voteYear}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                setVoteYear(val);
+              }}
+              className={`${selectClass} w-20 text-center`}
+            />
+            <span className="font-semibold text-[#8E8E93]">/</span>
+            {/* 월 — select */}
+            <select
+              value={voteMonth}
+              onChange={(e) => setVoteMonth(e.target.value)}
+              className={`${selectClass} w-20`}
+            >
+              <option value="">월</option>
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={String(i + 1)}>
+                  {i + 1}월
+                </option>
+              ))}
+            </select>
+            <span className="font-semibold text-[#8E8E93]">/</span>
+            {/* 일 — select */}
+            <select
+              value={voteDay}
+              onChange={(e) => {
+                setVoteDay(e.target.value);
+                if (!e.target.value) setVoteTime("");
+              }}
+              className={`${selectClass} w-20`}
+            >
+              <option value="">일</option>
+              {Array.from({ length: 31 }, (_, i) => (
+                <option key={i + 1} value={String(i + 1)}>
+                  {i + 1}일
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="text-[11px] text-[#8E8E93]">연/월 또는 연/월/일/시간 조합으로 입력하세요</p>
         </div>
+
+        {/* 시간 — 일이 선택된 경우에만 활성화 */}
         <div className="space-y-2">
           <label className="text-xs text-[#8E8E93] sm:text-sm">시간</label>
           <input
@@ -162,14 +220,21 @@ const MeetVote = () => {
             onWheel={createTimeWheelHandler(setVoteTime)}
             {...timeTouchHandlers}
             step="300"
-            className="w-full rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
+            disabled={!voteDay}
+            className={`w-full rounded-xl border border-[#E5E5EA] px-4 py-3 text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg ${
+              !voteDay ? "cursor-not-allowed bg-[#E5E5EA] text-[#C7C7CC]" : "bg-[#F9F9FB]"
+            }`}
           />
         </div>
-      </div>
-      {isSchedulePairIncomplete && (
-        <p className="text-left text-xs text-[#FF3B30] sm:text-sm">날짜와 시간은 함께 입력해야 합니다.</p>
-      )}
 
+        {isDateInvalid && (
+          <p className="text-xs text-[#FF3B30] sm:text-sm">
+            날짜는 연/월 또는 연/월/일/시간을 함께 입력해야 합니다.
+          </p>
+        )}
+      </div>
+
+      {/* 장소 */}
       <div className="space-y-2 text-left">
         <label className="text-xs text-[#8E8E93] sm:text-sm">장소</label>
         <div className="relative">
@@ -180,7 +245,7 @@ const MeetVote = () => {
             onFocus={() => setIsPopupOpen(true)}
             onClick={() => setIsPopupOpen(true)}
             placeholder="장소를 선택해 주세요"
-            className="w-full cursor-pointer rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-base font-semibold text-left focus:border-[#FFE607] focus:outline-none sm:text-lg"
+            className="w-full cursor-pointer rounded-xl border border-[#E5E5EA] bg-[#F9F9FB] px-4 py-3 text-left text-base font-semibold focus:border-[#FFE607] focus:outline-none sm:text-lg"
           />
           {votePlace.name && (
             <button
@@ -194,6 +259,7 @@ const MeetVote = () => {
         </div>
       </div>
 
+      {/* 내용 */}
       <div className="space-y-2 text-left">
         <label className="text-xs text-[#8E8E93] sm:text-sm">내용</label>
         <textarea
@@ -205,8 +271,11 @@ const MeetVote = () => {
         />
       </div>
 
+      {/* 투표 마감일 */}
       <div className="space-y-2 text-left">
-        <label className="text-xs text-[#8E8E93] sm:text-sm">투표 마감일<span className="ml-1 text-[#FF3B30]">*</span></label>
+        <label className="text-xs text-[#8E8E93] sm:text-sm">
+          투표 마감일<span className="ml-1 text-[#FF3B30]">*</span>
+        </label>
         <input
           type="date"
           value={voteDeadline}
@@ -215,6 +284,7 @@ const MeetVote = () => {
         />
       </div>
 
+      {/* 버튼 */}
       <div className="grid grid-cols-2 gap-3 pt-4">
         <button
           type="button"
