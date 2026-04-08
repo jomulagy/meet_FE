@@ -29,7 +29,7 @@ const MeetEdit: React.FC = () => {
     if (meetId) {
       // 비동기 데이터 가져오기
       server
-        .get(`/meet?meetId=${meetId}`) //meetId에 해당하는 정보 get
+        .get(`/post?meetId=${meetId}`) //meetId에 해당하는 정보 get
         .then((response) => {
           setTitle(response.data.title || "");
           setDate(response.data.date?.value || "");
@@ -43,7 +43,7 @@ const MeetEdit: React.FC = () => {
         })
         .catch((error) => {
           const onClose = error.code === "403"
-            ? () => navigate("/auth/login")
+            ? () => navigate(-1)
             : () => navigate("/post/list");
           showError(error.message || "데이터를 불러오는 중 오류가 발생했습니다.", onClose);
         });
@@ -70,7 +70,7 @@ const MeetEdit: React.FC = () => {
 
     //서버로 데이터를 전송
     server
-      .put(`/meet?meetId=${meetId}`, {
+      .put(`/post?meetId=${meetId}`, {
         data: {
           title,
           content,

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(grep -r \"server\\\\.delete\\\\|server\\\\.put\" C:UsersjomulDesktopmeet_FE/src --include=*.ts --include=*.tsx)"
+    ]
+  }
+}

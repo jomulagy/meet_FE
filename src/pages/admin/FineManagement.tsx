@@ -17,7 +17,7 @@ const FineManagement: React.FC = () => {
       .then(setFines)
       .catch((error: any) => {
         const onClose = error?.code === "403"
-          ? () => navigate("/auth/login")
+          ? () => navigate(-1)
           : () => navigate("/post/list");
         showError(error?.message || "데이터를 불러오는 중 오류가 발생했습니다.", onClose);
       });

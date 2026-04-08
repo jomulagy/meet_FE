@@ -58,7 +58,7 @@ const PlaceVoteBefore = ({
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? undefined
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;
@@ -74,7 +74,7 @@ const PlaceVoteBefore = ({
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? undefined
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;
@@ -119,7 +119,7 @@ const PlaceVoteBefore = ({
       .catch((error) => {
         const code = error.code ?? String(error.response?.status);
         const onClose = code === "403"
-          ? () => navigate("/auth/login")
+          ? undefined
           : code === "404"
           ? () => navigate("/post/list")
           : undefined;

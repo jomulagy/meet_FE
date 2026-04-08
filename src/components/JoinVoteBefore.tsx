@@ -33,7 +33,7 @@ const JoinVoteBefore = ({
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? undefined
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;

@@ -63,7 +63,7 @@ const VotePage = () => {
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? () => navigate(-1)
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;
@@ -86,7 +86,7 @@ const VotePage = () => {
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? () => navigate(-1)
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;
@@ -108,7 +108,7 @@ const VotePage = () => {
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? () => navigate(-1)
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;
@@ -134,7 +134,7 @@ const VotePage = () => {
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? () => navigate(-1)
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;
@@ -167,7 +167,7 @@ const VotePage = () => {
       })
       .catch((error) => {
         const onClose = error.code === "403"
-          ? () => navigate("/auth/login")
+          ? undefined
           : error.code === "404"
           ? () => navigate("/post/list")
           : undefined;
@@ -199,13 +199,13 @@ const VotePage = () => {
   const handleDelete = () => {
     if (meetId) {
       server
-        .delete(`/meet?meetId=${meetId}`)
+        .delete(`/post?meetId=${meetId}`)
         .then(() => {
           navigate('/');
         })
         .catch((error) => {
           const onClose = error.code === "403"
-            ? () => navigate("/auth/login")
+            ? undefined
             : error.code === "404"
             ? () => navigate("/post/list")
             : undefined;
